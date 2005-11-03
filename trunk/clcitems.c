@@ -417,7 +417,6 @@ void * AddTempGroup(HWND hwnd,struct ClcData *dat,const char *szName,DWORD flags
      {
         char buf[20];
         char b2[255];
-		int l;
         void * res=NULL;
 		_snprintf(buf,sizeof(buf),"%d",(i-1));
         _snprintf(b2,sizeof(b2),"#%s",szName);

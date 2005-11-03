@@ -120,10 +120,12 @@ CRITICAL_SECTION skin_cs={0};
 int LockSkin()
 {
 	EnterCriticalSection(&skin_cs);
+	return 0;
 }
 int UnlockSkin()
 {
 	LeaveCriticalSection(&skin_cs);
+	return 0;
 }
 int LoadSkinModule()
 {

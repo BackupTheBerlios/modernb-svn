@@ -591,7 +591,8 @@ void InternalPaintRowItems(HWND hwnd, HDC hdcMem, struct ClcData *dat, struct Cl
           max_width = dat->avatars_size;
 
         // Has to draw?
-        if ((dat->use_avatar_service && (Drawing->avatar_data == NULL))// ||!Drawing->avatar_data->hContact))
+        if ((dat->use_avatar_service && (Drawing->avatar_data == NULL))
+		  || (Drawing->avatar_data &&(Drawing->avatar_data->bmHeight*Drawing->avatar_data->bmWidth==0))
           || (!dat->use_avatar_service && Drawing->avatar_pos == AVATAR_POS_DONT_HAVE))
         {
           // Don't have to draw avatar
