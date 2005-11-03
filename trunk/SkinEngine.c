@@ -1704,11 +1704,11 @@ int AlphaTextOut (HDC hDC, LPCTSTR lpString, int nCount, RECT * lpRect, UINT for
     for(i=0;i<256;i++)
     {
       double f;
-      double gamma=(double)DBGetContactSettingDword(NULL,"ModernData","AlphaTextOutGamma",700)/1000;
+      double gamma=(double)DBGetContactSettingDword(NULL,"ModernData","AlphaTextOutGamma",800)/1000;
       f=(double)i/255;
       f=pow(f,(1/gamma));
       weight[i]=(BYTE)(255*f);
-	  weight2[i]=(BYTE)(255*f);
+	  weight2[i]=(BYTE)(i);//>128)?(i/2)+128:0;
     }
     weightfilled=1;
   }
@@ -1826,11 +1826,11 @@ int AlphaTextOut (HDC hDC, LPCTSTR lpString, int nCount, RECT * lpRect, UINT for
             if (r<bufpix[2]) rx=weight[rx];            //
 			*/
 			//if (b<bufpix[0]) 
-				bx=weight2[bx];            // Next we had some visual effects... at dark on light we should correct collors too
+				bx=weight2[bx]*ax>>8;            // Next we had some visual effects... at dark on light we should correct collors too
             //if (g<bufpix[1]) 
-				gx=weight2[gx];            // otherwise black font will be bolder, errors are due to we paint mask as white on black
+				gx=weight2[gx]*ax>>8;            // otherwise black font will be bolder, errors are due to we paint mask as white on black
             //if (r<bufpix[2]) 
-				rx=weight2[rx];  
+				rx=weight2[rx]*ax>>8;  
 
             bufpix[0]=(BYTE)(((DWORD)(bx*b+bufpix[0]*(BYTE)(~bx)))/255);
             bufpix[1]=(BYTE)(((DWORD)(gx*g+bufpix[1]*(BYTE)(~gx)))/255);
@@ -2179,9 +2179,9 @@ BOOL ImageList_DrawEx_New( HIMAGELIST himl,int i,HDC hdcDst,int x,int y,int dx,i
             BYTE a;
             a=((BYTE*)src)[3]>0?((BYTE*)src)[3]:255;
             ((BYTE*)dest)[3]=a;
-            ((BYTE*)dest)[0]=((BYTE*)src)[0]*a/255;
-            ((BYTE*)dest)[1]=((BYTE*)src)[1]*a/255;
-            ((BYTE*)dest)[2]=((BYTE*)src)[2]*a/255;
+            ((BYTE*)dest)[0]=((BYTE*)src)[0];//*a/255;
+            ((BYTE*)dest)[1]=((BYTE*)src)[1];//*a/255;
+            ((BYTE*)dest)[2]=((BYTE*)src)[2];//*a/255;
             dest=dest;
           }
         }
