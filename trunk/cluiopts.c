@@ -52,7 +52,7 @@ int CluiOptInit(WPARAM wParam,LPARAM lParam)
   odp.cbSize=sizeof(odp);
   odp.position=0;
   odp.hInstance=g_hInst;
-  odp.pszTemplate=MAKEINTRESOURCE(IDD_OPT_CLUI);
+  odp.pszTemplate=MAKEINTRESOURCEA(IDD_OPT_CLUI);
   odp.pszTitle=Translate("Window");
   odp.pszGroup=Translate("Contact List");
   odp.pfnDlgProc=DlgProcCluiOpts;
@@ -61,7 +61,7 @@ int CluiOptInit(WPARAM wParam,LPARAM lParam)
   odp.expertOnlyControls=expertOnlyControls;
   odp.nExpertOnlyControls=sizeof(expertOnlyControls)/sizeof(expertOnlyControls[0]);
   CallService(MS_OPT_ADDPAGE,wParam,(LPARAM)&odp);
-  odp.pszTemplate=MAKEINTRESOURCE(IDD_OPT_SBAR);
+  odp.pszTemplate=MAKEINTRESOURCEA(IDD_OPT_SBAR);
   odp.pszTitle=Translate("Status Bar");
   odp.pfnDlgProc=DlgProcSBarOpts;
   odp.flags=ODPF_BOLDGROUPS|ODPF_EXPERTONLY;
@@ -608,7 +608,7 @@ static BOOL CALLBACK DlgProcSBarOpts(HWND hwndDlg, UINT msg, WPARAM wParam, LPAR
           fnt.Flags=CF_SCREENFONTS|CF_INITTOLOGFONTSTRUCT;
           fnt.lpLogFont=&lf;
           ChooseFont(&fnt);
-		  SendMessage(GetParent(hwndDlg), PSM_CHANGED, (WPARAM)hwndDlg, 0);
+		      SendMessage(GetParent(hwndDlg), PSM_CHANGED, (WPARAM)hwndDlg, 0);
           return 0;
       } 
     }
@@ -660,19 +660,15 @@ static BOOL CALLBACK DlgProcSBarOpts(HWND hwndDlg, UINT msg, WPARAM wParam, LPAR
 		  long sz;
 		  if(lf.lfHeight<0) 
 		  {
-			  HDC hdc;
-			  SIZE size;
-			  HFONT old;
+        int a;
 			  HFONT hFont=CreateFontIndirect(&lf);
-			  hdc=GetDC(hwndDlg);
-			  old=SelectObject(hdc,hFont);
-			  GetTextExtentPoint32(hdc,"_W",2,&size);
-			  SelectObject(hdc,old);		  
-			  DeleteObject(hFont);
-			  ReleaseDC(hwndDlg,hdc);
-			  sz=size.cy;
+			  HDC hdc=GetDC(NULL);
+        a=-MulDiv(lf.lfHeight,72,GetDeviceCaps(hdc, LOGPIXELSY));
+			  ReleaseDC(NULL,hdc);
+			  sz=a;
 		  }
 		  else sz=lf.lfHeight;
+
 		  style|=lf.lfWeight==FW_BOLD?DBFONTF_BOLD:0;
 		  style|=lf.lfItalic?DBFONTF_ITALIC:0;
 		  style|=lf.lfUnderline?DBFONTF_UNDERLINE:0;

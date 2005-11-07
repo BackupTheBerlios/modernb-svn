@@ -31,17 +31,17 @@ extern HANDLE hHideInfoTipEvent;
 extern BOOL ON_SIZING_CYCLE;
 extern void InvalidateDisplayNameCacheEntry(HANDLE hContact);
 
-char *GetGroupCountsText(struct ClcData *dat,struct ClcContact *contact)
+TCHAR *GetGroupCountsText(struct ClcData *dat,struct ClcContact *contact)
 {
-	static char szName[32];
+	static TCHAR szName[32];
 	int onlineCount,totalCount;
 	struct ClcGroup *group,*topgroup;
-  if (IsBadCodePtr((FARPROC)contact) || IsBadCodePtr((FARPROC)dat)) return "";
+  if (IsBadCodePtr((FARPROC)contact) || IsBadCodePtr((FARPROC)dat)) return NULL;
 	if(contact->type!=CLCIT_GROUP || !(dat->exStyle&CLS_EX_SHOWGROUPCOUNTS))
-		return "";
+		return NULL;
 	group=topgroup=contact->group;
 	onlineCount=0;
-  if (IsBadCodePtr((FARPROC)group)) return "";
+  if (IsBadCodePtr((FARPROC)group)) return NULL;
 	totalCount=group->totalMembers;
 	group->scanIndex=0;
 	for(;;) {
@@ -59,9 +59,9 @@ char *GetGroupCountsText(struct ClcData *dat,struct ClcContact *contact)
 			if(group->contact[group->scanIndex].flags&CONTACTF_ONLINE && !group->contact[group->scanIndex].isSubcontact) onlineCount++;
 		group->scanIndex++;
 	}
-	if(onlineCount==0 && dat->exStyle&CLS_EX_HIDECOUNTSWHENEMPTY) return "";
-	_snprintf(szName,sizeof(szName),"(%u/%u)",onlineCount,totalCount);
-	return szName;
+	if(onlineCount==0 && dat->exStyle&CLS_EX_HIDECOUNTSWHENEMPTY) return NULL;
+	_sntprintf(szName,sizeof(szName),TEXT("(%u/%u)"),onlineCount,totalCount);
+	return mir_strdupT(szName);
 }
 
 BOOL RectHitTest(RECT *rc, int testx, int testy)
@@ -343,7 +343,7 @@ void DoSelectionDefaultAction(HWND hwnd,struct ClcData *dat)
 		CallService(MS_CLIST_CONTACTDOUBLECLICKED,(WPARAM)contact->hContact,0);
 }
 
-int FindRowByText(HWND hwnd,struct ClcData *dat,const char *text,int prefixOk)
+int FindRowByText(HWND hwnd,struct ClcData *dat,const TCHAR *text,int prefixOk)
 {
 	struct ClcGroup *group=&dat->list;
 	int testlen=lstrlen(text);
@@ -357,7 +357,7 @@ int FindRowByText(HWND hwnd,struct ClcData *dat,const char *text,int prefixOk)
 			continue;
 		}
 		if(group->contact[group->scanIndex].type!=CLCIT_DIVIDER) {
-			if((prefixOk && !_strnicmp(text,group->contact[group->scanIndex].szText,testlen)) ||
+			if((prefixOk && !_tcsnicmp(text,group->contact[group->scanIndex].szText,testlen)) ||
 			   (!prefixOk && !lstrcmpi(text,group->contact[group->scanIndex].szText))) {
 				struct ClcGroup *contactGroup=group;
 				int contactScanIndex=group->scanIndex;
@@ -386,27 +386,27 @@ void EndRename(HWND hwnd,struct ClcData *dat,int save)
 	if(dat->hwndRenameEdit==NULL) return;
 	dat->hwndRenameEdit=NULL;
 	if(save) {
-		char text[120];
+		TCHAR text[120];
 		struct ClcContact *contact;
 		GetWindowText(hwndEdit,text,sizeof(text));
 		if(GetRowByIndex(dat,dat->selection,&contact,NULL)!=-1) {
 			if(lstrcmp(contact->szText,text)) {
-				if(contact->type==CLCIT_GROUP&&!strstr(text,"\\")) {
-					char szFullName[256];
+				if(contact->type==CLCIT_GROUP&&!_tcsstr(text,TEXT("\\"))) {
+					TCHAR szFullName[256];
 					if(contact->group->parent && contact->group->parent->parent)
-						_snprintf(szFullName,sizeof(szFullName),"%s\\%s",(char*)CallService(MS_CLIST_GROUPGETNAME2,(WPARAM)contact->group->parent->groupId,(LPARAM)(int*)NULL),text);
+						_sntprintf(szFullName,sizeof(szFullName),TEXT("%s\\%s"),(char*)CallService(MS_CLIST_GROUPGETNAME2,(WPARAM)contact->group->parent->groupId,(LPARAM)(int*)NULL),text); ///TODO: SECOND PARAM -Unicode
 					else lstrcpyn(szFullName,text,sizeof(szFullName));
-					CallService(MS_CLIST_GROUPRENAME,contact->groupId,(LPARAM)szFullName);
+					CallService(MS_CLIST_GROUPRENAME,contact->groupId,(LPARAM)szFullName); //TODO: UNICODE
 				}
 				else if(contact->type==CLCIT_CONTACT) {
-					char *otherName=(char*)CallService(MS_CLIST_GETCONTACTDISPLAYNAME,(WPARAM)contact->hContact,GCDNF_NOMYHANDLE);
+					TCHAR *otherName=(TCHAR*)CallService(MS_CLIST_GETCONTACTDISPLAYNAME,(WPARAM)contact->hContact,GCDNF_NOMYHANDLE/*|TODO: UNICODE*/);
 					InvalidateDisplayNameCacheEntry(contact->hContact);
-					if(text[0]=='\0') {
+					if(text[0]==TEXT('\0')) {
 						DBDeleteContactSetting(contact->hContact,"CList","MyHandle");
 					}
 					else {
 						if(!lstrcmp(otherName,text)) DBDeleteContactSetting(contact->hContact,"CList","MyHandle");
-						else DBWriteContactSettingString(contact->hContact,"CList","MyHandle",text);
+						else DBWriteContactSettingTString(contact->hContact,"CList","MyHandle",text);
 					}
 					if (otherName) mir_free(otherName);
 				}
@@ -510,7 +510,7 @@ void BeginRenameSelection(HWND hwnd,struct ClcData *dat)
       else if (dat->row_align_group_mode==2) a|=ES_RIGHT;
     }
     //if (dat->text_rtl) a|=EN_ALIGN_RTL_EC;
-	  dat->hwndRenameEdit=CreateWindow("EDIT",contact->szText,WS_POPUP|WS_BORDER|ES_AUTOHSCROLL|a,x,y,w,h,hwnd,NULL,g_hInst,NULL);
+	  dat->hwndRenameEdit=CreateWindow(TEXT("EDIT"),contact->szText,WS_POPUP|WS_BORDER|ES_AUTOHSCROLL|a,x,y,w,h,hwnd,NULL,g_hInst,NULL);
   }
     SetWindowLong(dat->hwndRenameEdit,GWL_STYLE,GetWindowLong(dat->hwndRenameEdit,GWL_STYLE)&(~WS_CAPTION)|WS_BORDER);
     SetWindowLong(dat->hwndRenameEdit,GWL_USERDATA,(LONG)dat);
@@ -678,7 +678,7 @@ void LoadClcOptions(HWND hwnd,struct ClcData *dat)
             
 			dat->fontInfo[i].changed=0;
 			holdfont=SelectObject(hdc,dat->fontInfo[i].hFont);
-			GetTextExtentPoint32(hdc,"x",1,&fontSize);
+			GetTextExtentPoint32A(hdc,"x",1,&fontSize);
 			dat->fontInfo[i].fontHeight=fontSize.cy;
 //			if(fontSize.cy>dat->rowHeight && (!DBGetContactSettingByte(NULL,"CLC","DoNotCheckFontSize",0))) dat->rowHeight=fontSize.cy;
 			if(holdfont) SelectObject(hdc,holdfont);
@@ -752,7 +752,7 @@ void LoadClcOptions(HWND hwnd,struct ClcData *dat)
 		
 		if (!DBGetContactSetting(NULL, "CList","SecondLineText", &dbv))
 		{
-			lstrcpyn(dat->second_line_text, dbv.pszVal, sizeof(dat->second_line_text)-1);
+			lstrcpynA(dat->second_line_text, dbv.pszVal, sizeof(dat->second_line_text)-1);
 			dat->second_line_text[sizeof(dat->second_line_text)-1] = '\0';
 			DBFreeVariant(&dbv);
 		}
@@ -774,7 +774,7 @@ void LoadClcOptions(HWND hwnd,struct ClcData *dat)
 		
 		if (!DBGetContactSetting(NULL, "CList","ThirdLineText", &dbv))
 		{
-			lstrcpyn(dat->third_line_text, dbv.pszVal, sizeof(dat->third_line_text)-1);
+			lstrcpynA(dat->third_line_text, dbv.pszVal, sizeof(dat->third_line_text)-1);
 			dat->third_line_text[sizeof(dat->third_line_text)-1] = '\0';
 			DBFreeVariant(&dbv);
 		}

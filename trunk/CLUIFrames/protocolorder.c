@@ -224,8 +224,8 @@ static BOOL CALLBACK ProtocolOrderOpts(HWND hwndDlg, UINT msg, WPARAM wParam, LP
 
 			{	HIMAGELIST himlCheckBoxes;
 				himlCheckBoxes=ImageList_Create(GetSystemMetrics(SM_CXSMICON),GetSystemMetrics(SM_CYSMICON),ILC_COLOR32|ILC_MASK,2,2);
-				ImageList_AddIcon(himlCheckBoxes,LoadIcon(GetModuleHandle(NULL),MAKEINTRESOURCE(IDI_NOTICK)));
-				ImageList_AddIcon(himlCheckBoxes,LoadIcon(GetModuleHandle(NULL),MAKEINTRESOURCE(IDI_TICK)));
+				ImageList_AddIcon(himlCheckBoxes,LoadIcon(GetModuleHandle(NULL),MAKEINTRESOURCEA(IDI_NOTICK)));
+				ImageList_AddIcon(himlCheckBoxes,LoadIcon(GetModuleHandle(NULL),MAKEINTRESOURCEA(IDI_TICK)));
 				TreeView_SetImageList(GetDlgItem(hwndDlg,IDC_PROTOCOLORDER),himlCheckBoxes,TVSIL_NORMAL);
 			}
 
@@ -426,7 +426,7 @@ static int ProtocolOrderInit(WPARAM wParam,LPARAM lParam) {
 	odp.cbSize=sizeof(odp);
 	odp.position=-1000000000;
 	odp.hInstance=g_hInst;//GetModuleHandle(NULL);
-	odp.pszTemplate=MAKEINTRESOURCE(IDD_OPT_PROTOCOLORDER);
+	odp.pszTemplate=MAKEINTRESOURCEA(IDD_OPT_PROTOCOLORDER);
 	odp.pszGroup=Translate("Contact List");
 	odp.pszTitle=Translate("Protocols");
 	odp.pfnDlgProc=ProtocolOrderOpts;

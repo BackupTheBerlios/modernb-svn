@@ -40,7 +40,7 @@ SortedList lContactsCache;
 int GetNameForContact(HANDLE hContact,int flag,boolean *isUnknown);
 char *GetProtoForContact(HANDLE hContact);
 int GetStatusForContact(HANDLE hContact,char *szProto);
-char *UnknownConctactTranslatedName;
+TCHAR *UnknownConctactTranslatedName;
 extern boolean OnModulesLoadedCalled;
 void InvalidateDisplayNameCacheEntryByPDNE(HANDLE hContact,pdisplayNameCacheEntry pdnce,int SettingType);
 extern int GetClientIconByMirVer(pdisplayNameCacheEntry pdnce);
@@ -50,7 +50,7 @@ static int DumpElem( pdisplayNameCacheEntry pdnce )
 	char buf[256];
 	if (pdnce==NULL)
 	{
-		MessageBox(0,"DumpElem Called with null","",0);
+		MessageBoxA(0,"DumpElem Called with null","",0);
 		return (0);
 	}
 	if (pdnce->name) sprintf(buf,"%x: hc:%x, %s\r\n",pdnce,pdnce->hContact,pdnce->name);
@@ -226,17 +226,17 @@ void CheckPDNCE(pdisplayNameCacheEntry pdnce)
 			getedname=TRUE;
 			if (pdnce->protoNotExists)
 			{
-				pdnce->name=mir_strdup(Translate("_NoProtocol_"));
+				pdnce->name=mir_strdupT(TranslateT("_NoProtocol_"));
 			}
 			else
 			{
 				if (OnModulesLoadedCalled)
 				{
-					pdnce->name=(char *)GetNameForContact(pdnce->hContact,0,&pdnce->isUnknown);
+					pdnce->name=(TCHAR *)GetNameForContact(pdnce->hContact,0,&pdnce->isUnknown); //TODO UNICODE
 				}
 				else
 				{
-					pdnce->name=(char *)GetNameForContact(pdnce->hContact,0,NULL);
+					pdnce->name=(TCHAR *)GetNameForContact(pdnce->hContact,0,NULL); //TODO UNICODE
 				}
 			}	
 
@@ -259,7 +259,7 @@ void CheckPDNCE(pdisplayNameCacheEntry pdnce)
 					*/
 
 					mir_free(pdnce->name);
-					pdnce->name=(char *)GetNameForContact(pdnce->hContact,0,&pdnce->isUnknown);
+					pdnce->name=(TCHAR *)GetNameForContact(pdnce->hContact,0,&pdnce->isUnknown); //TODO UNICODE
 					getedname=TRUE;
 				}
 
@@ -289,12 +289,12 @@ void CheckPDNCE(pdisplayNameCacheEntry pdnce)
 
 			if (!DBGetContactSetting(pdnce->hContact,"CList","Group",&dbv))
 			{
-				pdnce->szGroup=mir_strdup(dbv.pszVal);
+				pdnce->szGroup=mir_strdup(dbv.pszVal); //TODO UNICODE
 				mir_free(dbv.pszVal);
 				DBFreeVariant(&dbv);
 			}else
 			{
-				pdnce->szGroup=mir_strdup("");
+				pdnce->szGroup=mir_strdupT(TEXT(""));
 			}
 
 		}
@@ -361,24 +361,24 @@ pdisplayNameCacheEntry GetDisplayNameCacheEntry(HANDLE hContact)
 			pdnce->hContact=hContact;
 			List_Insert(&lContactsCache,pdnce,0);
 #ifdef _DEBUG
-			OutputDebugString("List Dump after INSERTING:\n -------------------\n");
+			OutputDebugStringA("List Dump after INSERTING:\n -------------------\n");
 			List_Dump(&lContactsCache);
 #endif			
 			List_Sort(&lContactsCache);
 #ifdef _DEBUG
-			OutputDebugString("\nList Dump after SORTING:\n -------------------\n");
+			OutputDebugStringA("\nList Dump after SORTING:\n -------------------\n");
 			List_Dump(&lContactsCache);
 #endif	
 			pdnce2=List_Find(&lContactsCache,&dnce);//for check
 			if (pdnce2->hContact!=pdnce->hContact)
 			{
-				MessageBox(0,"pdnce2->hContact (after inserting and sorting) is not the same as pdnce->hContact ","Error in GetDisplayNameCacheEntry",MB_OK|MB_ICONEXCLAMATION);
+				MessageBoxA(0,"pdnce2->hContact (after inserting and sorting) is not the same as pdnce->hContact ","Error in GetDisplayNameCacheEntry",MB_OK|MB_ICONEXCLAMATION);
 				return (pdnce2);
 			};
 
 			if (pdnce2!=pdnce)
 			{
-				MessageBox(0,"pdnce2 (after inserting and sorting) is not the same as pdnce","Error in GetDisplayNameCacheEntry",MB_OK|MB_ICONEXCLAMATION);
+				MessageBoxA(0,"pdnce2 (after inserting and sorting) is not the same as pdnce","Error in GetDisplayNameCacheEntry",MB_OK|MB_ICONEXCLAMATION);
 				return (pdnce2);
 			}
 		};
@@ -519,7 +519,7 @@ int GetStatusForContact(HANDLE hContact,char *szProto)
 int GetNameForContact(HANDLE hContact,int flag,boolean *isUnknown)
 {
 	CONTACTINFO ci;
-	char *buffer;
+	TCHAR *buffer;
 	//return mir_strdup("Test"); //test
 
 	if (UnknownConctactTranslatedName==NULL) UnknownConctactTranslatedName=(Translate("'(Unknown Contact)'"));
@@ -535,11 +535,11 @@ int GetNameForContact(HANDLE hContact,int flag,boolean *isUnknown)
 		ci.dwFlag = (int)flag==GCDNF_NOMYHANDLE?CNF_DISPLAYNC:CNF_DISPLAY;
 		if (!CallService(MS_CONTACT_GETCONTACTINFO,0,(LPARAM)&ci)) {
 			if (ci.type==CNFT_ASCIIZ) {
-				buffer = (char*)mir_alloc(MyStrLen(ci.pszVal)+1);
-				_snprintf(buffer,MyStrLen(ci.pszVal)+1,"%s",ci.pszVal);
+				buffer = (TCHAR*)mir_alloc((lstrlen(ci.pszVal)+1)*sizeof(TCHAR));
+				_sntprintf(buffer,lstrlen(ci.pszVal)+1,"%s",ci.pszVal);
 				mir_free(ci.pszVal);
 				//!!! need change
-				if (isUnknown&&!MyStrCmp(buffer,UnknownConctactTranslatedName))
+				if (isUnknown&&!lstrcmp(buffer,UnknownConctactTranslatedName))
 				{
 					*isUnknown=TRUE;
 				}
@@ -549,8 +549,8 @@ int GetNameForContact(HANDLE hContact,int flag,boolean *isUnknown)
 			}
 			if (ci.type==CNFT_DWORD) {
 
-				buffer = (char*)mir_alloc(15);
-				_snprintf(buffer,15,"%u",ci.dVal);
+				buffer = (TCHAR*)mir_alloc(15*sizeof(TCHAR));
+				_sntprintf(buffer,15,"%u",ci.dVal);
 				TRACE(buffer);
 				TRACE("\n");
 				return (int)buffer;
@@ -586,7 +586,7 @@ pdisplayNameCacheEntry GetContactFullCacheEntry(HANDLE hContact)
 	}
 	return (NULL);
 }
-int GetContactInfosForSort(HANDLE hContact,char **Proto,char **Name,int *Status)
+int GetContactInfosForSort(HANDLE hContact,char **Proto,TCHAR **Name,int *Status)
 {
 	pdisplayNameCacheEntry cacheEntry=NULL;
 	cacheEntry=GetDisplayNameCacheEntry(hContact);

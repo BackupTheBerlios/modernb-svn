@@ -871,7 +871,7 @@ HMENU CLUIFramesCreateMenuForFrame(int frameid,int root,int popuppos,char *addse
   ZeroMemory(&mi,sizeof(mi));
 
   mi.cbSize=sizeof(mi);
-  mi.hIcon=LoadIcon(g_hInst,MAKEINTRESOURCE(IDI_MIRANDA));
+  mi.hIcon=LoadIcon(g_hInst,MAKEINTRESOURCEA(IDI_MIRANDA));
   mi.pszPopupName=(char *)root;
   mi.popupPosition=frameid;
   mi.position=popuppos++;
@@ -1790,7 +1790,7 @@ static int CLUIFramesLoadMainMenu()
     ZeroMemory(&mi,sizeof(mi));
     mi.cbSize=sizeof(mi);
     // create "show all frames" menu
-    mi.hIcon=NULL;//LoadIcon(g_hInst,MAKEINTRESOURCE(IDI_MIRANDA));
+    mi.hIcon=NULL;//LoadIcon(g_hInst,MAKEINTRESOURCEA(IDI_MIRANDA));
     mi.flags=CMIF_GRAYED;
     mi.position=10000000;
     mi.pszPopupName=Translate("Frames");
@@ -1799,7 +1799,7 @@ static int CLUIFramesLoadMainMenu()
     CallService(MS_CLIST_ADDMAINMENUITEM,0,(LPARAM)&mi);
 
     // create "show all frames" menu
-    mi.hIcon=NULL;//LoadIcon(g_hInst,MAKEINTRESOURCE(IDI_MIRANDA));
+    mi.hIcon=NULL;//LoadIcon(g_hInst,MAKEINTRESOURCEA(IDI_MIRANDA));
     mi.flags=0;
     mi.position=10100000;
     mi.pszPopupName=Translate("Frames");
@@ -1807,7 +1807,7 @@ static int CLUIFramesLoadMainMenu()
     mi.pszService=MS_CLIST_FRAMES_SHOWALLFRAMES;
     CallService(MS_CLIST_ADDMAINMENUITEM,0,(LPARAM)&mi);
 
-    mi.hIcon=NULL;//LoadIcon(g_hInst,MAKEINTRESOURCE(IDI_HELP));
+    mi.hIcon=NULL;//LoadIcon(g_hInst,MAKEINTRESOURCEA(IDI_HELP));
     mi.position=10100001;
     mi.pszPopupName=Translate("Frames");
     mi.flags=CMIF_CHILDPOPUP;
@@ -1825,7 +1825,7 @@ static int CLUIFramesLoadMainMenu()
   mi.cbSize=sizeof(mi);
 
   // create root menu
-  mi.hIcon=LoadIcon(g_hInst,MAKEINTRESOURCE(IDI_MIRANDA));
+  mi.hIcon=LoadIcon(g_hInst,MAKEINTRESOURCEA(IDI_MIRANDA));
   mi.flags=CMIF_ROOTPOPUP;
   mi.position=3000090000;
   mi.pszPopupName=(char*)-1;
@@ -1853,7 +1853,7 @@ static int CLUIFramesLoadMainMenu()
   separator+=100000;
 
   // create "show all frames" menu
-  mi.hIcon=NULL;//LoadIcon(g_hInst,MAKEINTRESOURCE(IDI_MIRANDA));
+  mi.hIcon=NULL;//LoadIcon(g_hInst,MAKEINTRESOURCEA(IDI_MIRANDA));
   mi.flags=CMIF_CHILDPOPUP;
   mi.position=separator++;
   mi.pszPopupName=(char*)MainMIRoot;
@@ -1862,7 +1862,7 @@ static int CLUIFramesLoadMainMenu()
   CallService(MS_CLIST_ADDMAINMENUITEM,0,(LPARAM)&mi);
 
   // create "show all titlebars" menu
-  mi.hIcon=NULL;//LoadIcon(g_hInst,MAKEINTRESOURCE(IDI_HELP));
+  mi.hIcon=NULL;//LoadIcon(g_hInst,MAKEINTRESOURCEA(IDI_HELP));
   mi.position=separator++;
   mi.pszPopupName=(char*)MainMIRoot;
   mi.flags=CMIF_CHILDPOPUP;
@@ -1871,7 +1871,7 @@ static int CLUIFramesLoadMainMenu()
   CallService(MS_CLIST_ADDMAINMENUITEM,0,(LPARAM)&mi);
 
   // create "hide all titlebars" menu
-  mi.hIcon=NULL;//LoadIcon(g_hInst,MAKEINTRESOURCE(IDI_HELP));
+  mi.hIcon=NULL;//LoadIcon(g_hInst,MAKEINTRESOURCEA(IDI_HELP));
   mi.position=separator++;
   mi.pszPopupName=(char*)MainMIRoot;
   mi.flags=CMIF_CHILDPOPUP;
@@ -3044,7 +3044,10 @@ int DrawTitleBar(HDC hdcMem2,RECT rect,int Frameid)
         SkinDrawGlyph(hdcMem,&rc,&rc,"Main,ID=FrameCaption");              
       }
       else
+      {
+        BitBlt(hdcMem,0,0,rc.right-rc.left,rc.bottom-rc.top,hdcMem2,rect.left,rect.top,SRCCOPY);
         SkinDrawGlyph(hdcMem,&rc,&rc,"Main,ID=FrameCaption");
+      }
       if (SelBkColour) 
 		  SetTextColor(hdcMem,SelBkColour);
       if (!AlignCOLLIconToLeft)
@@ -3077,10 +3080,16 @@ int DrawTitleBar(HDC hdcMem2,RECT rect,int Frameid)
   }
   {
 	  BLENDFUNCTION bf={AC_SRC_OVER, 0, 255, AC_SRC_ALPHA };
-	  if (!Frames[pos].floating)
-		MyAlphaBlend(hdcMem2,rect.left,rect.top,rc.right-rc.left,rc.bottom-rc.top,hdcMem,0,0,rc.right-rc.left,rc.bottom-rc.top,bf);
+	  if (Frames[pos].floating)
+	  {
+		  HRGN rgn=CreateRectRgn(rect.left,rect.top,rect.right,rect.bottom);
+		  SelectClipRgn(hdcMem2,rgn);
+		  BitBlt(hdcMem2,rect.left,rect.top,rc.right-rc.left,rc.bottom-rc.top,hdcMem,0,0,SRCCOPY);
+		  DeleteObject(rgn);
+	  }
 	  else
-		MyAlphaBlend(hdcMem2,rc.left,rc.top,rc.right-rc.left,rc.bottom-rc.top,hdcMem,0,0,rc.right-rc.left,rc.bottom-rc.top,bf);
+		  BitBlt(hdcMem2,rect.left,rect.top,rc.right-rc.left,rc.bottom-rc.top,hdcMem,0,0,SRCCOPY);
+		  //MyAlphaBlend(hdcMem2,rect.left,rect.top,rc.right-rc.left,rc.bottom-rc.top,hdcMem,0,0,rc.right-rc.left,rc.bottom-rc.top,bf);
   }
   ulockfrm();
   SelectObject(hdcMem,b2);
@@ -3681,17 +3690,25 @@ LRESULT CALLBACK CLUIFrameTitleBarProc(HWND hwnd, UINT msg, WPARAM wParam, LPARA
       }
       break;
     }
+  case WM_SIZE:
+	  {
+		  InvalidateRect(hwnd,NULL,FALSE);
+		  return DefWindowProc(hwnd, msg, wParam, lParam);
+	  }
   case WM_PAINT:	
     {
       HDC paintDC;
       PAINTSTRUCT paintStruct;
       if (Frames[id2pos(Frameid)].floating)
-      {
+      {	   
         GetClientRect(hwnd,&rect);	
-        paintDC = BeginPaint(hwnd, &paintStruct);
-        
-        DrawTitleBar(paintDC,rect,Frameid);
-        EndPaint(hwnd, &paintStruct);					
+		paintDC = GetDC(hwnd);
+		DrawTitleBar(paintDC,rect,Frameid);
+		ReleaseDC(hwnd,paintDC);
+		ValidateRect(hwnd,NULL);
+        //paintDC = BeginPaint(hwnd, &paintStruct);		       
+        //DrawTitleBar(paintDC,rect,Frameid);
+        //EndPaint(hwnd, &paintStruct);					
       }
       return DefWindowProc(hwnd, msg, wParam, lParam); 
     }
@@ -4313,7 +4330,7 @@ int LoadCLUIFramesModule(void)
   wndclass.cbWndExtra    = 0;
   wndclass.hInstance     = g_hInst;
   wndclass.hIcon         = NULL;
-  wndclass.hCursor       = LoadCursor(NULL, IDC_ARROW);
+  wndclass.hCursor       = LoadCursorA(NULL, IDC_ARROW);
   wndclass.hbrBackground = NULL;
   wndclass.lpszMenuName  = NULL;
   wndclass.lpszClassName = CLUIFrameTitleBarClassName;
@@ -4325,7 +4342,7 @@ int LoadCLUIFramesModule(void)
   subconclass.cbWndExtra    = 0;
   subconclass.hInstance     = g_hInst;
   subconclass.hIcon         = NULL;
-  subconclass.hCursor       = LoadCursor(NULL, IDC_ARROW);
+  subconclass.hCursor       = LoadCursorA(NULL, IDC_ARROW);
   subconclass.hbrBackground = NULL;
   subconclass.lpszMenuName  = NULL;
   subconclass.lpszClassName = CLUIFrameSubContainerClassName;
@@ -4341,7 +4358,7 @@ int LoadCLUIFramesModule(void)
   cntclass.cbWndExtra    = 0;
   cntclass.hInstance     = g_hInst;
   cntclass.hIcon         = NULL;
-  cntclass.hCursor       = LoadCursor(NULL, IDC_ARROW);
+  cntclass.hCursor       = LoadCursorA(NULL, IDC_ARROW);
   cntclass.hbrBackground = NULL;
   cntclass.lpszMenuName  = NULL;
   cntclass.lpszClassName = "FramesContainer";

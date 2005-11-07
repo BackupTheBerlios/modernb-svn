@@ -94,7 +94,7 @@ int SkinOptInit(WPARAM wParam,LPARAM lParam)
 	odp.cbSize=sizeof(odp);
 	odp.position=-1000000000;
 	odp.hInstance=g_hInst;
-	odp.pszTemplate=MAKEINTRESOURCE(IDD_OPT_SKIN);
+	odp.pszTemplate=MAKEINTRESOURCEA(IDD_OPT_SKIN);
 	odp.pszGroup=Translate("Customize");
 	odp.pszTitle=Translate("Skin");
 	odp.pfnDlgProc=DlgSkinOpts;
@@ -439,8 +439,8 @@ static BOOL CALLBACK DlgSkinOpts(HWND hwndDlg, UINT msg, WPARAM wParam, LPARAM l
 			//{
 			//  HIMAGELIST himlImages;
 			//  himlImages=ImageList_Create(GetSystemMetrics(SM_CXSMICON),GetSystemMetrics(SM_CYSMICON),ILC_COLOR32|ILC_MASK,2,2);
-			//  ImageList_AddIcon(himlImages,LoadIcon(g_hInst,MAKEINTRESOURCE(IDI_FOLDER)));
-			//  ImageList_AddIcon(himlImages,LoadIcon(g_hInst,MAKEINTRESOURCE(IDI_GLYPH)));
+			//  ImageList_AddIcon(himlImages,LoadIcon(g_hInst,MAKEINTRESOURCEA(IDI_FOLDER)));
+			//  ImageList_AddIcon(himlImages,LoadIcon(g_hInst,MAKEINTRESOURCEA(IDI_GLYPH)));
 			//  TreeView_SetImageList(GetDlgItem(hwndDlg,IDC_OBJECTSTREE),himlImages,TVSIL_NORMAL);      
 			//}
 			{
@@ -594,7 +594,7 @@ static BOOL CALLBACK DlgSkinOpts(HWND hwndDlg, UINT msg, WPARAM wParam, LPARAM l
 					GetPrivateProfileString("Skin_Description_Section","Description","",Description,sizeof(Description),sd->File);
 					_snprintf(text,sizeof(text),Translate("%s\n\n%s\n\nAuthor(s):\t %s\nContact:\t %s\nWeb:\t %s\n\nFile:\t %s"),
 						sd->Name,Description,Author,Contact,URL,sd->File);
-					MessageBox(hwndDlg,text,"Skin Information",MB_OK|MB_ICONINFORMATION);
+					MessageBoxA(hwndDlg,text,"Skin Information",MB_OK|MB_ICONINFORMATION);
 				}
 				break;
 			case IDC_BUTTON_APPLY_SKIN:

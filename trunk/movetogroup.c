@@ -19,7 +19,7 @@ static int AddGroupItem(int rootid,char *name,int pos,int poppos,WPARAM wParam)
 
 	
 	mi.cbSize=sizeof(mi);
-	mi.hIcon=NULL;//LoadIcon(hInst,MAKEINTRESOURCE(IDI_MIRANDA));
+	mi.hIcon=NULL;//LoadIcon(hInst,MAKEINTRESOURCEA(IDI_MIRANDA));
 	mi.pszPopupName=(char *)rootid;
 	mi.popupPosition=poppos;
 	mi.position=pos;
@@ -49,7 +49,7 @@ static int OnContactMenuBuild(WPARAM wParam,LPARAM lParam)
 	ZeroMemory(&mi,sizeof(mi));
 	
 	mi.cbSize=sizeof(mi);
-	mi.hIcon=NULL;//LoadIcon(hInst,MAKEINTRESOURCE(IDI_MIRANDA));
+	mi.hIcon=NULL;//LoadIcon(hInst,MAKEINTRESOURCEA(IDI_MIRANDA));
 	mi.pszPopupName=(char *)-1;
 	mi.position=100000;
 	mi.pszName=Translate("&Move to Group");
@@ -85,7 +85,7 @@ while (TRUE)
 	AddGroupItem((int)menuid,&(grpname[1]),grpid++,i+1,wParam);
 	/*
 	mi.cbSize=sizeof(mi);
-	mi.hIcon=NULL;//LoadIcon(hInst,MAKEINTRESOURCE(IDI_MIRANDA));
+	mi.hIcon=NULL;//LoadIcon(hInst,MAKEINTRESOURCEA(IDI_MIRANDA));
 	mi.pszPopupName=(char *)menuid;
 	mi.popupPosition=i+1;
 	mi.position=grpid++;
@@ -109,7 +109,7 @@ static int MTG_DOMOVE(WPARAM wParam,LPARAM lParam)
 
 if (lParam==0)
 {
-	MessageBox(0,"Wrong version of New menu system - please update.","MoveToGroup",0);
+	MessageBoxA(0,"Wrong version of New menu system - please update.","MoveToGroup",0);
 	return(0);
 };
 lParam--;
@@ -136,7 +136,7 @@ static int OnmodulesLoad(WPARAM wParam,LPARAM lParam)
 {
 if (!ServiceExists(MS_CLIST_REMOVECONTACTMENUITEM))
 {
-	MessageBox(0,"New menu system not found - plugin disabled.","MoveToGroup",0);
+	MessageBoxA(0,"New menu system not found - plugin disabled.","MoveToGroup",0);
 	return(0);
 };
 	hOnCntMenuBuild=HookEvent(ME_CLIST_PREBUILDCONTACTMENU,OnContactMenuBuild);	

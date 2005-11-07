@@ -229,7 +229,7 @@ int ParseToModernMask(ModernMask * mm, char * szText)
                   char v[MAXVALUE]={0};
                   k=currentPos-startPos;
                   if (k>MAXVALUE-1) k=MAXVALUE-1;
-				  m=min(k,MyStrLen(szText)-startPos+1);
+				          m=min((UINT)k,MyStrLen(szText)-startPos+1);
                   strncpy(v,&(szText[startPos]),k);
                   param.Value=mir_strdup(v);
                 }

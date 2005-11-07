@@ -151,13 +151,13 @@ int CluiProtocolStatusChanged(WPARAM wParam,LPARAM lParam)
 //			if(showOpts&1) x+=GetSystemMetrics(SM_CXSMICON);
 //			if(showOpts&2) {
 //				CallProtoService(curprotocol->szName,PS_GETNAME,sizeof(szName),(LPARAM)szName);
-//				if(showOpts&4 && lstrlen(szName)<sizeof(szName)-1) lstrcat(szName," ");
-//				GetTextExtentPoint32(hdc,szName,lstrlen(szName),&textSize);				
+//				if(showOpts&4 && lstrlenA(szName)<sizeof(szName)-1) lstrcatA(szName," ");
+//				GetTextExtentPoint32A(hdc,szName,lstrlenA(szName),&textSize);				
 //				x+=textSize.cx;
 //			}
 //			if(showOpts&4) {
 //				modeDescr=(char*)CallService(MS_CLIST_GETSTATUSMODEDESCRIPTION,CallProtoService(curprotocol->szName,PS_GETSTATUS,0,0),0);
-//				GetTextExtentPoint32(hdc,modeDescr,lstrlen(modeDescr),&textSize);
+//				GetTextExtentPoint32A(hdc,modeDescr,lstrlenA(modeDescr),&textSize);
 //				x+=textSize.cx;
 //			}
 //			partWidths[partCount]=(partCount?partWidths[partCount-1]:FirstIconOffset)+x+2;
@@ -259,14 +259,14 @@ int CluiProtocolStatusChanged(WPARAM wParam,LPARAM lParam)
 			if(showOpts&1) x+=GetSystemMetrics(SM_CXSMICON);
 			if(showOpts&2) {
 				CallProtoService(proto[i]->szName,PS_GETNAME,sizeof(szName),(LPARAM)szName);
-				if(showOpts&4 && lstrlen(szName)<sizeof(szName)-1) lstrcat(szName," ");
-				GetTextExtentPoint32(hdc,szName,lstrlen(szName),&textSize);				
+				if(showOpts&4 && lstrlenA(szName)<sizeof(szName)-1) lstrcatA(szName," ");
+				GetTextExtentPoint32A(hdc,szName,lstrlenA(szName),&textSize);				
 				x+=textSize.cx;				
 				x+=GetSystemMetrics(SM_CXBORDER)*4; // The SB panel doesnt allocate enough room
 			}
 			if(showOpts&4) {
 				modeDescr=(char*)CallService(MS_CLIST_GETSTATUSMODEDESCRIPTION,CallProtoService(proto[i]->szName,PS_GETSTATUS,0,0),0);
-				GetTextExtentPoint32(hdc,modeDescr,lstrlen(modeDescr),&textSize);
+				GetTextExtentPoint32A(hdc,modeDescr,lstrlenA(modeDescr),&textSize);
 				x+=textSize.cx;
 				x+=GetSystemMetrics(SM_CXBORDER)*4; // The SB panel doesnt allocate enough room
 			}			
@@ -311,11 +311,11 @@ static int GroupAdded(WPARAM wParam,LPARAM lParam)
 	//CLC does this automatically unless it's a new group
 	if(lParam) {
 		HANDLE hItem;
-		char szFocusClass[64];
+		TCHAR szFocusClass[64];
 		HWND hwndFocus=GetFocus();
 
 		GetClassName(hwndFocus,szFocusClass,sizeof(szFocusClass));
-		if(!lstrcmp(szFocusClass,CLISTCONTROL_CLASS)) {
+		if(!lstrcmp(szFocusClass,TEXT(CLISTCONTROL_CLASS))) {
 			hItem=(HANDLE)SendMessage(hwndFocus,CLM_FINDGROUP,wParam,0);
 			if(hItem) SendMessage(hwndFocus,CLM_EDITLABEL,(WPARAM)hItem,0);
 		}

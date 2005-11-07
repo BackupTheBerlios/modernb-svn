@@ -419,8 +419,8 @@ static BOOL CALLBACK GenMenuOpts(HWND hwndDlg, UINT msg, WPARAM wParam, LPARAM l
 
 			{	HIMAGELIST himlCheckBoxes;
 				himlCheckBoxes=ImageList_Create(GetSystemMetrics(SM_CXSMICON),GetSystemMetrics(SM_CYSMICON),ILC_COLOR32|ILC_MASK,2,2);
-				ImageList_AddIcon(himlCheckBoxes,LoadIcon(g_hInst,MAKEINTRESOURCE(IDI_NOTICK)));
-				ImageList_AddIcon(himlCheckBoxes,LoadIcon(g_hInst,MAKEINTRESOURCE(IDI_TICK)));
+				ImageList_AddIcon(himlCheckBoxes,LoadIcon(g_hInst,MAKEINTRESOURCEA(IDI_NOTICK)));
+				ImageList_AddIcon(himlCheckBoxes,LoadIcon(g_hInst,MAKEINTRESOURCEA(IDI_TICK)));
 				TreeView_SetImageList(GetDlgItem(hwndDlg,IDC_MENUOBJECTS),himlCheckBoxes,TVSIL_NORMAL);
 				TreeView_SetImageList(GetDlgItem(hwndDlg,IDC_MENUITEMS),himlCheckBoxes,TVSIL_NORMAL);
 
@@ -872,7 +872,7 @@ long handleCustomDraw(HWND hWndTreeView, LPNMTVCUSTOMDRAW pNMTVCD)
                     RECT rc;
                     k=1;
 
-                    GetTextExtentPoint32(pNMTVCD->nmcd.hdc,tvi.pszText,MyStrLen(tvi.pszText),&sz);
+                    GetTextExtentPoint32A(pNMTVCD->nmcd.hdc,tvi.pszText,MyStrLen(tvi.pszText),&sz);
                     
                     if (sz.cx+3>pNMTVCD->nmcd.rc.right-pNMTVCD->nmcd.rc.left) rc=pNMTVCD->nmcd.rc;
                     else SetRect(&rc,pNMTVCD->nmcd.rc.left,pNMTVCD->nmcd.rc.top,pNMTVCD->nmcd.rc.left+sz.cx+3,pNMTVCD->nmcd.rc.bottom);
@@ -908,7 +908,7 @@ int GenMenuOptInit(WPARAM wParam,LPARAM lParam)
 	odp.cbSize=sizeof(odp);
 	odp.position=-1000000000;
 	odp.hInstance=g_hInst;
-	odp.pszTemplate=MAKEINTRESOURCE(IDD_OPT_GENMENU);
+	odp.pszTemplate=MAKEINTRESOURCEA(IDD_OPT_GENMENU);
 	odp.pszGroup=Translate("Customize");
 	odp.pszTitle=Translate("Menu Order");
 	odp.pfnDlgProc=GenMenuOpts;

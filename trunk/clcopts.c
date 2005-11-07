@@ -90,7 +90,7 @@ void GetFontSetting(int i,LOGFONT *lf,COLORREF *colour)
   GetDefaultFontSetting(i,lf,colour);
   wsprintf(idstr,"Font%dName",i);
   if(!DBGetContactSetting(NULL,"CLC",idstr,&dbv)) {
-    lstrcpy(lf->lfFaceName,dbv.pszVal);
+    lstrcpyA(lf->lfFaceName,dbv.pszVal);
     mir_free(dbv.pszVal);
     DBFreeVariant(&dbv);
   }
@@ -141,19 +141,19 @@ int ClcOptInit(WPARAM wParam,LPARAM lParam)
   odp.position=0;
   odp.hInstance=g_hInst;
   odp.pszGroup=Translate("Contact List");
-  odp.pszTemplate=MAKEINTRESOURCE(IDD_OPT_CLC);
+  odp.pszTemplate=MAKEINTRESOURCEA(IDD_OPT_CLC);
   odp.pszTitle=Translate("List");
   odp.pfnDlgProc=DlgProcClcMainOpts;
   odp.flags=ODPF_BOLDGROUPS|ODPF_EXPERTONLY;
   CallService(MS_OPT_ADDPAGE,wParam,(LPARAM)&odp);
 
 
-  odp.pszTemplate=MAKEINTRESOURCE(IDD_OPT_META_CLC);
+  odp.pszTemplate=MAKEINTRESOURCEA(IDD_OPT_META_CLC);
   odp.pszTitle=Translate("Additional stuffs");
   odp.pfnDlgProc=DlgProcClcMetaOpts;
   CallService(MS_OPT_ADDPAGE,wParam,(LPARAM)&odp);
 
-  odp.pszTemplate=MAKEINTRESOURCE(IDD_OPT_CLCTEXT);
+  odp.pszTemplate=MAKEINTRESOURCEA(IDD_OPT_CLCTEXT);
   odp.pszGroup=Translate("Customize");
   odp.pszTitle=Translate("List Text");
   odp.pfnDlgProc=DlgProcClcTextOpts;
@@ -349,8 +349,8 @@ struct CheckBoxValues_t {
           {
             HIMAGELIST himlCheckBoxes;
             himlCheckBoxes=ImageList_Create(GetSystemMetrics(SM_CXSMICON),GetSystemMetrics(SM_CYSMICON),ILC_COLOR32|ILC_MASK,2,2);
-            ImageList_AddIcon(himlCheckBoxes,LoadIcon(GetModuleHandle(NULL),MAKEINTRESOURCE(IDI_NOTICK)));
-            ImageList_AddIcon(himlCheckBoxes,LoadIcon(GetModuleHandle(NULL),MAKEINTRESOURCE(IDI_TICK)));
+            ImageList_AddIcon(himlCheckBoxes,LoadIcon(GetModuleHandle(NULL),MAKEINTRESOURCEA(IDI_NOTICK)));
+            ImageList_AddIcon(himlCheckBoxes,LoadIcon(GetModuleHandle(NULL),MAKEINTRESOURCEA(IDI_TICK)));
             TreeView_SetImageList(GetDlgItem(hwndDlg,IDC_GREYOUTOPTS),himlCheckBoxes,TVSIL_NORMAL);
             TreeView_SetImageList(GetDlgItem(hwndDlg,IDC_HIDEOFFLINEOPTS),himlCheckBoxes,TVSIL_NORMAL);
           }			
@@ -874,7 +874,7 @@ struct CheckBoxValues_t {
         urd.cbSize=sizeof(urd);
         urd.hwndDlg=hwndDlg;
         urd.hInstance=g_hInst;
-        urd.lpTemplate=MAKEINTRESOURCE(expert?IDD_OPT_CLCTEXT:IDD_OPT_CLCTEXT);
+        urd.lpTemplate=MAKEINTRESOURCEA(expert?IDD_OPT_CLCTEXT:IDD_OPT_CLCTEXT);
         urd.pfnResizer=TextOptsDlgResizer;
         CallService(MS_UTILS_RESIZEDIALOG,0,(LPARAM)&urd);
         }
@@ -918,7 +918,7 @@ struct CheckBoxValues_t {
               HFONT hFont=CreateFontIndirect(&lf);
               hdc=GetDC(hwndDlg);
               SelectObject(hdc,hFont);
-              GetTextExtentPoint32(hdc,"_W",2,&size);
+              GetTextExtentPoint32A(hdc,"_W",2,&size);
               ReleaseDC(hwndDlg,hdc);
               DeleteObject(hFont);
               fontSettings[fontId].size=(char)size.cy;
@@ -926,7 +926,7 @@ struct CheckBoxValues_t {
             else fontSettings[fontId].size=(char)lf.lfHeight;
             fontSettings[fontId].charset=lf.lfCharSet;
             fontSettings[fontId].colour=colour;
-            lstrcpy(fontSettings[fontId].szFace,lf.lfFaceName);
+            lstrcpyA(fontSettings[fontId].szFace,lf.lfFaceName);
             itemId=SendDlgItemMessage(hwndDlg,IDC_FONTID,CB_ADDSTRING,0,(LPARAM)Translate(szFontIdDescr[fontId]));
             SendDlgItemMessage(hwndDlg,IDC_FONTID,CB_SETITEMDATA,itemId,fontId);
           }
@@ -1064,7 +1064,7 @@ struct CheckBoxValues_t {
         case M_RECALCONEFONT:	   //copy the 'same as' settings for fontid wParam from their sources
           if(fontSettings[wParam].sameAs==0xFF) break;
           if(fontSettings[wParam].sameAsFlags&SAMEASF_FACE) {
-            lstrcpy(fontSettings[wParam].szFace,fontSettings[fontSettings[wParam].sameAs].szFace);
+            lstrcpyA(fontSettings[wParam].szFace,fontSettings[fontSettings[wParam].sameAs].szFace);
             fontSettings[wParam].charset=fontSettings[fontSettings[wParam].sameAs].charset;
           }
           if(fontSettings[wParam].sameAsFlags&SAMEASF_SIZE)
@@ -1130,7 +1130,7 @@ struct CheckBoxValues_t {
 
           hFont=CreateFontIndirect(&lf);
           oldfnt=(HFONT)SelectObject(hdc,(HFONT)hFont);
-          GetTextExtentPoint32(hdc,"x",1,&fontSize);
+          GetTextExtentPoint32A(hdc,"x",1,&fontSize);
           if(fontSize.cy>minHeight) minHeight=fontSize.cy;
           SelectObject(hdc,oldfnt);
           DeleteObject(hFont);
@@ -1162,7 +1162,7 @@ struct CheckBoxValues_t {
         case M_GUESSSAMEASBOXES:   //guess suitable values for the 'same as' checkboxes for fontId wParam
           fontSettings[wParam].sameAsFlags=0;
           if(fontSettings[wParam].sameAs==0xFF) break;
-          if(!lstrcmp(fontSettings[wParam].szFace,fontSettings[fontSettings[wParam].sameAs].szFace) &&
+          if(!lstrcmpA(fontSettings[wParam].szFace,fontSettings[fontSettings[wParam].sameAs].szFace) &&
             fontSettings[wParam].charset==fontSettings[fontSettings[wParam].sameAs].charset)
             fontSettings[wParam].sameAsFlags|=SAMEASF_FACE;
           if(fontSettings[wParam].size==fontSettings[fontSettings[wParam].sameAs].size)

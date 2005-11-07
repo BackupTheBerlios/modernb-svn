@@ -42,7 +42,7 @@ LRESULT ProcessExternalMessages(HWND hwnd,struct ClcData *dat,UINT msg,WPARAM wP
 
 		case CLM_ADDGROUP:
 		{	DWORD groupFlags;
-			char *szName=(char*)CallService(MS_CLIST_GROUPGETNAME2,wParam,(LPARAM)&groupFlags);
+			TCHAR *szName=(TCHAR*)CallService(MS_CLIST_GROUPGETNAME2,wParam,(LPARAM)&groupFlags); //TOD UNICODE
 			if(szName==NULL) break;
 			AddGroup(hwnd,dat,szName,groupFlags,wParam,0);
 			RecalcScrollBar(hwnd,dat);
@@ -60,7 +60,7 @@ LRESULT ProcessExternalMessages(HWND hwnd,struct ClcData *dat,UINT msg,WPARAM wP
 				if(!FindItem(hwnd,dat,(HANDLE)((DWORD)cii->hParentGroup|HCONTACT_ISGROUP),&groupContact,NULL,NULL,TRUE)) return (LRESULT)(HANDLE)NULL;
 				group=groupContact->group;
 			}
-			i=AddInfoItemToGroup(group,cii->flags,cii->pszText);
+			i=AddInfoItemToGroup(group,cii->flags,cii->pszText); //UNICODE
 			RecalcScrollBar(hwnd,dat);
 			dat->NeedResort=TRUE;
 			SortCLC(hwnd,dat,1);
@@ -160,13 +160,13 @@ LRESULT ProcessExternalMessages(HWND hwnd,struct ClcData *dat,UINT msg,WPARAM wP
 			return dat->groupIndent;
 
 		case CLM_GETISEARCHSTRING:
-			lstrcpy((char*)lParam,dat->szQuickSearch);
-			return lstrlen(dat->szQuickSearch);
+			lstrcpy((TCHAR*)lParam,dat->szQuickSearch);
+			return lstrlen(dat->szQuickSearch);  //TO ANSI or flag
 
 		case CLM_GETITEMTEXT:
 		{	struct ClcContact *contact;
 			if(!FindItem(hwnd,dat,(HANDLE)wParam,&contact,NULL,NULL,FALSE)) return 0;
-			lstrcpy((char*)lParam,contact->szText);
+			lstrcpy((TCHAR*)lParam,contact->szText); /// TODO TO ANSI or ADD flag
 			return lstrlen(contact->szText);
 		}
 
@@ -366,8 +366,8 @@ LRESULT ProcessExternalMessages(HWND hwnd,struct ClcData *dat,UINT msg,WPARAM wP
 		{	struct ClcContact *contact;
 			if(!FindItem(hwnd,dat,(HANDLE)wParam,&contact,NULL,NULL,FALSE)) break;
       if (contact->szText) mir_free(contact->szText);
-	    contact->szText=mir_strdup((char*)lParam);
-			//lstrcpyn(contact->szText,(char*)lParam,sizeof(contact->szText));
+	    contact->szText=mir_strdupT((TCHAR*)lParam); //TODO ANSI to Unicode (add flag)
+			//lstrcpynA(contact->szText,(char*)lParam,sizeof(contact->szText));
 			SortCLC(hwnd,dat,1);
 			InvalidateRectZ(hwnd,NULL,FALSE);
 			break;

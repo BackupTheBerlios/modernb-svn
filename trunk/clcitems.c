@@ -74,7 +74,7 @@ void AddSubcontacts(struct ClcData *dat, struct ClcContact * cont)
 			memset(cont->subcontacts[i].iExtraImage,0xFF,sizeof(cont->subcontacts[i].iExtraImage));
 			cont->subcontacts[i].proto=cacheEntry->szProto;		
 
-			//lstrcpyn(cont->subcontacts[i].szText,cacheEntry->name,sizeof(cont->subcontacts[i].szText));
+			//lstrcpynA(cont->subcontacts[i].szText,cacheEntry->name,sizeof(cont->subcontacts[i].szText));
 			Cache_GetText(dat, &cont->subcontacts[i]);
 			cont->subcontacts[i].type=CLCIT_CONTACT;
 			cont->subcontacts[i].flags=0;//CONTACTF_ONLINE;
@@ -144,10 +144,10 @@ static int AddItemToGroup(struct ClcGroup *group,int iAboveItem)
 	return iAboveItem;
 }
 
-struct ClcGroup *AddGroup(HWND hwnd,struct ClcData *dat,const char *szName,DWORD flags,int groupId,int calcTotalMembers)
+struct ClcGroup *AddGroup(HWND hwnd,struct ClcData *dat,const TCHAR *szName,DWORD flags,int groupId,int calcTotalMembers)
 {
-	char *pBackslash,*pNextField,szThisField[120-MAXEXTRACOLUMNS];
-    char *HiddenGroup=NULL;
+	TCHAR *pBackslash,*pNextField,szThisField[120-MAXEXTRACOLUMNS];
+  TCHAR *HiddenGroup=NULL;
 	struct ClcGroup *group=&dat->list;
 	int i,compareResult;
 
@@ -158,10 +158,10 @@ struct ClcGroup *AddGroup(HWND hwnd,struct ClcData *dat,const char *szName,DWORD
         if (ServiceExists(MS_MC_GETDEFAULTCONTACT))                             //metacontacts dll is loaded  
             if (DBGetContactSettingByte(NULL,"MetaContacts","Enabled",1));      //and enabled
         {
-            HiddenGroup=DBGetString(NULL,"MetaContacts","HiddenGroupName");
+            HiddenGroup=DBGetString(NULL,"MetaContacts","HiddenGroupName");   //TODO: UNICODE + Hidden groupname
            // if (!HiddenGroup) strdup("MetaContacts Hidden Group"); 
-            if (szName)
-            if (!MyStrCmp(HiddenGroup,szName))                                    //group is metahidden
+            if (szName && HiddenGroup)
+            if (!lstrcmp(HiddenGroup,szName))                                    //group is metahidden
             {   
                 if (HiddenGroup) mir_free(HiddenGroup);
                 return NULL;
@@ -171,9 +171,9 @@ struct ClcGroup *AddGroup(HWND hwnd,struct ClcData *dat,const char *szName,DWORD
             
 
 	if(!(GetWindowLong(hwnd,GWL_STYLE)&CLS_USEGROUPS)) return &dat->list;
-	pNextField=(char*)szName;
+	pNextField=(TCHAR*)szName;
 	do {
-		pBackslash=strchr(pNextField,'\\');
+		pBackslash=_tcschr(pNextField,'\\');
 		if(pBackslash==NULL) {
 			lstrcpyn(szThisField,pNextField,sizeof(szThisField));
 			pNextField=NULL;
@@ -210,7 +210,7 @@ struct ClcGroup *AddGroup(HWND hwnd,struct ClcData *dat,const char *szName,DWORD
 			i=AddItemToGroup(group,i);
 			group->contact[i].type=CLCIT_GROUP;
       if (group->contact[i].szText) mir_free(group->contact[i].szText);
-			group->contact[i].szText=mir_strdup(szThisField);
+			group->contact[i].szText=mir_strdupT(szThisField);
 			group->contact[i].groupId=(WORD)(pNextField?0:groupId);
 			group->contact[i].group=(struct ClcGroup*)mir_alloc(sizeof(struct ClcGroup));
 			group->contact[i].group->parent=group;
@@ -238,7 +238,7 @@ struct ClcGroup *AddGroup(HWND hwnd,struct ClcData *dat,const char *szName,DWORD
 					pdisplayNameCacheEntry cacheEntry;
 					cacheEntry=GetContactFullCacheEntry(hContact);
 
-					if(cacheEntry->szGroup!=NULL&&MyStrLen(cacheEntry->szGroup)!=0) {
+					if(cacheEntry->szGroup!=NULL&&lstrlen(cacheEntry->szGroup)!=0) {
 						if(!lstrcmp(cacheEntry->szGroup,szName) && (style&CLS_SHOWHIDDEN || !cacheEntry->Hidden))
 							group->totalMembers++;
 						//mir_free(dbv.pszVal);
@@ -312,7 +312,7 @@ void FreeGroup(struct ClcGroup *group)
 }
 
 static int iInfoItemUniqueHandle=0;
-int AddInfoItemToGroup(struct ClcGroup *group,int flags,const char *pszText)
+int AddInfoItemToGroup(struct ClcGroup *group,int flags,const TCHAR *pszText)
 {
 	int i=0;
 
@@ -332,8 +332,8 @@ int AddInfoItemToGroup(struct ClcGroup *group,int flags,const char *pszText)
 	group->contact[i].flags=(BYTE)flags;
 	group->contact[i].hContact=(HANDLE)++iInfoItemUniqueHandle;
   if (group->contact[i].szText) mir_free(group->contact[i].szText);
-	group->contact[i].szText=mir_strdup(pszText); 
-	//lstrcpyn(group->contact[i].szText,pszText,sizeof(group->contact[i].szText));
+  group->contact[i].szText=pszText?mir_strdupT(pszText):NULL; 
+	//lstrcpynA(group->contact[i].szText,pszText,sizeof(group->contact[i].szText));
 	ClearRowByIndexCache();
 	return i;
 }
@@ -389,20 +389,20 @@ static struct ClcContact * AddContactToGroup(struct ClcData *dat,struct ClcGroup
 	idleMode=szProto!=NULL?cacheEntry->IdleTS:0;
 	if (idleMode) group->contact[i].flags|=CONTACTF_IDLE;
 
-	//lstrcpyn(group->contact[i].szText,cacheEntry->name,sizeof(group->contact[i].szText));
+	//lstrcpynA(group->contact[i].szText,cacheEntry->name,sizeof(group->contact[i].szText));
 	group->contact[i].proto = szProto;
 	
 	Cache_GetText(dat, &group->contact[i]);
 	ClearRowByIndexCache();
 	return &(group->contact[i]);
 }
-void * AddTempGroup(HWND hwnd,struct ClcData *dat,const char *szName,DWORD flags,int groupId,int calcTotalMembers)
+void * AddTempGroup(HWND hwnd,struct ClcData *dat,const TCHAR *szName,DWORD flags,int groupId,int calcTotalMembers)
 {
      int i=0;
      int f=0;
      char * szGroupName;
      DWORD groupFlags;
-	 if (WildCompare(szName,"* Hidden Group",0))
+	 if (WildCompare((char*)szName,"* Hidden Group",0))
 	 {
 		 if(ServiceExists(MS_MC_ADDTOMETA)) return NULL;
 		 else return(&dat->list);
@@ -456,29 +456,29 @@ void AddContactToTree(HWND hwnd,struct ClcData *dat,HANDLE hContact,int updateTo
 		else status=cacheEntry->status;
 	}
 
-	if(MyStrLen(cacheEntry->szGroup)==0)
+	if(lstrlen(cacheEntry->szGroup)==0)
 		group=&dat->list;
 	else {
 		group=AddGroup(hwnd,dat,cacheEntry->szGroup,(DWORD)-1,0,0);
 		if(group==NULL) {
 			int i,len;
 			DWORD groupFlags;
-			char *szGroupName;
+			TCHAR *szGroupName;
 			if(!(style&CLS_HIDEEMPTYGROUPS)) {/*mir_free(dbv.pszVal);*/AddTempGroup(hwnd,dat,cacheEntry->szGroup,(DWORD)-1,0,0);return;}
 			if(checkHideOffline && IsHiddenMode(dat,status)) {
 				for(i=1;;i++) {
-					szGroupName=(char*)CallService(MS_CLIST_GROUPGETNAME2,i,(LPARAM)&groupFlags);
+					szGroupName=(TCHAR*)CallService(MS_CLIST_GROUPGETNAME2,i,(LPARAM)&groupFlags); //UNICODE
 					if(szGroupName==NULL) {/*mir_free(dbv.pszVal);*/ return;}   //never happens
 					if(!lstrcmp(szGroupName,cacheEntry->szGroup)) break;
 				}
 				if(groupFlags&GROUPF_HIDEOFFLINE) {/*mir_free(dbv.pszVal);*/ return;}
 			}
 			for(i=1;;i++) {
-				szGroupName=(char*)CallService(MS_CLIST_GROUPGETNAME2,i,(LPARAM)&groupFlags);
+				szGroupName=(TCHAR*)CallService(MS_CLIST_GROUPGETNAME2,i,(LPARAM)&groupFlags); //UNICODE
 				if(szGroupName==NULL) {/*mir_free(dbv.pszVal);*/ return;}   //never happens
 				if(!lstrcmp(szGroupName,cacheEntry->szGroup)) break;
 				len=lstrlen(szGroupName);
-				if(!strncmp(szGroupName,cacheEntry->szGroup,len) && cacheEntry->szGroup[len]=='\\')
+				if(!_tcsncmp(szGroupName,cacheEntry->szGroup,len) && cacheEntry->szGroup[len]=='\\')
 					AddGroup(hwnd,dat,szGroupName,groupFlags,i,1);
 			}
 			group=AddGroup(hwnd,dat,cacheEntry->szGroup,groupFlags,i,1);
@@ -564,9 +564,10 @@ void DeleteItemFromTree(HWND hwnd,HANDLE hItem)
 			if(group->scanIndex==group->contactCount) break;
 			if(group->contact[i].type==CLCIT_GROUP) {
 				int len=lstrlen(group->contact[i].szText);
-				if(!strncmp(group->contact[i].szText,dbv.pszVal+nameOffset,len) && (dbv.pszVal[nameOffset+len]=='\\' || dbv.pszVal[nameOffset+len]=='\0')) {
+        //TODO unicode to dbv.pszVal
+				if(!_tcsncmp(group->contact[i].szText,(TCHAR*)dbv.pszVal+nameOffset,len) && ((TCHAR)dbv.pszVal[nameOffset+len]==TEXT('\\') || (TCHAR)dbv.pszVal[nameOffset+len]==TEXT('\0'))) {
 					group->totalMembers--;
-					if(dbv.pszVal[nameOffset+len]=='\0') break;
+					if((TCHAR)dbv.pszVal[nameOffset+len]==TEXT('\0')) break;
 				}
 			}
 		}
@@ -619,11 +620,11 @@ void RebuildEntireList(HWND hwnd,struct ClcData *dat)
 	dat->HiLightMode=DBGetContactSettingByte(NULL,"CLC","HiLightMode",0);
 	{
 		int i;
-		char *szGroupName;
+		TCHAR *szGroupName;
 		DWORD groupFlags;
 
 		for(i=1;;i++) {
-			szGroupName=(char*)CallService(MS_CLIST_GROUPGETNAME2,i,(LPARAM)&groupFlags);
+			szGroupName=(TCHAR*)CallService(MS_CLIST_GROUPGETNAME2,i,(LPARAM)&groupFlags); //UNICODE
 			if(szGroupName==NULL) break;
 			AddGroup(hwnd,dat,szGroupName,groupFlags,i,0);
 		}
@@ -643,7 +644,7 @@ void RebuildEntireList(HWND hwnd,struct ClcData *dat)
 		
 
 		if((dat->IsMetaContactsEnabled||MyStrCmp(cacheEntry->szProto,"MetaContacts"))&&(style&CLS_SHOWHIDDEN || !cacheEntry->Hidden) && (!cacheEntry->HiddenSubcontact || !dat->IsMetaContactsEnabled )) {
-			if(MyStrLen(cacheEntry->szGroup)==0)
+			if(lstrlen(cacheEntry->szGroup)==0)
 				group=&dat->list;
 			else {
 				group=AddGroup(hwnd,dat,cacheEntry->szGroup,(DWORD)-1,0,0);
@@ -862,7 +863,7 @@ static void SortGroup(struct ClcData *dat,struct ClcGroup *group,int useInsertio
 	    				i=AddItemToGroup(group,i);
 		        		group->contact[i].type=CLCIT_DIVIDER;
                 if (group->contact[i].szText) mir_free(group->contact[i].szText);
-				    	  group->contact[i].szText=mir_strdup(Translate("Offline"));
+				    	  group->contact[i].szText=mir_strdupT(TranslateT("Offline"));
 				    }
 				    break;
 			    }
@@ -1027,6 +1028,16 @@ void SaveStateAndRebuildList(HWND hwnd,struct ClcData *dat)
 			if(group->parent==NULL) savedInfo[savedInfoCount-1].parentId=-1;
 			else savedInfo[savedInfoCount-1].parentId=group->groupId;
 			savedInfo[savedInfoCount-1].contact=group->contact[group->scanIndex];
+			{
+				TCHAR * name=NULL;
+				if(savedInfo[savedInfoCount-1].contact.szText)
+				{
+					name=mir_strdupT(savedInfo[savedInfoCount-1].contact.szText);
+					mir_free(savedInfo[savedInfoCount-1].contact.szText);
+					savedInfo[savedInfoCount-1].contact.szText=name;
+					group->contact[group->scanIndex].szText=NULL;
+				}
+			}
 		}
 		group->scanIndex++;
 	}
@@ -1082,7 +1093,7 @@ void SaveStateAndRebuildList(HWND hwnd,struct ClcData *dat)
 			if(!FindItem(hwnd,dat,(HANDLE)(savedInfo[i].parentId|HCONTACT_ISGROUP),&contact,NULL,NULL,TRUE)) continue;
 			group=contact->group;
 		}
-		j=AddInfoItemToGroup(group,savedInfo[i].contact.flags,"");
+		j=AddInfoItemToGroup(group,savedInfo[i].contact.flags,NULL);
 		group->contact[j]=savedInfo[i].contact;
 	}
 	if(savedInfo) mir_free(savedInfo);

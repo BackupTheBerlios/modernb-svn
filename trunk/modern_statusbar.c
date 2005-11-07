@@ -91,7 +91,12 @@ LOGFONT LoadLogFontFromDB(char * section, char * id, DWORD * color)
     logfont.lfClipPrecision=CLIP_DEFAULT_PRECIS;
     logfont.lfQuality=DEFAULT_QUALITY;
     logfont.lfPitchAndFamily=DEFAULT_PITCH|FF_DONTCARE;
-    logfont.lfHeight=(LONG)DBGetContactSettingByte(NULL,section,ApendSubSetting(buf,sizeof(buf),id,"Size"),-10);
+    {
+      HDC hdc=CreateCompatibleDC(NULL);
+      int h=(int)(BYTE)DBGetContactSettingByte(NULL,section,ApendSubSetting(buf,sizeof(buf),id,"Size"),10);
+      logfont.lfHeight=(LONG)-MulDiv(h, GetDeviceCaps(hdc, LOGPIXELSY), 72);
+      DeleteDC(hdc);
+    }
     *color=DBGetContactSettingDword(NULL,section,ApendSubSetting(buf,sizeof(buf),id,"Col"),0);
     mir_free(facename);
   }
@@ -149,7 +154,7 @@ int ModernDrawStatusBarWorker(HWND hWnd, HDC hDC)
   SetTextColor(hDC,sbdat.fontColor);
   {
 	  SIZE textSize={0};
-    GetTextExtentPoint32(hDC," ",1,&textSize);
+    GetTextExtentPoint32A(hDC," ",1,&textSize);
     spaceWidth=textSize.cx;
     textY=rc.top+((rc.bottom-rc.top-textSize.cy)>>1);
   }
@@ -227,12 +232,12 @@ int ModernDrawStatusBarWorker(HWND hWnd, HDC hDC)
         DWORD w=GetSystemMetrics(SM_CXSMICON)+1;
 		if (sbdat.showProtoName)
 		{
-			GetTextExtentPoint32(hDC,ProtosData[i].ProtoName,lstrlen(ProtosData[i].ProtoName),&textSize);
+			GetTextExtentPoint32A(hDC,ProtosData[i].ProtoName,lstrlenA(ProtosData[i].ProtoName),&textSize);
 			w+=textSize.cx+1+spaceWidth;
 		}
 		if (sbdat.showStatusName)
 		{          
-			GetTextExtentPoint32(hDC,ProtosData[i].ProtoStatusText,lstrlen(ProtosData[i].ProtoStatusText),&textSize);
+			GetTextExtentPoint32A(hDC,ProtosData[i].ProtoStatusText,lstrlenA(ProtosData[i].ProtoStatusText),&textSize);
 			w+=textSize.cx+3;
 		}
 		ProtosData[i].fullWidth=w;
@@ -330,11 +335,11 @@ int ModernDrawStatusBarWorker(HWND hWnd, HDC hDC)
 		  RECT rt=r;
 		  rt.left=x;
 		  rt.top=textY;
-		  DrawTextS(hDC,ProtosData[i].ProtoName,lstrlen(ProtosData[i].ProtoName),&rt,0);		  
-          //TextOutS(hDC,x,textY,ProtosData[i].ProtoName,lstrlen(ProtosData[i].ProtoName));
+		  DrawTextS(hDC,ProtosData[i].ProtoName,lstrlenA(ProtosData[i].ProtoName),&rt,0);		  
+          //TextOutS(hDC,x,textY,ProtosData[i].ProtoName,lstrlenA(ProtosData[i].ProtoName));
           if (sbdat.showStatusName)
           {
-            GetTextExtentPoint32(hDC,ProtosData[i].ProtoName,lstrlen(ProtosData[i].ProtoName),&textSize);
+            GetTextExtentPoint32A(hDC,ProtosData[i].ProtoName,lstrlenA(ProtosData[i].ProtoName),&textSize);
             x+=textSize.cx+spaceWidth;
           }
         }
@@ -343,8 +348,8 @@ int ModernDrawStatusBarWorker(HWND hWnd, HDC hDC)
 		  RECT rt=r;
 		  rt.left=x;
 		  rt.top=textY;
-		  DrawTextS(hDC,ProtosData[i].ProtoStatusText,lstrlen(ProtosData[i].ProtoStatusText),&rt,0);		  
-          //TextOutS(hDC,x,textY,ProtosData[i].ProtoStatusText,lstrlen(ProtosData[i].ProtoStatusText));
+		  DrawTextS(hDC,ProtosData[i].ProtoStatusText,lstrlenA(ProtosData[i].ProtoStatusText),&rt,0);		  
+          //TextOutS(hDC,x,textY,ProtosData[i].ProtoStatusText,lstrlenA(ProtosData[i].ProtoStatusText));
         }
         r.left=r.right+sbdat.extraspace;
         //SelectClipRgn(hDC,NULL);

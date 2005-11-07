@@ -34,7 +34,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #endif
 
 #if defined (_DEBUG)
-  #define TRACE(str) OutputDebugString(str)
+  #define TRACE(str) OutputDebugStringA(str)
 #else
   #define TRACE(str) 
 #endif
@@ -133,6 +133,7 @@ extern int __cdecl MyStrLen (const char *a);
 extern int __cdecl MyStrCmpi(const char *a, const char *b);
 extern __inline void *mir_calloc( size_t num, size_t size );
 extern __inline char * mir_strdup(const char * src);
+extern __inline TCHAR * mir_strdupT(const TCHAR * src);
 extern char *DBGetString(HANDLE hContact,const char *szModule,const char *szSetting);
 extern DWORD exceptFunction(LPEXCEPTION_POINTERS EP);
 

@@ -94,7 +94,7 @@ void LoadContactTree(void)
 		cacheEntry=GetContactFullCacheEntry(hContact);
 		if (cacheEntry==NULL)
 		{
-			MessageBox(0,"Fail To Get CacheEntry for hContact","!!!!!",0);
+			MessageBoxA(0,"Fail To Get CacheEntry for hContact","!!!!!",0);
 			break;
 		}
 		status=cacheEntry->status;

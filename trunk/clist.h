@@ -40,7 +40,7 @@ int ClientID;
 
 typedef struct  {
 	HANDLE hContact;
-	char *name;
+	TCHAR *name;
 	int NameHash;
 	char *szProto;
 	boolean protoNotExists;
@@ -50,7 +50,7 @@ typedef struct  {
     int HiddenSubcontact;
 	int noHiddenOffline;
 
-	char *szGroup;
+	TCHAR *szGroup;
 	int i;
 	int ApparentMode;
 	int NotOnList;

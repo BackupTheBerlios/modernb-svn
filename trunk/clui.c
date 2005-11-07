@@ -658,7 +658,7 @@ int PrepeareWindowImage(struct sUpdatingWindow * sUpdate)
 //        wsprintf(szBuf,  "UPDATE LAYERED WINDOW  failed with error %d: %s\n",  dw, lpMsgBuf); 
 //
 //        TRACE(szBuf);
-//        MessageBox(NULL, szBuf, "UPDATE LAYERED WINDOW FAILURE", MB_OK); 
+//        MessageBoxA(NULL, szBuf, "UPDATE LAYERED WINDOW FAILURE", MB_OK); 
 //        DebugBreak();
 //
 //    }
@@ -716,7 +716,7 @@ MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT),
 
 wsprintf(szBuf,  "failed with error %d: %s",  dw, lpMsgBuf); 
 
-MessageBox(NULL, szBuf, "POST MESSAGE FAILURE", MB_OK); 
+MessageBoxA(NULL, szBuf, "POST MESSAGE FAILURE", MB_OK); 
 DebugBreak();
 }
 
@@ -1170,14 +1170,14 @@ int GetConnectingIconForProtoCount(char *szProto)
 	char *str;
 	int ret;
 
-	GetModuleFileName(GetModuleHandle(NULL), szPath, MAX_PATH);
+	GetModuleFileNameA(GetModuleHandle(NULL), szPath, MAX_PATH);
 	str=strrchr(szPath,'\\');
 	if(str!=NULL) *str=0;
 	_snprintf(szFullPath, sizeof(szFullPath), "%s\\Icons\\proto_conn_%s.dll", szPath, szProto);
 
-	lstrcpyn(file,szFullPath,sizeof(file));
+	lstrcpynA(file,szFullPath,sizeof(file));
 	CallService(MS_UTILS_PATHTOABSOLUTE, (WPARAM)file, (LPARAM)fileFull);
-	ret=ExtractIconEx(fileFull,-1,NULL,NULL,1);
+	ret=ExtractIconExA(fileFull,-1,NULL,NULL,1);
 	if (ret==0) ret=11;
 	return ret;
 
@@ -1195,7 +1195,7 @@ static HICON ExtractIconFromPath(const char *path)
 	TRACE(buf);
 	}
 	*/
-	lstrcpyn(file,path,sizeof(file));
+	lstrcpynA(file,path,sizeof(file));
 	comma=strrchr(file,',');
 	if(comma==NULL) n=0;
 	else {n=atoi(comma+1); *comma=0;}
@@ -1210,7 +1210,7 @@ static HICON ExtractIconFromPath(const char *path)
 	#endif
 	*/
 	hIcon=NULL;
-	ExtractIconEx(fileFull,n,NULL,&hIcon,1);
+	ExtractIconExA(fileFull,n,NULL,&hIcon,1);
 	return hIcon;
 }
 
@@ -1220,8 +1220,8 @@ HICON LoadIconFromExternalFile(char *filename,int i,boolean UseLibrary,boolean r
 	HICON hIcon=NULL;
 	SKINICONDESC sid;
 
-	GetModuleFileName(GetModuleHandle(NULL), szPath, MAX_PATH);
-	GetModuleFileName(g_hInst, szMyPath, MAX_PATH);
+	GetModuleFileNameA(GetModuleHandle(NULL), szPath, MAX_PATH);
+	GetModuleFileNameA(g_hInst, szMyPath, MAX_PATH);
 	str=strrchr(szPath,'\\');
 	if(str!=NULL) *str=0;
 	_snprintf(szFullPath, sizeof(szFullPath), "%s\\Icons\\%s,%d", szPath, filename, i);
@@ -1273,7 +1273,7 @@ HICON GetConnectingIconForProto(char *szProto,int b)
 	*/
 	//if (!MyStrCmp(szProto,"ICQ"))
 	{
-		hIcon=(LoadIcon(g_hInst,(LPCSTR)(IDI_ICQC1+b+1)));
+		hIcon=(LoadIconA(g_hInst,(char *)(IDI_ICQC1+b+1)));
 	}
 
 	return(hIcon);
@@ -1463,7 +1463,7 @@ static void DisconnectAll()
 
 int PreCreateCLC(HWND parent)
 {
-	hwndContactTree=CreateWindow(CLISTCONTROL_CLASS,"",
+	hwndContactTree=CreateWindow(TEXT(CLISTCONTROL_CLASS),TEXT(""),
 		WS_CHILD|WS_CLIPCHILDREN|CLS_CONTACTLIST
 		|(DBGetContactSettingByte(NULL,"CList","UseGroups",SETTING_USEGROUPS_DEFAULT)?CLS_USEGROUPS:0)
 		//|CLS_HIDEOFFLINE
@@ -1492,7 +1492,7 @@ int CreateCLC(HWND parent)
 		Frame.hWnd=hwndContactTree;
 		Frame.align=alClient;
 		Frame.hIcon=LoadSkinnedIcon(SKINICON_OTHER_MIRANDA);
-		//LoadIcon(hInst,MAKEINTRESOURCE(IDI_MIRANDA));
+		//LoadIcon(hInst,MAKEINTRESOURCEA(IDI_MIRANDA));
 		Frame.Flags=F_VISIBLE|F_SHOWTB|F_SHOWTBTIP|F_NO_SUBCONTAINER;
 		Frame.name=Translate("My Contacts");
 		hFrameContactTree=(HWND)CallService(MS_CLIST_FRAMES_ADDFRAME,(WPARAM)&Frame,(LPARAM)0);
@@ -1837,14 +1837,14 @@ LRESULT CALLBACK ContactListWndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM l
 		char profile[MAX_PATH];
 		int rc;
 		// wParam = (ATOM)hProfileAtom, lParam = 0
-		if ( GlobalGetAtomName((ATOM)wParam, profile, sizeof(profile)) ) {
+		if ( GlobalGetAtomNameA((ATOM)wParam, profile, sizeof(profile)) ) {
 			char path[MAX_PATH];
 			char file[MAX_PATH];
 			char p[MAX_PATH];
 			CallService(MS_DB_GETPROFILEPATH,sizeof(path),(LPARAM)&path);
 			CallService(MS_DB_GETPROFILENAME,sizeof(file),(LPARAM)&file);
 			_snprintf(p,sizeof(p),"%s\\%s",path,file);
-			rc=lstrcmp(profile,p) == 0;
+			rc=lstrcmpA(profile,p) == 0;
 			ReplyMessage(rc);
 			if ( rc ) ShowWindowAsync(hwnd,SW_SHOW);
 		}
@@ -1863,7 +1863,7 @@ LRESULT CALLBACK ContactListWndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM l
 		char szName[MAX_PATH];
 		int rc=0;
 		_snprintf(szName,sizeof(szName),"Miranda::%u", wParam); // caller will tell us the ID of the map
-		hMap = OpenFileMapping(FILE_MAP_ALL_ACCESS,FALSE,szName);
+		hMap = OpenFileMappingA(FILE_MAP_ALL_ACCESS,FALSE,szName);
 		if (hMap != NULL) {
 			void *hView=NULL;
 			hView=MapViewOfFile(hMap, FILE_MAP_ALL_ACCESS, 0, 0, MAX_PATH);
@@ -2071,7 +2071,7 @@ LRESULT CALLBACK ContactListWndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM l
 		//delay creation of CLC so that it can get the status icons right the first time (needs protocol modules loaded)
 		//PostMessage(hwnd,M_CREATECLC,0,0);
 
-		hMsgGetProfile=RegisterWindowMessage("Miranda::GetProfile"); // don't localise
+		hMsgGetProfile=RegisterWindowMessage(TEXT("Miranda::GetProfile")); // don't localise
 
 		/*	if (DBGetContactSettingByte(NULL,"CList","Transparent",0))
 		{
@@ -2753,7 +2753,7 @@ LRESULT CALLBACK ContactListWndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM l
 					ClientToScreen(hwnd, &nmc->pt);
 					if(!(nmc->flags&CLNF_ISGROUP))
 						if(NotifyEventHooks(hContactDraggingEvent,(WPARAM)nmc->hItem,MAKELPARAM(nmc->pt.x,nmc->pt.y))) {
-							SetCursor(LoadCursor(GetModuleHandle(NULL), MAKEINTRESOURCE(IDC_DROPUSER)));
+							SetCursor(LoadCursorA(GetModuleHandle(NULL), MAKEINTRESOURCEA(IDC_DROPUSER)));
 							return TRUE;
 						}
 						break;
@@ -2771,7 +2771,7 @@ LRESULT CALLBACK ContactListWndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM l
 					ClientToScreen(hwnd, &nmc->pt);
 					if(!(nmc->flags&CLNF_ISGROUP))
 						if(NotifyEventHooks(hContactDroppedEvent,(WPARAM)nmc->hItem,MAKELPARAM(nmc->pt.x,nmc->pt.y))) {
-							SetCursor(LoadCursor(GetModuleHandle(NULL), MAKEINTRESOURCE(IDC_DROPUSER)));
+							SetCursor(LoadCursorA(GetModuleHandle(NULL), MAKEINTRESOURCEA(IDC_DROPUSER)));
 							return TRUE;
 						}
 						break;
@@ -2892,7 +2892,7 @@ LRESULT CALLBACK ContactListWndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM l
 							{
 								sprintf(buf,"mailto:%s",email);
 								mir_free(email);
-								ShellExecute(hwnd,"open",buf,NULL,NULL,SW_SHOW);
+								ShellExecuteA(hwnd,"open",buf,NULL,NULL,SW_SHOW);
 							}											
 						};	
 						if(nm->iColumn==w) {
@@ -2902,7 +2902,7 @@ LRESULT CALLBACK ContactListWndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM l
 								homepage=DBGetString(pdnce->hContact,pdnce->szProto, "Homepage");
 							if (homepage!=NULL)
 							{											
-								ShellExecute(hwnd,"open",homepage,NULL,NULL,SW_SHOW);
+								ShellExecuteA(hwnd,"open",homepage,NULL,NULL,SW_SHOW);
 								mir_free(homepage);
 							}
 						}
@@ -3062,7 +3062,7 @@ LRESULT CALLBACK ContactListWndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM l
 			HDC hdc;
 			SIZE textSize;
 			hdc=GetDC(hwnd);
-			GetTextExtentPoint32(hdc,Translate("Status"),lstrlen(Translate("Status")),&textSize);	
+			GetTextExtentPoint32A(hdc,Translate("Status"),lstrlenA(Translate("Status")),&textSize);	
 			((LPMEASUREITEMSTRUCT)lParam)->itemWidth=textSize.cx;
 			//GetSystemMetrics(SM_CXSMICON)*4/3;
 			((LPMEASUREITEMSTRUCT)lParam)->itemHeight=0;
@@ -3198,7 +3198,7 @@ static HANDLE hHideAvatarMenuItem;
 
 static int MenuItem_PreBuild(WPARAM wParam, LPARAM lParam) 
 {
-	char cls[128];
+	TCHAR cls[128];
 	HANDLE hItem;
 	HWND hwndClist = GetFocus();
 	CLISTMENUITEM mi;
@@ -3207,7 +3207,7 @@ static int MenuItem_PreBuild(WPARAM wParam, LPARAM lParam)
 	mi.cbSize = sizeof(mi);
 	mi.flags = CMIM_FLAGS;
 	GetClassName(hwndClist,cls,sizeof(cls));
-	hwndClist = (!lstrcmp(CLISTCONTROL_CLASS,cls))?hwndClist:hwndContactList;
+	hwndClist = (!lstrcmp(TEXT(CLISTCONTROL_CLASS),cls))?hwndClist:hwndContactList;
 	hItem = (HANDLE)SendMessage(hwndClist,CLM_GETSELECTION,0,0);
 	if (!hItem) {
 		mi.flags = CMIM_FLAGS | CMIF_HIDDEN;
@@ -3263,12 +3263,12 @@ static int MenuItem_PreBuild(WPARAM wParam, LPARAM lParam)
 
 static int MenuItem_RenameContact(WPARAM wParam,LPARAM lParam)
 {
-	char cls[128];
+	TCHAR cls[128];
 	HANDLE hItem;
 	HWND hwndClist = GetFocus();
 	GetClassName(hwndClist,cls,sizeof(cls));
 	// worst case scenario, the rename is sent to the main contact list
-	hwndClist = (!lstrcmp(CLISTCONTROL_CLASS,cls))?hwndClist:hwndContactList;
+	hwndClist = (!lstrcmp(TEXT(CLISTCONTROL_CLASS),cls))?hwndClist:hwndContactList;
 	hItem = (HANDLE)SendMessage(hwndClist,CLM_GETSELECTION,0,0);
 	if(hItem) {
 		SetFocus(hwndClist);
@@ -3290,7 +3290,7 @@ static int MenuItem_ShowContactAvatar(WPARAM wParam,LPARAM lParam)
 	char cls[128];
 	GetClassName(hwndClist,cls,sizeof(cls));
 	// worst case scenario, the rename is sent to the main contact list
-	hwndClist = (!lstrcmp(CLISTCONTROL_CLASS,cls))?hwndClist:hwndContactList;
+	hwndClist = (!lstrcmpA(CLISTCONTROL_CLASS,cls))?hwndClist:hwndContactList;
 
 	RedrawWindow(hwndClist,NULL,NULL,RDW_FRAME|RDW_INVALIDATE);
 	}
@@ -3312,7 +3312,7 @@ static int MenuItem_HideContactAvatar(WPARAM wParam,LPARAM lParam)
 	char cls[128];
 	GetClassName(hwndClist,cls,sizeof(cls));
 	// worst case scenario, the rename is sent to the main contact list
-	hwndClist = (!lstrcmp(CLISTCONTROL_CLASS,cls))?hwndClist:hwndContactList;
+	hwndClist = (!lstrcmpA(CLISTCONTROL_CLASS,cls))?hwndClist:hwndContactList;
 
 	RedrawWindow(hwndClist,NULL,NULL,RDW_FRAME|RDW_INVALIDATE);
 	}
@@ -3353,7 +3353,7 @@ int LoadCLUIModule(void)
 	TRACE("Load CLUI Module\n");
 
 
-	hUserDll = LoadLibrary("user32.dll");
+	hUserDll = LoadLibrary(TEXT("user32.dll"));
 	if (hUserDll)
 	{
 		MyUpdateLayeredWindow = (BOOL (WINAPI *)(HWND,HDC,POINT*,SIZE*,HDC,POINT*,COLORREF,BLENDFUNCTION*,DWORD))GetProcAddress(hUserDll, "UpdateLayeredWindow");
@@ -3364,7 +3364,7 @@ int LoadCLUIModule(void)
 		MySetLayeredWindowAttributesNew=(BOOL (WINAPI *)(HWND,COLORREF,BYTE,DWORD))GetProcAddress(hUserDll, "SetLayeredWindowAttributes");
 		MyAnimateWindow=(BOOL (WINAPI*)(HWND,DWORD,DWORD))GetProcAddress(hUserDll,"AnimateWindow");
 	}
-	uMsgProcessProfile=RegisterWindowMessage("Miranda::ProcessProfile");
+	uMsgProcessProfile=RegisterWindowMessage(TEXT("Miranda::ProcessProfile"));
 
 	// Call InitGroup menus before
 	InitGroupMenus();
@@ -3389,17 +3389,17 @@ int LoadCLUIModule(void)
 	wndclass.hCursor       = LoadCursor (NULL, IDC_ARROW);
 	wndclass.hbrBackground = (HBRUSH)(COLOR_3DFACE+1);
 	wndclass.lpszMenuName  = MAKEINTRESOURCE(IDR_CLISTMENU);
-	wndclass.lpszClassName = MIRANDACLASS;
+	wndclass.lpszClassName = TEXT(MIRANDACLASS);
 
 	a=RegisterClass(&wndclass);
 
 	if(DBGetContactSetting(NULL,"CList","TitleText",&dbv))
-		lstrcpyn(titleText,MIRANDANAME,sizeof(titleText));
+		lstrcpynA(titleText,MIRANDANAME,sizeof(titleText));
 	else {
-		lstrcpyn(titleText,dbv.pszVal,sizeof(titleText));
+		lstrcpynA(titleText,dbv.pszVal,sizeof(titleText));
 		DBFreeVariant(&dbv);
 	}
-
+//TODO Titletext to UNICODE
 
 	oldhideoffline=DBGetContactSettingByte(NULL,"CList","HideOffline",SETTING_HIDEOFFLINE_DEFAULT);
 	{
@@ -3432,8 +3432,8 @@ int LoadCLUIModule(void)
 			}
 			hwndContactList= CreateWindowEx(
 				styleEx,
-				MIRANDACLASS,
-				titleText,
+				TEXT(MIRANDACLASS),
+				TEXT("Miranda-IM"),  //TODO: Customizable title text
 				style,
 				x,
 				y,
@@ -3455,7 +3455,7 @@ int LoadCLUIModule(void)
 
 	if ( DBGetContactSettingByte(NULL,"CList","OnDesktop",0) )
 	{
-		HWND hProgMan=FindWindow("Progman",NULL);
+		HWND hProgMan=FindWindow(TEXT("Progman"),NULL);
 		if (IsWindow(hProgMan)) 
 		{
 			IsOnDesktop=1;

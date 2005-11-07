@@ -603,6 +603,7 @@ int RecurciveDeleteMenu(HMENU hMenu)
 		DeleteMenu(hMenu,0,MF_BYPOSITION);
 		i=GetMenuItemCount(hMenu);
 	};
+  return 0;
 }
 static int BuildStatusMenu(WPARAM wParam,LPARAM lParam)
 {
@@ -1179,8 +1180,8 @@ int InitCustomMenus(void)
 
   hAckHook=(HANDLE)HookEvent(ME_PROTO_ACK,MenuProtoAck);
 
-  hMainMenu=GetSubMenu(LoadMenu(GetModuleHandle(NULL),MAKEINTRESOURCE(IDR_CLISTMENU)),0);
-  hStatusMenu=GetSubMenu(LoadMenu(GetModuleHandle(NULL),MAKEINTRESOURCE(IDR_CLISTMENU)),1);
+  hMainMenu=GetSubMenu(LoadMenu(GetModuleHandle(NULL),MAKEINTRESOURCEA(IDR_CLISTMENU)),0);
+  hStatusMenu=GetSubMenu(LoadMenu(GetModuleHandle(NULL),MAKEINTRESOURCEA(IDR_CLISTMENU)),1);
   CallService(MS_LANGPACK_TRANSLATEMENU,(WPARAM)hMainMenu,0);
   CallService(MS_LANGPACK_TRANSLATEMENU,(WPARAM)hStatusMenu,0);
 

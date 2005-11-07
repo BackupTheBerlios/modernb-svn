@@ -210,7 +210,7 @@ int FindItem(HWND hwnd,struct ClcData *dat,HANDLE hItem,struct ClcContact **cont
 					if (ret=0) {return (0);};
 					if (p!=cacheEntry->ClcContact)
 					{
-						MessageBox(0,"hITEM FAILEDDDDDDDD!!!!!","",0);
+						MessageBoxA(0,"hITEM FAILEDDDDDDDD!!!!!","",0);
 						//cacheEntry->ClcContact=p;
 					}
 					*/

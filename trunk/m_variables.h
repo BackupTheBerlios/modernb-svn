@@ -11,14 +11,14 @@ typedef struct {
 } FORMATINFO;
 #define MS_VARS_FORMATSTRING			"Vars/FormatString"
 
-__inline static char *variables_parse(char *src, char *extra, HANDLE hContact) {
+__inline static char *variables_parse(char *src, TCHAR *extra, HANDLE hContact) {
 
 	FORMATINFO fi;
 
 	ZeroMemory(&fi, sizeof(fi));
 	fi.cbSize = sizeof(fi);
 	fi.szFormat = src;
-	fi.szSource = extra;
+	fi.szSource = extra; //TODO from UNICODE to ANSI
 	fi.hContact = hContact;
 	return (char *)CallService(MS_VARS_FORMATSTRING, (WPARAM)&fi, 0);
 }

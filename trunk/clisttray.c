@@ -92,14 +92,14 @@ typedef HRESULT (CALLBACK* DLLGETVERSIONPROC)(DLLVERSIONINFO *);
 
 static DLLVERSIONINFO dviShell;
 
-static char *TrayIconMakeTooltip(const char *szPrefix,const char *szProto)
+static TCHAR *TrayIconMakeTooltip(const TCHAR *szPrefix,const char *szProto) //TODO: UNICODE
 {
-	static char szTip[128];
+	static TCHAR szTip[128];
 	char szProtoName[32];
-	char *szStatus, *szSeparator;
+	TCHAR *szStatus, *szSeparator;
 	int t,cn;
 
-	szSeparator=(IsWinVerMEPlus())?szSeparator="\n":" | ";
+	szSeparator=(IsWinVerMEPlus())?szSeparator=TEXT("\n"):TEXT(" | ");
 
 	if(szProto==NULL) {
 		PROTOCOLDESCRIPTOR **protos;
@@ -113,19 +113,19 @@ static char *TrayIconMakeTooltip(const char *szPrefix,const char *szProto)
 			if(!DBGetContactSettingByte(NULL,"CList","AlwaysStatus",SETTING_ALWAYSSTATUS_DEFAULT))
 				return szTip;
 		}
-		else szTip[0]='\0';
-		szTip[sizeof(szTip)-1]='\0';
+		else szTip[0]=TEXT('\0');
+		szTip[sizeof(szTip)-1]=TEXT('\0');
 		t=0;
 		cn=DBGetContactSettingDword(NULL,"Protocols","ProtoCount",-1);
 		if (cn==-1) CheckProtocolOrder();
 		cn=DBGetContactSettingDword(NULL,"Protocols","ProtoCount",0);
 		for(t=0;t<cn;t++) {
 			i=GetProtoIndexByPos(protos, count,t);
-			if (i==-1) return "???";
+			if (i==-1) return TEXT("???");
 
 			if(protos[i]->type!=PROTOTYPE_PROTOCOL || (GetProtocolVisibility(protos[i]->szName)==0)) continue;
 			CallProtoService(protos[i]->szName,PS_GETNAME,sizeof(szProtoName),(LPARAM)szProtoName);
-			szStatus=(char*)CallService(MS_CLIST_GETSTATUSMODEDESCRIPTION,CallProtoService(protos[i]->szName,PS_GETSTATUS,0,0),0);
+			szStatus=(TCHAR*)CallService(MS_CLIST_GETSTATUSMODEDESCRIPTION,CallProtoService(protos[i]->szName,PS_GETSTATUS,0,0),0); //TODO:UNICODE
 			if(szTip[0]) strncat(szTip,szSeparator,sizeof(szTip)-1-MyStrLen(szTip));
 			strncat(szTip,szProtoName,sizeof(szTip)-1-MyStrLen(szTip));
 			strncat(szTip," ",sizeof(szTip)-1-MyStrLen(szTip));
@@ -138,7 +138,7 @@ static char *TrayIconMakeTooltip(const char *szPrefix,const char *szProto)
 		if(szPrefix && szPrefix[0]) {
 			if(DBGetContactSettingByte(NULL,"CList","AlwaysStatus",SETTING_ALWAYSSTATUS_DEFAULT))
 				_snprintf(szTip,sizeof(szTip),"%s%s%s %s",szPrefix,szSeparator,szProtoName,szStatus);
-			else lstrcpyn(szTip,szPrefix,sizeof(szTip));
+			else lstrcpynA(szTip,szPrefix,sizeof(szTip));
 		}
 		else _snprintf(szTip,sizeof(szTip),"%s %s",szProtoName,szStatus);
 	}
@@ -170,10 +170,10 @@ static int TrayIconAdd(HWND hwnd,const char *szProto,const char *szIconProto,int
 		nidn.uFlags=nid.uFlags|NIF_INFO;
 		nidn.uCallbackMessage=nid.uCallbackMessage;
 		nidn.hIcon=nid.hIcon;
-		lstrcpyn(nidn.szTip, TrayIconMakeTooltip(NULL,trayIcon[i].szProto),sizeof(nidn.szTip));
+		lstrcpynA(nidn.szTip, TrayIconMakeTooltip(NULL,trayIcon[i].szProto),sizeof(nidn.szTip));
 		Shell_NotifyIcon(NIM_ADD, (void*)&nidn);
 	} else {
-		lstrcpyn(nid.szTip, TrayIconMakeTooltip(NULL,trayIcon[i].szProto),sizeof(nid.szTip));
+		lstrcpynA(nid.szTip, TrayIconMakeTooltip(NULL,trayIcon[i].szProto),sizeof(nid.szTip));
 		Shell_NotifyIcon(NIM_ADD, &nid);
 	}
 	trayIcon[i].isBase=1;
@@ -190,7 +190,7 @@ static void TrayIconRemove(HWND hwnd,const char *szProto)
 	nid.hWnd = hwnd;
 	for(i=0;i<trayIconCount;i++) {
 		if(trayIcon[i].id==0) continue;
-		if(lstrcmp(szProto,trayIcon[i].szProto)) continue;
+		if(lstrcmpA(szProto,trayIcon[i].szProto)) continue;
 		if (dviShell.dwMajorVersion>=5) {
 			nidn.cbSize=sizeof(nidn);
 			nidn.hWnd=nid.hWnd;
@@ -302,7 +302,7 @@ static int TrayIconUpdate(HICON hNewIcon,const char *szNewTip,const char *szPref
 	nid.hIcon = hNewIcon;			
     if (!hNewIcon) 
     {
- //       MessageBox(NULL,"ICON SET TO NULL","ERROR",MB_OK);
+ //       MessageBoxA(NULL,"ICON SET TO NULL","ERROR",MB_OK);
         return 0;
     }
 	nidn.cbSize=sizeof(nidn);
@@ -312,14 +312,14 @@ static int TrayIconUpdate(HICON hNewIcon,const char *szNewTip,const char *szPref
 
 	for(i=0;i<trayIconCount;i++) {
 		if(trayIcon[i].id==0) continue;
-		if(lstrcmp(trayIcon[i].szProto,szPreferredProto)) continue;
+		if(lstrcmpA(trayIcon[i].szProto,szPreferredProto)) continue;
 		nid.uID = trayIcon[i].id;
 		if (dviShell.dwMajorVersion>=5) {
 			nidn.uID=nid.uID;
-			lstrcpyn(nidn.szTip,TrayIconMakeTooltip(szNewTip,trayIcon[i].szProto),sizeof(nidn.szTip));
+			lstrcpynA(nidn.szTip,TrayIconMakeTooltip(szNewTip,trayIcon[i].szProto),sizeof(nidn.szTip));
 			Shell_NotifyIcon(NIM_MODIFY, (void*)&nidn);
 		} else {
-			lstrcpyn(nid.szTip,TrayIconMakeTooltip(szNewTip,trayIcon[i].szProto),sizeof(nid.szTip));
+			lstrcpynA(nid.szTip,TrayIconMakeTooltip(szNewTip,trayIcon[i].szProto),sizeof(nid.szTip));
 			Shell_NotifyIcon(NIM_MODIFY, &nid);
 		}
 		trayIcon[i].isBase=isBase;
@@ -337,10 +337,10 @@ static int TrayIconUpdate(HICON hNewIcon,const char *szNewTip,const char *szPref
 
 		if (dviShell.dwMajorVersion>=5) {
 			nidn.uID=nid.uID;
-			lstrcpyn(nidn.szTip,TrayIconMakeTooltip(szNewTip,trayIcon[i].szProto),sizeof(nidn.szTip));
+			lstrcpynA(nidn.szTip,TrayIconMakeTooltip(szNewTip,trayIcon[i].szProto),sizeof(nidn.szTip));
 			Shell_NotifyIcon(NIM_MODIFY, (void*)&nidn);
 		} else {
-			lstrcpyn(nid.szTip,TrayIconMakeTooltip(szNewTip,trayIcon[i].szProto),sizeof(nid.szTip));
+			lstrcpynA(nid.szTip,TrayIconMakeTooltip(szNewTip,trayIcon[i].szProto),sizeof(nid.szTip));
 			Shell_NotifyIcon(NIM_MODIFY, &nid);
 		}
 		trayIcon[i].isBase=isBase;
@@ -382,7 +382,7 @@ static int TrayIconSetBaseInfo(HICON hIcon, char *szPreferredProto)
 
 	for(i=0;i<trayIconCount;i++) {
 		if(trayIcon[i].id==0) continue;
-		if(lstrcmp(trayIcon[i].szProto,szPreferredProto)) continue;
+		if(lstrcmpA(trayIcon[i].szProto,szPreferredProto)) continue;
 		DestroyIcon(trayIcon[i].hBaseIcon);
 		trayIcon[i].hBaseIcon=hIcon;
 		return i;
@@ -444,7 +444,7 @@ void TrayIconUpdateBase(char *szChangedProto)
 	for(i=0,netProtoCount=0;i<count;i++) {
 		if(protos[i]->type!=PROTOTYPE_PROTOCOL || (GetProtocolVisibility(protos[i]->szName)==0)) continue;
 		netProtoCount++;
-		if(!lstrcmp(szChangedProto,protos[i]->szName)) cycleStep=i;
+		if(!lstrcmpA(szChangedProto,protos[i]->szName)) cycleStep=i;
 		if(averageMode==0) averageMode=CallProtoService(protos[i]->szName,PS_GETSTATUS,0,0);
 		else if(averageMode!=CallProtoService(protos[i]->szName,PS_GETSTATUS,0,0)) {averageMode=-1; break;}
 	}
@@ -581,7 +581,7 @@ void TrayIconSetToBase(char *szPreferredProto)
 
 	for(i=0;i<trayIconCount;i++) {
 		if(trayIcon[i].id==0) continue;
-		if(lstrcmp(trayIcon[i].szProto,szPreferredProto)) continue;
+		if(lstrcmpA(trayIcon[i].szProto,szPreferredProto)) continue;
 		TrayIconUpdate(trayIcon[i].hBaseIcon,NULL,szPreferredProto,1);
 		return;
 	}
@@ -638,7 +638,7 @@ int TrayIconProcessMessage(WPARAM wParam,LPARAM lParam)
 	MSG *msg=(MSG*)wParam;
 	switch(msg->message) {
 		case WM_CREATE: {			
-			WM_TASKBARCREATED=RegisterWindowMessage("TaskbarCreated");
+			WM_TASKBARCREATED=RegisterWindowMessage(TEXT("TaskbarCreated"));
 			PostMessage(msg->hwnd,TIM_CREATE,0,0);	
             {//++//
                     char b[260];
@@ -695,7 +695,7 @@ int TrayIconProcessMessage(WPARAM wParam,LPARAM lParam)
 				MENUITEMINFO mi;
 				
 				
-				hMenu = LoadMenu(GetModuleHandle(NULL), MAKEINTRESOURCE(IDR_CONTEXT));
+				hMenu = LoadMenu(GetModuleHandle(NULL), MAKEINTRESOURCEA(IDR_CONTEXT));
 				hMenu = GetSubMenu(hMenu,0);
 				CallService(MS_LANGPACK_TRANSLATEMENU,(WPARAM)hMenu,0);
 				
@@ -761,8 +761,8 @@ int CListTrayNotify(WPARAM wParam,LPARAM lParam)
 				nid.uID=trayIcon[0].id;
 			}
 			nid.uFlags=NIF_INFO;
-			lstrcpyn(nid.szInfo,msn->szInfo,sizeof(nid.szInfo));
-			lstrcpyn(nid.szInfoTitle,msn->szInfoTitle,sizeof(nid.szInfoTitle));
+			lstrcpynA(nid.szInfo,msn->szInfo,sizeof(nid.szInfo));
+			lstrcpynA(nid.szInfoTitle,msn->szInfoTitle,sizeof(nid.szInfoTitle));
 			nid.uTimeout=msn->uTimeout;
 			nid.dwInfoFlags=msn->dwInfoFlags;
 			return Shell_NotifyIcon(NIM_MODIFY,(void*)&nid) == 0;
@@ -1041,7 +1041,7 @@ void InitTray(void)
 {
 	HINSTANCE hLib;
 
-	hLib=LoadLibrary("shell32.dll");
+	hLib=LoadLibrary(TEXT("shell32.dll"));
 	if (hLib) {
 		DLLGETVERSIONPROC proc;
 		dviShell.cbSize=sizeof(dviShell);

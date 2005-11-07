@@ -127,13 +127,13 @@ static STDMETHODIMP_(HRESULT) CDropTarget_DragOver(struct CDropTarget *lpThis,DW
 static STDMETHODIMP_(HRESULT) CDropTarget_DragEnter(struct CDropTarget *lpThis,IDataObject *pData,DWORD fKeyState,POINTL pt,DWORD *pdwEffect)
 {
 	HWND hwnd;
-	char szWindowClass[64];
+	TCHAR szWindowClass[64];
 	POINT shortPt;
 
 	shortPt.x=pt.x; shortPt.y=pt.y;
 	hwnd=WindowFromPoint(shortPt);
 	GetClassName(hwnd,szWindowClass,sizeof(szWindowClass));
-	if(!lstrcmp(szWindowClass,CLISTCONTROL_CLASS)) {
+	if(!lstrcmp(szWindowClass,TEXT(CLISTCONTROL_CLASS))) {
 		struct ClcData *dat;
 		hwndCurrentDrag=hwnd;
 		dat=(struct ClcData*)GetWindowLong(hwndCurrentDrag,0);
@@ -163,20 +163,20 @@ static void AddToFileList(char ***pppFiles,int *totalCount,const char *szFilenam
 	*pppFiles=(char**)mir_realloc(*pppFiles,(++*totalCount+1)*sizeof(char*));
 	(*pppFiles)[*totalCount]=NULL;
 	(*pppFiles)[*totalCount-1]=mir_strdup(szFilename);
-	if(GetFileAttributes(szFilename)&FILE_ATTRIBUTE_DIRECTORY) {
-		WIN32_FIND_DATA fd;
+	if(GetFileAttributesA(szFilename)&FILE_ATTRIBUTE_DIRECTORY) {
+		WIN32_FIND_DATAA fd;
 		HANDLE hFind;
 		char szPath[MAX_PATH];
-		lstrcpy(szPath,szFilename);
-		lstrcat(szPath,"\\*");
-		if(hFind=FindFirstFile(szPath,&fd)) {
+		lstrcpyA(szPath,szFilename);
+		lstrcatA(szPath,"\\*");
+		if(hFind=FindFirstFileA(szPath,&fd)) {
 			do {
-				if(!lstrcmp(fd.cFileName,".") || !lstrcmp(fd.cFileName,"..")) continue;
-				lstrcpy(szPath,szFilename);
-				lstrcat(szPath,"\\");
-				lstrcat(szPath,fd.cFileName);
+				if(!lstrcmpA(fd.cFileName,".") || !lstrcmpA(fd.cFileName,"..")) continue;
+				lstrcpyA(szPath,szFilename);
+				lstrcatA(szPath,"\\");
+				lstrcatA(szPath,fd.cFileName);
 				AddToFileList(pppFiles,totalCount,szPath);
-			} while(FindNextFile(hFind,&fd));
+			} while(FindNextFileA(hFind,&fd));
 			FindClose(hFind);
 		}
 	}
@@ -207,10 +207,10 @@ static STDMETHODIMP_(HRESULT) CDropTarget_Drop(struct CDropTarget *lpThis,IDataO
 		char szFilename[MAX_PATH];
 		int fileCount,totalCount=0,i;
 
-		fileCount=DragQueryFile(hDrop,-1,NULL,0);
+		fileCount=DragQueryFileA(hDrop,-1,NULL,0);
 		ppFiles=NULL;
 		for(i=0;i<fileCount;i++) {
-			DragQueryFile(hDrop,i,szFilename,sizeof(szFilename));
+			DragQueryFileA(hDrop,i,szFilename,sizeof(szFilename));
 			AddToFileList(&ppFiles,&totalCount,szFilename);
 		}
 

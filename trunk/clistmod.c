@@ -26,7 +26,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #include <m_addcontact.h>
 #include "clist.h"
 #include "commonprototypes.h"
-
+extern void Docking_GetMonitorRectFromWindow(HWND hWnd,RECT *rc);
 int HideWindow(HWND hwndContactList, int mode);
 extern int SmoothAlphaTransition(HWND hwnd, BYTE GoalAlpha, BOOL wParam);
 extern int DefaultImageListColorDepth;
@@ -145,15 +145,15 @@ static int GetStatusModeDescription(WPARAM wParam,LPARAM lParam)
 		case ID_STATUS_IDLE: descr=Translate("Idle"); break;
 		default:
 			if(wParam>ID_STATUS_CONNECTING && wParam<ID_STATUS_CONNECTING+MAX_CONNECT_RETRIES) {
-				wsprintf(szMode,Translate("Connecting (attempt %d)"),wParam-ID_STATUS_CONNECTING+1);
+				wsprintf(szMode,TranslateT("Connecting (attempt %d)"),wParam-ID_STATUS_CONNECTING+1);
 				return (int)szMode;
 			}
 			return (int)(char*)NULL;
 	}
 	if(noPrefixReqd || !(lParam&GSMDF_PREFIXONLINE)) return (int)descr;
-	lstrcpy(szMode,Translate("Online"));
-	lstrcat(szMode,": ");
-	lstrcat(szMode,descr);
+	lstrcpyA(szMode,Translate("Online"));
+	lstrcatA(szMode,": ");
+	lstrcatA(szMode,descr);
 	return (int)szMode;
 }
 
@@ -315,11 +315,11 @@ static BOOL CALLBACK AskForConfirmationDlgProc(HWND hWnd, UINT msg, WPARAM wPara
 					SendDlgItemMessage(hWnd, IDC_TOPLINE, WM_SETFONT, (WPARAM)CreateFontIndirect(&lf), 0);
 				}
 				{
-					char szFormat[256];
-					char szFinal[256];
-					char * ch=(char*)CallService(MS_CLIST_GETCONTACTDISPLAYNAME, lParam, 0);
+					TCHAR szFormat[256];
+					TCHAR szFinal[256];
+					TCHAR * ch=(TCHAR*)CallService(MS_CLIST_GETCONTACTDISPLAYNAME, lParam, 0); //TODO UNICODE
 					GetDlgItemText(hWnd, IDC_TOPLINE, szFormat, sizeof(szFormat));
-					_snprintf(szFinal, sizeof(szFinal), szFormat, ch);
+					_sntprintf(szFinal, sizeof(szFinal), szFormat, ch);
 					SetDlgItemText(hWnd, IDC_TOPLINE, szFinal);
 					mir_free(ch);
 				}
@@ -400,7 +400,7 @@ static int MenuItem_DeleteContact(WPARAM wParam,LPARAM lParam)
 					{
 						// Set a flag so we remember to delete the contact when the protocol goes online the next time
 						DBWriteContactSettingByte((HANDLE)wParam, "CList", "Delete", 1);
-						MessageBox(NULL, Translate("This contact is on an instant messaging system which stores its contact list on a central server. The contact will be removed from the server and from your contact list when you next connect to that network."), Translate("Delete Contact"), MB_OK);
+						MessageBoxA(NULL, Translate("This contact is on an instant messaging system which stores its contact list on a central server. The contact will be removed from the server and from your contact list when you next connect to that network."), Translate("Delete Contact"), MB_OK);
 						return 0;
 					}
 				}
@@ -485,7 +485,7 @@ int LoadContactListModule(void)
 	CreateServiceFunction(MS_CLIST_DOCKINGISDOCKED,Docking_IsDocked);
 	CreateServiceFunction(MS_CLIST_HOTKEYSPROCESSMESSAGE,HotkeysProcessMessage);
 	CreateServiceFunction(MS_CLIST_GETCONTACTICON,GetContactIcon);
-	MySetProcessWorkingSetSize=(BOOL (WINAPI*)(HANDLE,SIZE_T,SIZE_T))GetProcAddress(GetModuleHandle("kernel32"),"SetProcessWorkingSetSize");
+	MySetProcessWorkingSetSize=(BOOL (WINAPI*)(HANDLE,SIZE_T,SIZE_T))GetProcAddress(GetModuleHandle(TEXT("kernel32")),TEXT("SetProcessWorkingSetSize"));
 	hCListImages = ImageList_Create(16, 16, ILC_MASK|ILC_COLOR32, 32, 0);
 
 	InitDisplayNameCache(&lContactsCache);
@@ -591,6 +591,14 @@ int GetWindowVisibleState(HWND hWnd, int iStepX, int iStepY) {
 			wx=bmp.bmWidthBytes;
 		}
 		GetWindowRect(hWnd, &rc);
+    {
+      RECT rcMonitor={0};
+      Docking_GetMonitorRectFromWindow(hWnd,&rcMonitor);
+      rc.top=rc.top<rcMonitor.top?rcMonitor.top:rc.top;
+      rc.left=rc.left<rcMonitor.left?rcMonitor.left:rc.left;
+      rc.bottom=rc.bottom>rcMonitor.bottom?rcMonitor.bottom:rc.bottom;
+      rc.right=rc.right>rcMonitor.right?rcMonitor.right:rc.right;
+    }
 		width = rc.right - rc.left;
 		height = rc.bottom- rc.top;
 		dx=-rc.left;
@@ -690,8 +698,8 @@ int ShowHide(WPARAM wParam,LPARAM lParam) {
 			SetWindowPos(hwndContactList, HWND_TOPMOST, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE |SWP_NOACTIVATE);           
       CALLED_FROM_SHOWHIDE=1;
 			BringWindowToTop(hwndContactList);			     
-			if (!DBGetContactSettingByte(NULL,"CList","OnTop",SETTING_ONTOP_DEFAULT)
-				 && ((DBGetContactSettingByte(NULL, "CList", "BringToFront", SETTING_BRINGTOFRONT_DEFAULT) /*&& iVisibleState>=2*/)))
+			if (!DBGetContactSettingByte(NULL,"CList","OnTop",SETTING_ONTOP_DEFAULT))
+				 //&& ((DBGetContactSettingByte(NULL, "CList", "BringToFront", SETTING_BRINGTOFRONT_DEFAULT) /*&& iVisibleState>=2*/)))
 				SetWindowPos(hwndContactList, HWND_NOTOPMOST, 0, 0, 0, 0, SWP_NOSIZE | SWP_NOMOVE);
 			SetForegroundWindow(hwndContactList);	     
 			CALLED_FROM_SHOWHIDE=0;
@@ -704,13 +712,13 @@ int ShowHide(WPARAM wParam,LPARAM lParam) {
     }
 		DBWriteContactSettingByte(NULL,"CList","State",SETTING_STATE_NORMAL);
 		//this forces the window onto the visible screen
-		MyMonitorFromWindow=(HMONITOR (WINAPI *)(HWND,DWORD))GetProcAddress(GetModuleHandle("USER32"),"MonitorFromWindow");
+		MyMonitorFromWindow=(HMONITOR (WINAPI *)(HWND,DWORD))GetProcAddress(GetModuleHandle(TEXT("USER32")),"MonitorFromWindow");
 		if(MyMonitorFromWindow) {
 			if(MyMonitorFromWindow(hwndContactList,0)==NULL) {
 				BOOL (WINAPI *MyGetMonitorInfoA)(HMONITOR,LPMONITORINFO);
 				MONITORINFO mi={0};
 				HMONITOR hMonitor=MyMonitorFromWindow(hwndContactList,2);
-				MyGetMonitorInfoA=(BOOL (WINAPI *)(HMONITOR,LPMONITORINFO))GetProcAddress(GetModuleHandle("USER32"),"GetMonitorInfoA");
+				MyGetMonitorInfoA=(BOOL (WINAPI *)(HMONITOR,LPMONITORINFO))GetProcAddress(GetModuleHandle(TEXT("USER32")),"GetMonitorInfoA");
 				mi.cbSize=sizeof(mi);
 				MyGetMonitorInfoA(hMonitor,&mi);
 				rcScreen=mi.rcWork;

@@ -173,7 +173,7 @@ int GetRealStatus(struct ClcContact * contact, int status)
   char *szProto=contact->proto;
   if (!szProto) return status;
   for (i=0;i<hClcProtoCount;i++) {
-    if (!lstrcmp(clcProto[i].szProto,szProto)) {
+    if (!lstrcmpA(clcProto[i].szProto,szProto)) {
       return clcProto[i].dwStatus;
     }
   }
@@ -274,7 +274,7 @@ void _inline AppendChar(char * buf, UINT size, char * add)
 {
   _snprintf(buf,size,"%s%s",buf,add);
 }
-void GetTextSize(SIZE *text_size, HDC hdcMem, RECT free_row_rc, char *szText, SortedList *plText, UINT uTextFormat)
+void GetTextSize(SIZE *text_size, HDC hdcMem, RECT free_row_rc, TCHAR *szText, SortedList *plText, UINT uTextFormat)
 {
   if (szText == NULL)
   {
@@ -339,7 +339,7 @@ void GetTextSize(SIZE *text_size, HDC hdcMem, RECT free_row_rc, char *szText, So
 }
 
 
-void DrawTextSSmiley(HDC hdcMem, RECT free_rc, SIZE text_size, char *szText, int len, SortedList *plText, UINT uTextFormat)
+void DrawTextSSmiley(HDC hdcMem, RECT free_rc, SIZE text_size, TCHAR *szText, int len, SortedList *plText, UINT uTextFormat)
 {
   if (szText == NULL)
   {
@@ -365,12 +365,12 @@ void DrawTextSSmiley(HDC hdcMem, RECT free_rc, SIZE text_size, char *szText, int
       i = 0;
 
     // Get real height of the line
-    row_height = DrawTextS(hdcMem, "A", 1, &tmp_rc, DT_CALCRECT | uTextFormat);
+    row_height = DrawTextS(hdcMem, TEXT("A"), 1, &tmp_rc, DT_CALCRECT | uTextFormat);
 
     // Just draw ellipsis
     if (free_rc.right <= free_rc.left)
     {
-      DrawTextS(hdcMem, "...", 3, &free_rc, uTextFormat & ~DT_END_ELLIPSIS);
+      DrawTextS(hdcMem, TEXT("..."), 3, &free_rc, uTextFormat & ~DT_END_ELLIPSIS);
     }
     else
     {
@@ -426,7 +426,7 @@ void DrawTextSSmiley(HDC hdcMem, RECT free_rc, SIZE text_size, char *szText, int
             }
             else
             {
-              DrawTextS(hdcMem, "...", 3, &text_rc, uTextFormat);
+              DrawTextS(hdcMem, TEXT("..."), 3, &text_rc, uTextFormat);
             }
 
             pos_x += (LONG)(piece->smiley_width * factor);
@@ -524,22 +524,24 @@ _inline char * GetCLCContactRowBackObject(struct ClcGroup * group, struct ClcCon
   AppendChar(buf,BUFSIZE,",Index=");
   AppendChar(buf,BUFSIZE,itoa(index,b2,BUF2SIZE));
   {
-    char * b2=mir_strdup(Drawing->szText);
+    TCHAR * b2=mir_strdupT(Drawing->szText);
     int i,m;
-    m=MyStrLen(b2);	
+    m=lstrlen(b2);	
     for (i=0; i<m;i++)
-      if (b2[i]==',') b2[i]='.';
+      if (b2[i]==TEXT(',')) b2[i]=TEXT('.');
+    //TODO b2 to UTF8
     AppendChar(buf,BUFSIZE,",Name=");
     AppendChar(buf,BUFSIZE,b2);			
     mir_free(b2);
   }
   if (group->parent)
   {
-    char * b2=mir_strdup(group->parent->contact->szText);
+    TCHAR * b2=mir_strdupT(group->parent->contact->szText);
     int i,m;
-    m=MyStrLen(b2);	
+    m=lstrlen(b2);	
     for (i=0; i<m;i++)
-      if (b2[i]==',') b2[i]='.';
+      if (b2[i]==TEXT(',')) b2[i]=TEXT('.');
+    //TODO b2 to UTF8
     AppendChar(buf,BUFSIZE,",Group=");
     AppendChar(buf,BUFSIZE,b2);		
     mir_free(b2);
@@ -1038,7 +1040,7 @@ void InternalPaintRowItems(HWND hwnd, HDC hdcMem, struct ClcData *dat, struct Cl
     SIZE third_line_text_size = {0};
     SIZE space_size = {0};
     SIZE counts_size = {0};
-    char *szCounts = "";
+    TCHAR *szCounts = NULL;//mir_strdupT(TEXT(""));
     int free_width;
     int free_height;
     UINT uTextFormat = DT_NOPREFIX | DT_SINGLELINE | (dat->text_rtl ? (DT_RIGHT | DT_RTLREADING) : 0);
@@ -1055,7 +1057,7 @@ void InternalPaintRowItems(HWND hwnd, HDC hdcMem, struct ClcData *dat, struct Cl
     GetTextSize(&text_size, hdcMem, free_row_rc, Drawing->szText, Drawing->plText, uTextFormat);
 
     /*
-    text_size.cy = DrawTextS(hdcMem,Drawing->szText,lstrlen(Drawing->szText), &text_rc, 
+    text_size.cy = DrawTextS(hdcMem,Drawing->szText,lstrlenA(Drawing->szText), &text_rc, 
     DT_CALCRECT | DT_NOPREFIX | DT_SINGLELINE | (dat->text_rtl ? DT_RIGHT : 0));
     text_size.cy = min(text_size.cy, free_height);
     text_size.cx = min(text_rc.right - text_rc.left + 1, free_width);
@@ -1081,18 +1083,18 @@ void InternalPaintRowItems(HWND hwnd, HDC hdcMem, struct ClcData *dat, struct Cl
       szCounts = GetGroupCountsText(dat, Drawing);
 
       // Has to draw the count?
-      if(szCounts[0]) 
+      if(szCounts) 
       {
         RECT space_rc = free_row_rc;
         RECT counts_rc = free_row_rc;
         int text_width;
 
         // Get widths
-        DrawTextS(hdcMem," ",1,&space_rc,DT_CALCRECT | DT_NOPREFIX);
+        DrawTextS(hdcMem,TEXT(" "),1,&space_rc,DT_CALCRECT | DT_NOPREFIX);
 
         ChangeToFont(hdcMem,dat,FONTID_GROUPCOUNTS,NULL);
         DrawTextS(hdcMem,szCounts,lstrlen(szCounts),&counts_rc,DT_CALCRECT | uTextFormat);
-
+        
         counts_size.cx = counts_rc.right - counts_rc.left;
         counts_size.cy = min(counts_rc.bottom - counts_rc.top, free_height);
         space_size.cx = space_rc.right - space_rc.left;
@@ -1158,7 +1160,7 @@ void InternalPaintRowItems(HWND hwnd, HDC hdcMem, struct ClcData *dat, struct Cl
         GetTextSize(&second_line_text_size, hdcMem, free_row_rc, Drawing->szSecondLineText, Drawing->plSecondLineText, 
           uTextFormat);
 
-        //second_line_text_size.cy = DrawTextS(hdcMem,Drawing->szSecondLineText,lstrlen(Drawing->szSecondLineText),
+        //second_line_text_size.cy = DrawTextS(hdcMem,Drawing->szSecondLineText,lstrlenA(Drawing->szSecondLineText),
         //									&rc_tmp, DT_CALCRECT | uTextFormat);
 
         //second_line_text_size.cy = min(second_line_text_size.cy, free_height - text_size.cy - dat->second_line_top_space);
@@ -1188,7 +1190,7 @@ void InternalPaintRowItems(HWND hwnd, HDC hdcMem, struct ClcData *dat, struct Cl
         GetTextSize(&third_line_text_size, hdcMem, free_row_rc, Drawing->szThirdLineText, Drawing->plThirdLineText, 
           uTextFormat);
 
-        //third_line_text_size.cy = DrawTextS(hdcMem,Drawing->szThirdLineText,lstrlen(Drawing->szThirdLineText),
+        //third_line_text_size.cy = DrawTextS(hdcMem,Drawing->szThirdLineText,lstrlenA(Drawing->szThirdLineText),
         //									&rc_tmp, DT_CALCRECT | uTextFormat);
 
         //third_line_text_size.cy = min(third_line_text_size.cy, free_height - text_size.cy - dat->third_line_top_space);
@@ -1331,6 +1333,7 @@ void InternalPaintRowItems(HWND hwnd, HDC hdcMem, struct ClcData *dat, struct Cl
 
           // Draw counts
           DrawTextS(hdcMem,szCounts,lstrlen(szCounts),&counts_rc,uTextFormat);
+          if (szCounts) mir_free(szCounts);
         }
 
         // Update free
@@ -1373,14 +1376,14 @@ void InternalPaintRowItems(HWND hwnd, HDC hdcMem, struct ClcData *dat, struct Cl
               rc.right = rc.left + text_size.cx;
           }
 
-          DrawTextSSmiley(hdcMem, rc, text_size, Drawing->szText, MyStrLen(Drawing->szText), Drawing->plText, uTextFormat);
+          DrawTextSSmiley(hdcMem, rc, text_size, Drawing->szText, lstrlen(Drawing->szText), Drawing->plText, uTextFormat);
 
-          //DrawTextS(hdcMem,Drawing->szText,lstrlen(Drawing->szText),&rc,uTextFormat);
+          //DrawTextS(hdcMem,Drawing->szText,lstrlenA(Drawing->szText),&rc,uTextFormat);
 
           if(selected && dat->szQuickSearch[0] != '\0') 
           {
             SetTextColor(hdcMem, dat->quickSearchColour);
-            DrawTextSSmiley(hdcMem, rc, text_size, Drawing->szText, MyStrLen(dat->szQuickSearch), Drawing->plText, uTextFormat);
+            DrawTextSSmiley(hdcMem, rc, text_size, Drawing->szText, lstrlen(dat->szQuickSearch), Drawing->plText, uTextFormat);
           }
           free_rc.top = rc.bottom;
         }
@@ -1428,8 +1431,8 @@ void InternalPaintRowItems(HWND hwnd, HDC hdcMem, struct ClcData *dat, struct Cl
             }
 
             ChangeToFont(hdcMem,dat,FONTID_THIRDLINE,NULL);
-            //DrawTextS(hdcMem,Drawing->szThirdLineText,lstrlen(Drawing->szThirdLineText),&rc,uTextFormat);
-            DrawTextSSmiley(hdcMem, rc, third_line_text_size, Drawing->szThirdLineText, MyStrLen(Drawing->szThirdLineText), 
+            //DrawTextS(hdcMem,Drawing->szThirdLineText,lstrlenA(Drawing->szThirdLineText),&rc,uTextFormat);
+            DrawTextSSmiley(hdcMem, rc, third_line_text_size, Drawing->szThirdLineText, lstrlen(Drawing->szThirdLineText), 
               Drawing->plThirdLineText, uTextFormat);
 
             free_rc.top = rc.bottom;
@@ -1617,10 +1620,10 @@ void InternalPaintClc(HWND hwnd,struct ClcData *dat,HDC hdc,RECT *rcPaint)
       FontID=GetBasicFontID(Drawing);
       ChangeToFont(hdcMem,dat,FontID,NULL);
       // Get sizes
-      GetTextExtentPoint32(hdcMem,"A",1,&sz);
+      GetTextExtentPoint32A(hdcMem,"A",1,&sz);
       h1=sz.cy;
       ChangeToFont(hdcMem,dat,FONTID_SECONDLINE,NULL);
-      GetTextExtentPoint32(hdcMem,"A",1,&sz);
+      GetTextExtentPoint32A(hdcMem,"A",1,&sz);
       h2=sz.cy;
       dat->row_heights[line_num]=max(dat->row_heights[line_num],h1+h2+ROW_SPACE_BEETWEEN_LINES+dat->row_border*2);
       secondLineSize.cy = h2;
@@ -1706,7 +1709,7 @@ void InternalPaintClc(HWND hwnd,struct ClcData *dat,HDC hdc,RECT *rcPaint)
         {
           if (!themeAPIHandle) 
           {
-            themeAPIHandle = GetModuleHandle("uxtheme");
+            themeAPIHandle = GetModuleHandle(TEXT("uxtheme"));
             if (themeAPIHandle) {
               MyOpenThemeData = (HANDLE (WINAPI *)(HWND,LPCWSTR))MGPROC("OpenThemeData");
               MyCloseThemeData = (HRESULT (WINAPI *)(HANDLE))MGPROC("CloseThemeData");
@@ -1886,7 +1889,7 @@ void InternalPaintClc(HWND hwnd,struct ClcData *dat,HDC hdc,RECT *rcPaint)
       {
       RECT rc = free_row_rc;
 
-      textSize.cy = DrawTextSS(hdcMem,Drawing->szText,lstrlen(Drawing->szText),&rc,DT_CALCRECT | DT_NOPREFIX | DT_SINGLELINE);
+      textSize.cy = DrawTextSS(hdcMem,Drawing->szText,lstrlenA(Drawing->szText),&rc,DT_CALCRECT | DT_NOPREFIX | DT_SINGLELINE);
       if (textSize.cy > free_row_height)
       textSize.cy = free_row_height;
 
@@ -1914,7 +1917,7 @@ void InternalPaintClc(HWND hwnd,struct ClcData *dat,HDC hdc,RECT *rcPaint)
       DrawTextSS(hdcMem," ",1,&space_rc,DT_CALCRECT | DT_NOPREFIX);
 
       ChangeToFont(hdcMem,dat,FONTID_GROUPCOUNTS,NULL);
-      DrawTextSS(hdcMem,szCounts,lstrlen(szCounts),&counts_rc,DT_CALCRECT | DT_NOPREFIX | DT_SINGLELINE);
+      DrawTextSS(hdcMem,szCounts,lstrlenA(szCounts),&counts_rc,DT_CALCRECT | DT_NOPREFIX | DT_SINGLELINE);
 
       counts_width = counts_rc.right - counts_rc.left;
       counts_height = counts_rc.bottom - counts_rc.top;
@@ -1947,7 +1950,7 @@ void InternalPaintClc(HWND hwnd,struct ClcData *dat,HDC hdc,RECT *rcPaint)
       //    ChangeToFont(hdcMem,dat,FONTID_SECONDLINE,NULL);
 
       // Get sizes
-      //    secondLineSize.cy = DrawTextSS(hdcMem,Drawing->szStatusMsg,lstrlen(Drawing->szStatusMsg),&rc, 
+      //    secondLineSize.cy = DrawTextSS(hdcMem,Drawing->szStatusMsg,lstrlenA(Drawing->szStatusMsg),&rc, 
       //      DT_CALCRECT | DT_NOPREFIX | DT_SINGLELINE);
 
       if (secondLineSize.cy > free_row_height - textSize.cy - ROW_SPACE_BEETWEEN_LINES)
@@ -2029,7 +2032,7 @@ void InternalPaintClc(HWND hwnd,struct ClcData *dat,HDC hdc,RECT *rcPaint)
       trc.top += (trc.bottom - trc.top - textSize.cy) >> 1;
       trc.bottom = trc.top + textSize.cy;
       }
-      DrawTextSS(hdcMem,Drawing->szText,lstrlen(Drawing->szText),&trc,DT_END_ELLIPSIS | DT_NOPREFIX | DT_SINGLELINE);
+      DrawTextSS(hdcMem,Drawing->szText,lstrlenA(Drawing->szText),&trc,DT_END_ELLIPSIS | DT_NOPREFIX | DT_SINGLELINE);
 
       rc.left = rc.right + 6 + textSize.cx;
       rc.right = free_row_rc.right;
@@ -2054,12 +2057,12 @@ void InternalPaintClc(HWND hwnd,struct ClcData *dat,HDC hdc,RECT *rcPaint)
       }
 
       // Draw text
-      DrawTextSS(hdcMem,Drawing->szText,lstrlen(Drawing->szText),&text_rc,DT_END_ELLIPSIS | DT_NOPREFIX | DT_SINGLELINE);
+      DrawTextSS(hdcMem,Drawing->szText,lstrlenA(Drawing->szText),&text_rc,DT_END_ELLIPSIS | DT_NOPREFIX | DT_SINGLELINE);
 
       if(selected && dat->szQuickSearch[0] != '\0') 
       {
       SetTextColor(hdcMem, dat->quickSearchColour);
-      DrawTextSS(hdcMem,Drawing->szText,lstrlen(dat->szQuickSearch),&text_rc,DT_END_ELLIPSIS | DT_NOPREFIX | DT_SINGLELINE);
+      DrawTextSS(hdcMem,Drawing->szText,lstrlenA(dat->szQuickSearch),&text_rc,DT_END_ELLIPSIS | DT_NOPREFIX | DT_SINGLELINE);
       }
 
       // Has to draw the count?
@@ -2083,7 +2086,7 @@ void InternalPaintClc(HWND hwnd,struct ClcData *dat,HDC hdc,RECT *rcPaint)
       SetHotTrackColour(hdcMem,dat);
 
       // Draw counts
-      DrawTextSS(hdcMem,szCounts,lstrlen(szCounts),&counts_rc,DT_NOPREFIX | DT_SINGLELINE);
+      DrawTextSS(hdcMem,szCounts,lstrlenA(szCounts),&counts_rc,DT_NOPREFIX | DT_SINGLELINE);
       }
 
       // Update free
@@ -2131,12 +2134,12 @@ void InternalPaintClc(HWND hwnd,struct ClcData *dat,HDC hdc,RECT *rcPaint)
       }
       }
 
-      DrawTextSS(hdcMem,Drawing->szText,lstrlen(Drawing->szText),&text_rc,DT_END_ELLIPSIS | DT_NOPREFIX | DT_SINGLELINE);
+      DrawTextSS(hdcMem,Drawing->szText,lstrlenA(Drawing->szText),&text_rc,DT_END_ELLIPSIS | DT_NOPREFIX | DT_SINGLELINE);
 
       if(selected && dat->szQuickSearch[0] != '\0') 
       {
       SetTextColor(hdcMem, dat->quickSearchColour);
-      DrawTextSS(hdcMem,Drawing->szText,lstrlen(dat->szQuickSearch),&text_rc,DT_END_ELLIPSIS | DT_NOPREFIX | DT_SINGLELINE);
+      DrawTextSS(hdcMem,Drawing->szText,lstrlenA(dat->szQuickSearch),&text_rc,DT_END_ELLIPSIS | DT_NOPREFIX | DT_SINGLELINE);
       }
 
       if (secondLineSize.cy > 0)
@@ -2147,7 +2150,7 @@ void InternalPaintClc(HWND hwnd,struct ClcData *dat,HDC hdc,RECT *rcPaint)
       if (selected && (dat->HiLightMode == 1 || dat->HiLightMode == 2))
       SetTextColor(hdcMem, dat->selTextColour);
 
-      DrawTextSS(hdcMem,Drawing->szStatusMsg,lstrlen(Drawing->szStatusMsg),&second_line_rc,DT_END_ELLIPSIS | DT_NOPREFIX | DT_SINGLELINE);
+      DrawTextSS(hdcMem,Drawing->szStatusMsg,lstrlenA(Drawing->szStatusMsg),&second_line_rc,DT_END_ELLIPSIS | DT_NOPREFIX | DT_SINGLELINE);
       }
       break;
       }
@@ -2161,12 +2164,12 @@ void InternalPaintClc(HWND hwnd,struct ClcData *dat,HDC hdc,RECT *rcPaint)
       text_rc.bottom = text_rc.top + textSize.cy;
       }
 
-      DrawTextSS(hdcMem,Drawing->szText,lstrlen(Drawing->szText),&text_rc,DT_END_ELLIPSIS | DT_NOPREFIX);
+      DrawTextSS(hdcMem,Drawing->szText,lstrlenA(Drawing->szText),&text_rc,DT_END_ELLIPSIS | DT_NOPREFIX);
 
       if(selected && dat->szQuickSearch[0] != '\0') 
       {
       SetTextColor(hdcMem, dat->quickSearchColour);
-      DrawTextSS(hdcMem,Drawing->szText,lstrlen(dat->szQuickSearch),&text_rc,DT_END_ELLIPSIS | DT_NOPREFIX);
+      DrawTextSS(hdcMem,Drawing->szText,lstrlenA(dat->szQuickSearch),&text_rc,DT_END_ELLIPSIS | DT_NOPREFIX);
       }
       }
       }  
@@ -2242,8 +2245,17 @@ void InternalPaintClc(HWND hwnd,struct ClcData *dat,HDC hdc,RECT *rcPaint)
     DeleteObject(hBrush);
   }
   if(!grey)
-    BitBlt(hdc,rcPaint->left,rcPaint->top,rcPaint->right-rcPaint->left,rcPaint->bottom-rcPaint->top,hdcMem,rcPaint->left,rcPaint->top,SRCCOPY);
-
+  {
+	if (NotInMain || dat->force_in_dialog)
+	{
+		BitBlt(hdc,rcPaint->left,rcPaint->top,rcPaint->right-rcPaint->left,rcPaint->bottom-rcPaint->top,hdcMem,rcPaint->left,rcPaint->top,SRCCOPY);
+	}
+	else
+	{    
+		BLENDFUNCTION bf={AC_SRC_OVER, 0, 255, AC_SRC_ALPHA };
+		MyAlphaBlend(hdc,rcPaint->left,rcPaint->top,rcPaint->right-rcPaint->left,rcPaint->bottom-rcPaint->top,hdcMem,rcPaint->left,rcPaint->top,rcPaint->right-rcPaint->left,rcPaint->bottom-rcPaint->top,bf);  
+	}
+  }
   if(hBrushAlternateGrey) DeleteObject(hBrushAlternateGrey);
   if(grey) {
     PBYTE bits;

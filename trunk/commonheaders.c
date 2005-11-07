@@ -110,6 +110,17 @@ __inline void *mir_calloc( size_t num, size_t size )
     return p;
 };
 
+__inline TCHAR * mir_strdupT(const TCHAR * src)
+{
+	TCHAR * p;
+	if (src==NULL) return NULL;
+    p= mir_alloc((lstrlen(src)+1)*sizeof(TCHAR));
+    if (!p) return 0;
+	lstrcpy(p, src);
+	return p;
+}
+
+
 __inline char * mir_strdup(const char * src)
 {
 	char * p;

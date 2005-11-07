@@ -218,7 +218,7 @@ void Cache_DestroySmileyList( SortedList* p_list )
 }
 
 // Generete the list of smileys / text to be drawn
-void Cache_ReplaceSmileys(struct ClcData *dat, struct ClcContact *contact, char *text, int text_size, SortedList **plText, 
+void Cache_ReplaceSmileys(struct ClcData *dat, struct ClcContact *contact, TCHAR *text, int text_size, SortedList **plText, 
 						  BOOL replace_smileys)
 {
 	SMADD_PARSE sp;
@@ -323,7 +323,7 @@ void Cache_ReplaceSmileys(struct ClcData *dat, struct ClcContact *contact, char 
 }
 
 // Get the text based on the settings for a especific line
-void Cache_GetLineText(struct ClcContact *contact, int type, char *text, int text_size, char *variable_text, BOOL xstatus_has_priority, BOOL show_status_if_no_away)
+void Cache_GetLineText(struct ClcContact *contact, int type, LPSTR text, int text_size, char *variable_text, BOOL xstatus_has_priority, BOOL show_status_if_no_away)
 {
 	text[0] = '\0';
 
@@ -344,7 +344,7 @@ void Cache_GetLineText(struct ClcContact *contact, int type, char *text, int tex
 				DBVARIANT dbv;
 				if (!DBGetContactSetting(contact->hContact, contact->proto, "XStatusName", &dbv)) 
 				{
-					lstrcpyn(text, dbv.pszVal, text_size);
+					lstrcpynA(text, dbv.pszVal, text_size);
 					DBFreeVariant(&dbv);
 				}
 			}
@@ -353,7 +353,7 @@ void Cache_GetLineText(struct ClcContact *contact, int type, char *text, int tex
 			if (text[0] == '\0')
 			{
         char *tmp = (char *)CallService(MS_CLIST_GETSTATUSMODEDESCRIPTION, (WPARAM)(contact->status?contact->status:ID_STATUS_OFFLINE), 0);
-				lstrcpyn(text, tmp, text_size);
+				lstrcpynA(text, tmp, text_size);
 			}
 
 			// Get XStatusName
@@ -362,7 +362,7 @@ void Cache_GetLineText(struct ClcContact *contact, int type, char *text, int tex
 				DBVARIANT dbv;
 				if (!DBGetContactSetting(contact->hContact, contact->proto, "XStatusName", &dbv)) 
 				{
-					lstrcpyn(text, dbv.pszVal, text_size);
+					lstrcpynA(text, dbv.pszVal, text_size);
 					DBFreeVariant(&dbv);
 				}
 			}
@@ -376,7 +376,7 @@ void Cache_GetLineText(struct ClcContact *contact, int type, char *text, int tex
 				DBVARIANT dbv;
 				if (!DBGetContactSetting(contact->hContact, contact->proto, "Nick", &dbv)) 
 				{
-					lstrcpyn(text, dbv.pszVal, text_size);
+					lstrcpynA(text, dbv.pszVal, text_size);
 					DBFreeVariant(&dbv);
 				}
 			}
@@ -400,7 +400,7 @@ void Cache_GetLineText(struct ClcContact *contact, int type, char *text, int tex
 				// Try to get XStatusMsg
 				if (!DBGetContactSetting(contact->hContact, contact->proto, "XStatusMsg", &dbv)) 
 				{
-					//lstrcpyn(text, dbv.pszVal, text_size);
+					//lstrcpynA(text, dbv.pszVal, text_size);
 					CopySkipUnPrintableChars(text, dbv.pszVal, text_size);
 					DBFreeVariant(&dbv);
 				}
@@ -434,16 +434,16 @@ void Cache_GetLineText(struct ClcContact *contact, int type, char *text, int tex
 
 			break;
 		}
-		case TEXT_TEXT:
+		case TEXT_TEXT:    //TO DO: Unicode to variables
 		{
 			if (!ServiceExists(MS_VARS_FORMATSTRING))
 			{
-				lstrcpyn(text, variable_text, text_size);
+				lstrcpynA(text, variable_text, text_size);  //transform needed
 			}
 			else
 			{
 				char *tmp = variables_parse(variable_text, contact->szText, contact->hContact);
-				lstrcpyn(text, tmp, text_size);
+				lstrcpynA(text, tmp, text_size);
 				variables_free(tmp);
 			}
 			break;
@@ -453,40 +453,40 @@ void Cache_GetLineText(struct ClcContact *contact, int type, char *text, int tex
 
 void Cache_GetFirstLineText(struct ClcData *dat, struct ClcContact *contact)
 {
-  char *ch;
+  TCHAR *ch;
   if (contact->szText) mir_free(contact->szText);
-  ch=(char*)CallService(MS_CLIST_GETCONTACTDISPLAYNAME,(WPARAM)contact->hContact,0);
-  contact->szText=mir_strdup(ch);
+  ch=(TCHAR*)CallService(MS_CLIST_GETCONTACTDISPLAYNAME,(WPARAM)contact->hContact,0/*TODO UNICODE*/);
+  contact->szText=mir_strdupT(ch);
 	
-	Cache_ReplaceSmileys(dat, contact, contact->szText, MyStrLen(contact->szText)+1, &(contact->plText),
+	Cache_ReplaceSmileys(dat, contact, contact->szText, lstrlen(contact->szText)+1, &(contact->plText),
 		dat->first_line_draw_smileys);
 }
 
 void Cache_GetSecondLineText(struct ClcData *dat, struct ClcContact *contact)
 {
-  char *Text[120-MAXEXTRACOLUMNS]={0};
+  TCHAR *Text[120-MAXEXTRACOLUMNS]={0};
 	Cache_GetLineText(contact, dat->second_line_type, (char*)Text, sizeof(Text), dat->second_line_text,
     dat->second_line_xstatus_has_priority,dat->second_line_show_status_if_no_away);
   if (contact->szSecondLineText) mir_free(contact->szSecondLineText);
   if (Text[0]!='\0')
-    contact->szSecondLineText=mir_strdup((char*)Text);
+    contact->szSecondLineText=mir_strdupT((TCHAR*)Text);
   else
     contact->szSecondLineText=NULL;
-	Cache_ReplaceSmileys(dat, contact, contact->szSecondLineText, MyStrLen(contact->szSecondLineText)+1, &contact->plSecondLineText, 
+	Cache_ReplaceSmileys(dat, contact, contact->szSecondLineText, lstrlen(contact->szSecondLineText)+1, &contact->plSecondLineText, 
     dat->second_line_draw_smileys);
 }
 
 void Cache_GetThirdLineText(struct ClcData *dat, struct ClcContact *contact)
 {
-  char *Text[120-MAXEXTRACOLUMNS]={0};
+  TCHAR *Text[120-MAXEXTRACOLUMNS]={0};
 	Cache_GetLineText(contact, dat->third_line_type,(char*)Text, sizeof(Text), dat->third_line_text,
     dat->third_line_xstatus_has_priority,dat->third_line_show_status_if_no_away);
   if (contact->szThirdLineText) mir_free(contact->szThirdLineText);
   if (Text[0]!='\0')
-    contact->szThirdLineText=mir_strdup((char*)Text);
+    contact->szThirdLineText=mir_strdupT((TCHAR*)Text);
   else
     contact->szThirdLineText=NULL;
-	Cache_ReplaceSmileys(dat, contact, contact->szThirdLineText, MyStrLen(contact->szThirdLineText)+1, &contact->plThirdLineText, 
+	Cache_ReplaceSmileys(dat, contact, contact->szThirdLineText, lstrlen(contact->szThirdLineText)+1, &contact->plThirdLineText, 
 		dat->third_line_draw_smileys);
 }
 
@@ -719,7 +719,7 @@ void Cache_GetStatusMessage(struct ClcContact *contact)
 		// Try to get XStatusMsg
 		if (!DBGetContactSetting(contact->hContact, contact->proto, "XStatusMsg", &dbv)) 
 		{
-			lstrcpyn(contact->szStatusMsg, dbv.pszVal, sizeof(contact->szStatusMsg));
+			lstrcpynA(contact->szStatusMsg, dbv.pszVal, sizeof(contact->szStatusMsg));
 			DBFreeVariant(&dbv);
 		}
 		// Get StatusMsg
@@ -727,7 +727,7 @@ void Cache_GetStatusMessage(struct ClcContact *contact)
 	  {
 		  if (!DBGetContactSetting(contact->hContact, "CList", "StatusMsg", &dbv)) 
 		  {
-  			lstrcpyn(contact->szStatusMsg, dbv.pszVal, sizeof(contact->szStatusMsg));
+  			lstrcpynA(contact->szStatusMsg, dbv.pszVal, sizeof(contact->szStatusMsg));
         {
           int i;
           for (i=0; i<sizeof(contact->szStatusMsg); i++)

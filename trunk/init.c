@@ -171,7 +171,7 @@ int __declspec(dllexport) CListInitialise(PLUGINLINK * link)
 int __declspec(dllexport) Load(PLUGINLINK * link)
 {
 	TRACE("Load ClistMW\r\n");
-	MessageBox(0,"You Running Old Miranda, use >30-10-2004 version!","MultiWindow Clist",0);
+	MessageBoxA(0,"You Running Old Miranda, use >30-10-2004 version!","MultiWindow Clist",0);
 	CListInitialise(link);
 	return 1;
 }

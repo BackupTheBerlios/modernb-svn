@@ -120,11 +120,11 @@ struct ClcContact {
 		};
 	};
 	BYTE iExtraImage[MAXEXTRACOLUMNS];
-	char *szText;//[120-MAXEXTRACOLUMNS];
+	TCHAR *szText;//[120-MAXEXTRACOLUMNS];
 	SortedList *plText;							// List of ClcContactTextPiece
-	char *szSecondLineText;//[120-MAXEXTRACOLUMNS];
+	TCHAR *szSecondLineText;//[120-MAXEXTRACOLUMNS];
 	SortedList *plSecondLineText;				// List of ClcContactTextPiece
-	char *szThirdLineText;//[120-MAXEXTRACOLUMNS];
+	TCHAR *szThirdLineText;//[120-MAXEXTRACOLUMNS];
 	SortedList *plThirdLineText;				// List of ClcContactTextPiece
 	char * proto;	// MS_PROTO_GETBASEPROTO
 
@@ -256,7 +256,7 @@ struct ClcData {
 	HIMAGELIST himlHighlight;
 	int groupIndent;
     int subIndent;
-	char szQuickSearch[128];
+	TCHAR szQuickSearch[128];
 	int iconXSpace;
 	HWND hwndRenameEdit;
 	COLORREF bkColour,selBkColour,selTextColour,hotTextColour,quickSearchColour;
@@ -310,9 +310,9 @@ HANDLE ContactToItemHandle(struct ClcContact *contact,DWORD *nmFlags);
 void ClearRowByIndexCache();
 
 //clcitems.c
-struct ClcGroup *AddGroup(HWND hwnd,struct ClcData *dat,const char *szName,DWORD flags,int groupId,int calcTotalMembers);
+struct ClcGroup *AddGroup(HWND hwnd,struct ClcData *dat,const TCHAR *szName,DWORD flags,int groupId,int calcTotalMembers);
 void FreeGroup(struct ClcGroup *group);
-int AddInfoItemToGroup(struct ClcGroup *group,int flags,const char *pszText);
+int AddInfoItemToGroup(struct ClcGroup *group,int flags,const TCHAR *pszText);
 void RebuildEntireList(HWND hwnd,struct ClcData *dat);
 struct ClcGroup *RemoveItemFromGroup(HWND hwnd,struct ClcGroup *group,struct ClcContact *contact,int updateTotalCount);
 void DeleteItemFromTree(HWND hwnd,HANDLE hItem);
@@ -330,11 +330,11 @@ void EnsureVisible(HWND hwnd,struct ClcData *dat,int iItem,int partialOk);
 void RecalcScrollBar(HWND hwnd,struct ClcData *dat);
 void SetGroupExpand(HWND hwnd,struct ClcData *dat,struct ClcGroup *group,int newState);
 void DoSelectionDefaultAction(HWND hwnd,struct ClcData *dat);
-int FindRowByText(HWND hwnd,struct ClcData *dat,const char *text,int prefixOk);
+int FindRowByText(HWND hwnd,struct ClcData *dat,const TCHAR *text,int prefixOk);
 void EndRename(HWND hwnd,struct ClcData *dat,int save);
 void DeleteFromContactList(HWND hwnd,struct ClcData *dat);
 void BeginRenameSelection(HWND hwnd,struct ClcData *dat);
-char *GetGroupCountsText(struct ClcData *dat,struct ClcContact *contact);
+TCHAR *GetGroupCountsText(struct ClcData *dat,struct ClcContact *contact);
 int HitTest(HWND hwnd,struct ClcData *dat,int testx,int testy,struct ClcContact **contact,struct ClcGroup **group,DWORD *flags);
 void ScrollTo(HWND hwnd,struct ClcData *dat,int desty,int noSmooth);
 #define DROPTARGET_OUTSIDE    0

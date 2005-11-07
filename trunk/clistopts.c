@@ -47,7 +47,7 @@ int CListOptInit(WPARAM wParam,LPARAM lParam)
   odp.cbSize=sizeof(odp);
   odp.position=-1000000000;
   odp.hInstance=g_hInst;
-  odp.pszTemplate=MAKEINTRESOURCE(IDD_OPT_CLIST);
+  odp.pszTemplate=MAKEINTRESOURCEA(IDD_OPT_CLIST);
   odp.pfnDlgProc=DlgProcGenOpts;
   odp.pszTitle=Translate("Contact List");
   odp.flags=ODPF_BOLDGROUPS;
@@ -61,7 +61,7 @@ int CListOptInit(WPARAM wParam,LPARAM lParam)
   odp.position=-200000000;
   odp.hInstance=g_hInst;
   odp.pfnDlgProc=DlgProcItemsOpts;
-  odp.pszTemplate=MAKEINTRESOURCE(IDD_OPT_ITEMS);
+  odp.pszTemplate=MAKEINTRESOURCEA(IDD_OPT_ITEMS);
   odp.pszGroup=Translate("Contact List");
   odp.pszTitle=Translate("Row items");
   odp.flags=ODPF_BOLDGROUPS;
@@ -69,7 +69,7 @@ int CListOptInit(WPARAM wParam,LPARAM lParam)
 
   /*
   odp.position=-900000000;
-  odp.pszTemplate=MAKEINTRESOURCE(IDD_OPT_HOTKEY);
+  odp.pszTemplate=MAKEINTRESOURCEA(IDD_OPT_HOTKEY);
   odp.pszTitle=Translate("Hotkeys");
   odp.pszGroup=Translate("Events");
   odp.pfnDlgProc=DlgProcHotkeyOpts;
@@ -82,7 +82,7 @@ int CListOptInit(WPARAM wParam,LPARAM lParam)
   odp.cbSize=sizeof(odp);
   odp.position=-200000000;
   odp.hInstance=g_hInst;
-  odp.pszTemplate=MAKEINTRESOURCE(IDD_OPT_HOTKEYS);
+  odp.pszTemplate=MAKEINTRESOURCEA(IDD_OPT_HOTKEYS);
   odp.pfnDlgProc=DlgProcHotKeyOpts2;
   odp.pszGroup=Translate("Events");
   odp.pszTitle=Translate("Hotkeys2");
@@ -1040,7 +1040,7 @@ static BOOL CALLBACK DlgProcItemsOpts(HWND hwndDlg, UINT msg, WPARAM wParam, LPA
         DLGTEMPLATE *templ;
 
         data->items[i].conf = &opt_items[i];
-        templ = DoLockDlgRes(MAKEINTRESOURCE(data->items[i].conf->id));
+        templ = DoLockDlgRes(MAKEINTRESOURCEA(data->items[i].conf->id));
         data->items[i].hwnd = CreateDialogIndirect(g_hInst, templ, hwndDlg, 
           data->items[i].conf->wnd_proc); 
         TranslateDialogDefault(data->items[i].hwnd);
@@ -1264,7 +1264,7 @@ static BOOL CALLBACK DlgProcGenOpts(HWND hwndDlg, UINT msg, WPARAM wParam, LPARA
       CallProtoService(protos[i]->szName,PS_GETNAME,sizeof(szName),(LPARAM)szName);
       item=SendDlgItemMessage(hwndDlg,IDC_PRIMARYSTATUS,CB_ADDSTRING,0,(LPARAM)szName);
       SendDlgItemMessage(hwndDlg,IDC_PRIMARYSTATUS,CB_SETITEMDATA,item,(LPARAM)protos[i]);
-      if(dbv.type==DBVT_ASCIIZ && !lstrcmp(dbv.pszVal,protos[i]->szName))
+      if(dbv.type==DBVT_ASCIIZ && !lstrcmpA(dbv.pszVal,protos[i]->szName))
         SendDlgItemMessage(hwndDlg,IDC_PRIMARYSTATUS,CB_SETCURSEL,item,0);
     }
     DBFreeVariant(&dbv);

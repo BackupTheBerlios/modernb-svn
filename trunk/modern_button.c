@@ -32,7 +32,7 @@ static LRESULT CALLBACK ModernButtonWndProc(HWND hwndDlg, UINT msg,  WPARAM wPar
 int UnloadModernButtonModule(WPARAM wParam, LPARAM lParam);
 extern HWND hwndContactList;
 extern int SkinDrawImageAt(HDC hdc, RECT *rc);
-int SetToolTip(HWND hwnd, char * tip);
+int SetToolTip(HWND hwnd, TCHAR * tip);
 typedef struct _ModernButtonCtrl
 {
   HWND    hwnd;
@@ -82,7 +82,7 @@ int LoadModernButtonModule(void)
   WNDCLASSEX wc;	
   ZeroMemory(&wc, sizeof(wc));
   wc.cbSize         = sizeof(wc);
-  wc.lpszClassName  = MODERNBUTTONCLASS;
+  wc.lpszClassName  = TEXT(MODERNBUTTONCLASS);
   wc.lpfnWndProc    = ModernButtonWndProc;
   wc.hCursor        = LoadCursor(NULL, IDC_ARROW);
   wc.cbWndExtra     = sizeof(ModernButtonCtrl*);
@@ -432,13 +432,13 @@ static LRESULT CALLBACK ModernButtonWndProc(HWND hwndDlg, UINT msg,  WPARAM wPar
 }
 
 
-int SetToolTip(HWND hwnd, char * tip)
+int SetToolTip(HWND hwnd, TCHAR * tip)
 {
   TOOLINFO ti;
   if (!tip) return 0;
   EnterCriticalSection(&csTips);
   if (!hwndToolTips) {
-    hwndToolTips = CreateWindowEx(WS_EX_TOPMOST, TOOLTIPS_CLASS, "", WS_POPUP, 0, 0, 0, 0, NULL, NULL, GetModuleHandle(NULL), NULL);
+    hwndToolTips = CreateWindowEx(WS_EX_TOPMOST, TOOLTIPS_CLASS, TEXT(""), WS_POPUP, 0, 0, 0, 0, NULL, NULL, GetModuleHandle(NULL), NULL);
   }
   ZeroMemory(&ti, sizeof(ti));
   ti.cbSize = sizeof(ti);
@@ -450,7 +450,7 @@ int SetToolTip(HWND hwnd, char * tip)
   }
   ti.uFlags = TTF_IDISHWND|TTF_SUBCLASS;
   ti.uId = (UINT)hwnd;
-  ti.lpszText=(char*)tip;
+  ti.lpszText=(TCHAR*)tip;
   SendMessage(hwndToolTips,TTM_ADDTOOL,0,(LPARAM)&ti);
   LeaveCriticalSection(&csTips);
   return 0;
