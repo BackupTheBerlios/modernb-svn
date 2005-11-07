@@ -3698,7 +3698,6 @@ LRESULT CALLBACK CLUIFrameTitleBarProc(HWND hwnd, UINT msg, WPARAM wParam, LPARA
   case WM_PAINT:	
     {
       HDC paintDC;
-      PAINTSTRUCT paintStruct;
       if (Frames[id2pos(Frameid)].floating)
       {	   
         GetClientRect(hwnd,&rect);	

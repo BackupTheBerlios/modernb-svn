@@ -2474,7 +2474,7 @@ LRESULT CALLBACK ContactListWndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM l
 				}
 #endif
 
-				if(IsWindowVisible(hwndStatus)) InvalidateRectZ(hwndStatus,NULL,TRUE);
+				if(IsWindowVisible(hwndStatus)) SkinInvalidateFrame(hwndStatus,NULL,0);//InvalidateRectZ(hwndStatus,NULL,TRUE);
 				TrayIconUpdateBase(pt->szProto);
 
 			}

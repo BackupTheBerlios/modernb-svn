@@ -46,6 +46,7 @@ extern pdisplayNameCacheEntry GetDisplayNameCacheEntry(HANDLE hContact);
 extern BOOL InvalidateRectZ(HWND hWnd, CONST RECT* lpRect,BOOL bErase );
 extern int BgStatusBarChange(WPARAM wParam,LPARAM lParam);
 
+extern int IsInMainWindow(HWND hwnd);
 extern int BgClcChange(WPARAM wParam,LPARAM lParam);
 extern int BgMenuChange(WPARAM wParam,LPARAM lParam);
 extern int OnFrameTitleBarBackgroundChange(WPARAM wParam,LPARAM lParam);
@@ -147,6 +148,7 @@ int GetProtocolVisibility(char * ProtoName)
 	DBVARIANT dbv={0};
 	char buf2[15];
 	int count;
+	if (!ProtoName) return 0;
 	count=(int)DBGetContactSettingDword(0,"Protocols","ProtoCount",-1);
 	if (count==-1) return 1;
 	for (i=0; i<count; i++)
@@ -820,7 +822,7 @@ static LRESULT CALLBACK ContactListControlWndProc(HWND hwnd, UINT msg, WPARAM wP
 						{
 							contact->iImage=(WORD)lParam;
 							NotifyNewContact(hwnd,(HANDLE)wParam);
-							//dat->NeedResort=1;
+							dat->NeedResort=1;
 							NeedResort=1;
 
 							// Propagate icon to parent

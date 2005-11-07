@@ -2096,7 +2096,7 @@ BOOL DrawTextS(HDC hdc, LPCTSTR lpString, int nCount, RECT * lpRect, UINT format
 BOOL ImageList_DrawEx_New( HIMAGELIST himl,int i,HDC hdcDst,int x,int y,int dx,int dy,COLORREF rgbBk,COLORREF rgbFg,UINT fStyle)
 {
   HDC imDC;
-  HBITMAP oldBmp, imBmp;
+  HBITMAP oldBmp, imBmp, newbmp=NULL;
   BITMAP imbt,immaskbt;
   BYTE * imbits;
   BYTE * imimagbits;
@@ -2108,20 +2108,35 @@ BOOL ImageList_DrawEx_New( HIMAGELIST himl,int i,HDC hdcDst,int x,int y,int dx,i
   BYTE hasmask=FALSE;
   BYTE hasalpha=FALSE;
   //if (1) return ImageList_DrawEx(himl,i,hdcDst,x,y,dx,dy,rgbBk,rgbFg,fStyle);
-  CRITICAL_SECTION cs;
-  InitializeCriticalSection(&cs);
-  EnterCriticalSection(&cs);
+  //CRITICAL_SECTION cs;
+  //InitializeCriticalSection(&cs);
+  //EnterCriticalSection(&cs);
 
   ImageList_GetImageInfo(himl,i,&imi);
   GetObject(imi.hbmImage,sizeof(BITMAP),&imbt);
   GetObject(imi.hbmMask,sizeof(BITMAP),&immaskbt);
   cy=imbt.bmHeight;
-  if (imbt.bmBits==NULL)
+
+  if (imbt.bmBitsPixel!=32)
   {
-    imimagbits=(BYTE*)malloc(cy*imbt.bmWidthBytes);
-    GetBitmapBits(imi.hbmImage,cy*imbt.bmWidthBytes,(void*)imimagbits);
+	  BOOL res=ImageList_DrawEx(himl,i,hdcDst,x,y,dx,dy,rgbBk,rgbFg,fStyle);
+	  return res;
+	  /*
+	  HDC tempdc=CreateCompatibleDC(hdcDst);
+	  HBITMAP holdbmp, newbmp=CreateBitmap32Point(imi.rcImage.right-imi.rcImage.left,imi.rcImage.bottom-imi.rcImage.top,&imimagbits); 
+	  holdbmp=SelectOject(tempdc,newbmp);
+	  ImageList_DrawEx(himl,i,hdcDst,x,y,dx,dy,rgbBk,rgbFg,fStyle);		  	
+	  */
   }
-  else imimagbits=imbt.bmBits;
+  else
+  {
+	if (imbt.bmBits==NULL)
+	{
+		imimagbits=(BYTE*)malloc(cy*imbt.bmWidthBytes);
+		GetBitmapBits(imi.hbmImage,cy*imbt.bmWidthBytes,(void*)imimagbits);
+	}
+	else imimagbits=imbt.bmBits;
+  } 
 
   if (immaskbt.bmBits==NULL)
   {
@@ -2164,7 +2179,7 @@ BOOL ImageList_DrawEx_New( HIMAGELIST himl,int i,HDC hdcDst,int x,int y,int dx,i
     {
       t1=imimagbits+(cy-y-1)*mwb2;
       for (x=imi.rcImage.left; (x<right)&&!hasalpha; x++)
-        hasalpha|=(*(t1+(x<<2)+3)!=0);
+		  hasalpha|=(*(t1+(x<<2)+3)!=0);
     }
 
     for (y=0; y<(int)icy; y++)
@@ -2198,8 +2213,8 @@ BOOL ImageList_DrawEx_New( HIMAGELIST himl,int i,HDC hdcDst,int x,int y,int dx,i
       }
     }
   }
-  LeaveCriticalSection(&cs);
-  DeleteCriticalSection(&cs);
+ // LeaveCriticalSection(&cs);
+ // DeleteCriticalSection(&cs);
   {
     BLENDFUNCTION bf={AC_SRC_OVER, 0, (fStyle&ILD_BLEND25)?64:(fStyle&ILD_BLEND50)?128:255, AC_SRC_ALPHA };
     MyAlphaBlend(hdcDst,x,y,cx,icy,imDC,0,0,cx,icy,bf);
@@ -2401,11 +2416,14 @@ BOOL DrawIconExS(HDC hdcDst,int xLeft,int yTop,HICON hIcon,int cxWidth,int cyWid
     no32bit=TRUE;
     tempDC1=CreateCompatibleDC(hdcDst);
     tBmp=CreateBitmap32(imbt.bmWidth,imbt.bmHeight);
-    otBmp=SelectObject(tempDC1,tBmp);
-    DrawIconEx(tempDC1,0,0,hIcon,imbt.bmWidth,imbt.bmHeight,istepIfAniCur,hbrFlickerFreeDraw,DI_IMAGE);
-    GetObject(tBmp,sizeof(BITMAP),&imbt);
-    SelectObject(tempDC1,otBmp);
-    noMirrorMask=TRUE;
+	if (tBmp) 
+	{
+		GetObject(tBmp,sizeof(BITMAP),&imbt);
+		otBmp=SelectObject(tempDC1,tBmp);
+		DrawIconEx(tempDC1,0,0,hIcon,imbt.bmWidth,imbt.bmHeight,istepIfAniCur,hbrFlickerFreeDraw,DI_IMAGE);   
+		noMirrorMask=TRUE;
+	}
+	SelectObject(tempDC1,otBmp);
     DeleteDC(tempDC1);
   }
 

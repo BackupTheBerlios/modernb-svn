@@ -585,7 +585,7 @@ int CreateModernStatusBar(HWND parent)
 
   CluiProtocolStatusChanged(0,0);
 	CallService(MS_CLIST_FRAMES_UPDATEFRAME,-1,0);
-  return (int)hFramehModernStatusBar;
+  return (int)hModernStatusBar;
 
 };
 

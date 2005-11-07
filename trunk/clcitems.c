@@ -525,6 +525,10 @@ struct ClcGroup *RemoveItemFromGroup(HWND hwnd,struct ClcGroup *group,struct Clc
 	}
 	group->contactCount--;
 	if(updateTotalCount && contact->type==CLCIT_CONTACT) group->totalMembers--;
+	// free on contact deletion)
+	if (contact->szText) mir_free(contact->szText);
+	if (contact->szSecondLineText) mir_free(contact->szSecondLineText);
+	if (contact->szThirdLineText) mir_free(contact->szThirdLineText);
 	memmove(group->contact+iContact,group->contact+iContact+1,sizeof(struct ClcContact)*(group->contactCount-iContact));
 	if((GetWindowLong(hwnd,GWL_STYLE)&CLS_HIDEEMPTYGROUPS) && group->contactCount==0) {
 		int i;
@@ -547,7 +551,7 @@ void DeleteItemFromTree(HWND hwnd,HANDLE hItem)
 	struct ClcGroup *group;
 	struct ClcData *dat=(struct ClcData*)GetWindowLong(hwnd,0);
 	ClearRowByIndexCache();
-	dat->NeedResort=1;
+	dat->NeedResort=0;
 	
 	if(!FindItem(hwnd,dat,hItem,&contact,&group,NULL,TRUE)) {
 		DBVARIANT dbv;
@@ -575,7 +579,7 @@ void DeleteItemFromTree(HWND hwnd,HANDLE hItem)
     DBFreeVariant(&dbv);
 	}
 	else RemoveItemFromGroup(hwnd,group,contact,1);
-
+	dat->NeedResort=1;
 	ClearRowByIndexCache();
 }
 
