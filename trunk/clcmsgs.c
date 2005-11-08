@@ -347,10 +347,16 @@ LRESULT ProcessExternalMessages(HWND hwnd,struct ClcData *dat,UINT msg,WPARAM wP
 			break;
 
 		case CLM_SETHIDEEMPTYGROUPS:
-			if(wParam) SetWindowLong(hwnd,GWL_STYLE,GetWindowLong(hwnd,GWL_STYLE)|CLS_HIDEEMPTYGROUPS);
-			else SetWindowLong(hwnd,GWL_STYLE,GetWindowLong(hwnd,GWL_STYLE)&~CLS_HIDEEMPTYGROUPS);
-			SendMessage(hwnd,CLM_AUTOREBUILD,0,0);
-			break;
+			{
+				BOOL old=((GetWindowLong(hwnd,GWL_STYLE)&CLS_HIDEEMPTYGROUPS)!=0);
+				BOOL newval=old;
+				if(wParam) SetWindowLong(hwnd,GWL_STYLE,GetWindowLong(hwnd,GWL_STYLE)|CLS_HIDEEMPTYGROUPS);
+				else SetWindowLong(hwnd,GWL_STYLE,GetWindowLong(hwnd,GWL_STYLE)&~CLS_HIDEEMPTYGROUPS);
+				newval=((GetWindowLong(hwnd,GWL_STYLE)&CLS_HIDEEMPTYGROUPS)!=0);
+				if (newval!=old)
+					SendMessage(hwnd,CLM_AUTOREBUILD,0,0);
+				break;
+			}
 
 		case CLM_SETHIDEOFFLINEROOT:
 			DBWriteContactSettingByte(NULL,"CLC","HideOfflineRoot",(BYTE)wParam);
