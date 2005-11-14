@@ -1716,9 +1716,9 @@ int AlphaTextOut (HDC hDC, LPCTSTR lpString, int nCount, RECT * lpRect, UINT for
     for(i=0;i<256;i++)
     {
       double f;
-      double gamma=(double)DBGetContactSettingDword(NULL,"ModernData","AlphaTextOutGamma1",1000)/1000;
+      double gamma=(double)DBGetContactSettingDword(NULL,"ModernData","AlphaTextOutGamma1",700)/1000;
       double f2;
-      double gamma2=(double)DBGetContactSettingDword(NULL,"ModernData","AlphaTextOutGamma2",1000)/1000;
+      double gamma2=(double)DBGetContactSettingDword(NULL,"ModernData","AlphaTextOutGamma2",700)/1000;
 
       f=(double)i/255;
       f=pow(f,(1/gamma));
@@ -1844,7 +1844,7 @@ int AlphaTextOut (HDC hDC, LPCTSTR lpString, int nCount, RECT * lpRect, UINT for
           //ax=(BYTE)(max(max(bx,rx),gx));            // alpha on new should be mid of three components
           ax=(BYTE)((max(bx,rx)-gx)/2+gx);            // alpha on new should be mid of three components
           //ax=(BYTE)((bx+rx)/4+gx/2);
-          ax=weight[ax];                               // gamma correction of alpha level 
+          if (bufpix[3]<128) ax=weight[ax];                               // gamma correction of alpha level 
           if (ax)                                      
           {
             bx=(BYTE)(bx*ax/255);            // Next we had some visual effects... at dark on light we should correct collors too        
