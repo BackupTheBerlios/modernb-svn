@@ -88,8 +88,8 @@ int UpdateWindowImageRect(RECT * r);
 BOOL DrawIconExServ(WPARAM w,LPARAM l);
 BOOL DrawIconExS(HDC hdc,int xLeft,int yTop,HICON hIcon,int cxWidth,int cyWidth, UINT istepIfAniCur, HBRUSH hbrFlickerFreeDraw, UINT diFlags);
 
-BOOL DrawTextS(HDC hdc, LPCTSTR lpString, int nCount, RECT * lpRect, UINT format);
-BOOL TextOutS(HDC hdc, int x, int y, LPCTSTR lpString, int nCount);
+//BOOL DrawTextS(HDC hdc, LPCTSTR lpString, int nCount, RECT * lpRect, UINT format);
+//BOOL TextOutS(HDC hdc, int x, int y, LPCTSTR lpString, int nCount);
 HBITMAP CreateBitmap32(int cx, int cy);
 HBITMAP CreateBitmap32Point(int cx, int cy, void ** bits);
 int ValidateSingleFrameImage(wndFrame * Frame, BOOL SkipBkgBlitting);
@@ -143,7 +143,7 @@ int LoadSkinModule()
   hImageDecoderModule=NULL;
   if (gdiPlusFail)
   {
-    hImageDecoderModule = LoadLibrary( "ImgDecoder.dll" );
+    hImageDecoderModule = LoadLibrary(TEXT("ImgDecoder.dll"));
     if (hImageDecoderModule==NULL) 
     {
       char tDllPath[ MAX_PATH ];
@@ -158,7 +158,7 @@ int LoadSkinModule()
         }
       }
 
-      hImageDecoderModule = LoadLibrary( tDllPath );
+      hImageDecoderModule = LoadLibraryA(tDllPath);
     }
     if (hImageDecoderModule!=NULL) 
     {
@@ -1208,7 +1208,7 @@ HBITMAP intLoadGlyphImageByImageDecoder(char * szFileName)
     l=MyStrLen(szFileName);
     memcpy(ext,szFileName +(l-4),5);   
   }
-  if (!PathFileExists(szFileName)) return NULL;
+  if (!PathFileExistsA(szFileName)) return NULL;
 
   if (hImageDecoderModule==NULL || !boolstrcmpi(ext,".png"))
     hBitmap=(HBITMAP)CallService(MS_UTILS_LOADBITMAP,0,(LPARAM)szFileName);
@@ -1471,7 +1471,7 @@ int GetSkinFolder(char * szFileName, char * t2)
     while (b3>custom_folder && *b3!='\\') {b3--;}
     *b3='\0';
 
-    GetPrivateProfileString("Skin_Description_Section","SkinFolder","",cus,sizeof(custom_folder),szFileName);
+    GetPrivateProfileStringA("Skin_Description_Section","SkinFolder","",cus,sizeof(custom_folder),szFileName);
     if (MyStrLen(cus)>0)
       _snprintf(t2,sizeof(t2),"%s\\%s",custom_folder,cus);
   }   	
@@ -1493,7 +1493,7 @@ int LoadSkinFromIniFile(char * szFileName)
   char t2[MAX_PATH];
   char t3[MAX_PATH];
 
-  DWORD retu=GetPrivateProfileSectionNames(bsn,MAXSN_BUFF_SIZE,szFileName);
+  DWORD retu=GetPrivateProfileSectionNamesA(bsn,MAXSN_BUFF_SIZE,szFileName);
   DeleteAllSettingInSection("ModernSkin");
   GetSkinFolder(szFileName,t2);
   DBWriteContactSettingString(NULL,SKIN,"SkinFolder",t2);
@@ -1508,7 +1508,7 @@ int LoadSkinFromIniFile(char * szFileName)
     {
       char b3[MAX_BUFF_SIZE];
       DWORD ret=0;
-      ret=GetPrivateProfileSection(Buff,b3,MAX_BUFF_SIZE,szFileName);
+      ret=GetPrivateProfileSectionA(Buff,b3,MAX_BUFF_SIZE,szFileName);
       if (ret>MAX_BUFF_SIZE-3) continue;
       if (ret==0) continue;
       {
@@ -1640,7 +1640,19 @@ int DeleteAllSettingInSection(char * SectionName)
 };
 
 
-
+BOOL TextOutSA(HDC hdc, int x, int y, char * lpString, int nCount)
+{
+#ifdef UNICODE
+	TCHAR *buf=mir_alloc((2+nCount)*sizeof(TCHAR));
+	BOOL res;
+	MultiByteToWideChar(CP_ACP, 0, lpString, -1, buf, (2+nCount)*sizeof(TCHAR)); 
+	res=TextOutS(hdc,x,y,buf,nCount);
+	mir_free(buf);
+	return res;
+#else
+	return TextOutS(hdc,x,y,lpString,nCount);
+#endif
+}
 
 BOOL TextOutS(HDC hdc, int x, int y, LPCTSTR lpString, int nCount)
 {
@@ -1656,7 +1668,7 @@ BOOL TextOutS(HDC hdc, int x, int y, LPCTSTR lpString, int nCount)
 
   {
     // return TextOut(hdc, x,y,lpString,nCount);
-    GetTextExtentPoint32A(hdc,lpString,nCount,&sz);
+    GetTextExtentPoint32(hdc,lpString,nCount,&sz);
     ta=GetTextAlign(hdc);
     SetRect(&rc,x,y,x+sz.cx,y+sz.cy);
     DrawTextS(hdc,lpString,nCount,&rc,DT_NOCLIP|DT_SINGLELINE|DT_LEFT);
@@ -1718,7 +1730,7 @@ int AlphaTextOut (HDC hDC, LPCTSTR lpString, int nCount, RECT * lpRect, UINT for
     weightfilled=1;
   }
   if (!lpString) return 0;
-  if (nCount==-1) nCount=MyStrLen(lpString);
+  if (nCount==-1) nCount=lstrlen(lpString);
   // retrieve destination bitmap bits
   {
     destBitmap=(HBITMAP)GetCurrentObject(hDC,OBJ_BITMAP);
@@ -1745,7 +1757,7 @@ int AlphaTextOut (HDC hDC, LPCTSTR lpString, int nCount, RECT * lpRect, UINT for
   // Calc Sizes
   {
     //Calc full text size
-    GetTextExtentPoint32A(memdc,lpString,nCount,&sz);
+    GetTextExtentPoint32(memdc,lpString,nCount,&sz);
     sz.cx+=2;
     fsize=sz;
     // Calc buffer size
@@ -2038,6 +2050,21 @@ int AlphaTextOut (HDC hDC, LPCTSTR lpString, int nCount, RECT * lpRect, UINT for
 
 //BOOL DrawTextSW(HDC hdc, LPCWSTR lpString, int nCount, RECT * lpRect, UINT format);
 
+BOOL DrawTextSA(HDC hdc, char * lpString, int nCount, RECT * lpRect, UINT format)
+{
+#ifdef UNICODE
+	TCHAR *buf=mir_alloc((2+nCount)*sizeof(TCHAR));
+	BOOL res;
+	MultiByteToWideChar(CP_ACP, 0, lpString, -1, buf, (2+nCount)*sizeof(TCHAR)); 
+	res=DrawTextS(hdc,buf,nCount,lpRect,format);
+	mir_free(buf);
+	return res;
+#else
+	return DrawTextS(hdc,lpString,nCount,lpRect,format);
+#endif
+}
+
+
 BOOL DrawTextS(HDC hdc, LPCTSTR lpString, int nCount, RECT * lpRect, UINT format)
 {
   DWORD form=0, color=0;
@@ -2056,7 +2083,6 @@ BOOL DrawTextS(HDC hdc, LPCTSTR lpString, int nCount, RECT * lpRect, UINT format
   }
 
   return AlphaTextOut(hdc,lpString,nCount,lpRect,form,color);
-
   /*    int i;
   DWORD tick;
   char buf[255];
@@ -3200,7 +3226,7 @@ int JustUpdateWindowImageRect(RECT * rty)
       (LPTSTR) &lpMsgBuf,
       0, NULL );
 
-    wsprintf(szBuf,  "UPDATE LAYERED WINDOW  failed with error %d: %s\n",  dw, lpMsgBuf); 
+    sprintf(szBuf,  "UPDATE LAYERED WINDOW  failed with error %d: %s\n",  dw, lpMsgBuf); 
 
     TRACE(szBuf);
     MessageBoxA(NULL, szBuf, "UPDATE LAYERED WINDOW FAILURE", MB_OK); 

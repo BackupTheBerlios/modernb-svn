@@ -28,7 +28,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 HWND hCLUIwnd=NULL;
 extern HWND hwndContactList,hwndContactTree,hwndStatus;
-LOGFONT LoadLogFontFromDB(char * section, char * id, DWORD * color);
+LOGFONTA LoadLogFontFromDB(char * section, char * id, DWORD * color);
 extern HMENU hMenuMain;
 extern BOOL IsOnDesktop;
 extern BOOL (WINAPI *MySetLayeredWindowAttributes)(HWND,COLORREF,BYTE,DWORD);
@@ -200,12 +200,12 @@ static BOOL CALLBACK DlgProcCluiOpts(HWND hwndDlg, UINT msg, WPARAM wParam, LPAR
 
     dbv.pszVal=s;
 
-    SetDlgItemText(hwndDlg,IDC_TITLETEXT,dbv.pszVal);
+    SetDlgItemTextA(hwndDlg,IDC_TITLETEXT,dbv.pszVal);
     if (dbv.pszVal) mir_free(dbv.pszVal);
     DBFreeVariant(&dbv);
     //if (s) mir_free(s);
     SendDlgItemMessage(hwndDlg,IDC_TITLETEXT,CB_ADDSTRING,0,(LPARAM)MIRANDANAME);
-    wsprintf(szUin,"%u",DBGetContactSettingDword(NULL,"ICQ","UIN",0));
+    sprintf(szUin,"%u",DBGetContactSettingDword(NULL,"ICQ","UIN",0));
     SendDlgItemMessage(hwndDlg,IDC_TITLETEXT,CB_ADDSTRING,0,(LPARAM)szUin);
 
     if(!DBGetContactSetting(NULL,"ICQ","Nick",&dbv)) {
@@ -342,10 +342,10 @@ static BOOL CALLBACK DlgProcCluiOpts(HWND hwndDlg, UINT msg, WPARAM wParam, LPAR
 
   case WM_HSCROLL:
     {	char str[10];
-    wsprintf(str,"%d%%",100*SendDlgItemMessage(hwndDlg,IDC_TRANSINACTIVE,TBM_GETPOS,0,0)/255);
-    SetDlgItemText(hwndDlg,IDC_INACTIVEPERC,str);
-    wsprintf(str,"%d%%",100*SendDlgItemMessage(hwndDlg,IDC_TRANSACTIVE,TBM_GETPOS,0,0)/255);
-    SetDlgItemText(hwndDlg,IDC_ACTIVEPERC,str);
+    sprintf(str,"%d%%",100*SendDlgItemMessage(hwndDlg,IDC_TRANSINACTIVE,TBM_GETPOS,0,0)/255);
+    SetDlgItemTextA(hwndDlg,IDC_INACTIVEPERC,str);
+    sprintf(str,"%d%%",100*SendDlgItemMessage(hwndDlg,IDC_TRANSACTIVE,TBM_GETPOS,0,0)/255);
+    SetDlgItemTextA(hwndDlg,IDC_ACTIVEPERC,str);
     }
     if(wParam!=0x12345678) SendMessage(GetParent(hwndDlg), PSM_CHANGED, (WPARAM)hwndDlg, 0);
     break;
@@ -400,7 +400,7 @@ static BOOL CALLBACK DlgProcCluiOpts(HWND hwndDlg, UINT msg, WPARAM wParam, LPAR
       if (IsDlgButtonChecked(hwndDlg,IDC_ONDESKTOP)) 
       {
         //SetWindowPos(hwndContactList,HWND_BOTTOM,0,0,0,0,SWP_NOSIZE|SWP_NOMOVE);
-        HWND hProgMan=FindWindow("Progman",NULL);
+        HWND hProgMan=FindWindow(TEXT("Progman"),NULL);
         if (IsWindow(hProgMan)) 
         {
           SetParent(hwndContactList,hProgMan);
@@ -533,7 +533,7 @@ static BOOL CALLBACK DlgProcCluiOpts(HWND hwndDlg, UINT msg, WPARAM wParam, LPAR
   return FALSE;
 }
 
-LOGFONT lf;
+LOGFONTA lf;
 
 static BOOL CALLBACK DlgProcSBarOpts(HWND hwndDlg, UINT msg, WPARAM wParam, LPARAM lParam)
 {
@@ -601,13 +601,13 @@ static BOOL CALLBACK DlgProcSBarOpts(HWND hwndDlg, UINT msg, WPARAM wParam, LPAR
     { 
       if (HIWORD(wParam)==BN_CLICKED)
       {
-          CHOOSEFONT fnt;
-          memset(&fnt,0,sizeof(CHOOSEFONT));
-          fnt.lStructSize=sizeof(CHOOSEFONT);
+          CHOOSEFONTA fnt;
+          memset(&fnt,0,sizeof(CHOOSEFONTA));
+          fnt.lStructSize=sizeof(CHOOSEFONTA);
           fnt.hwndOwner=hwndDlg;
           fnt.Flags=CF_SCREENFONTS|CF_INITTOLOGFONTSTRUCT;
           fnt.lpLogFont=&lf;
-          ChooseFont(&fnt);
+          ChooseFontA(&fnt);
 		      SendMessage(GetParent(hwndDlg), PSM_CHANGED, (WPARAM)hwndDlg, 0);
           return 0;
       } 
@@ -661,7 +661,7 @@ static BOOL CALLBACK DlgProcSBarOpts(HWND hwndDlg, UINT msg, WPARAM wParam, LPAR
 		  if(lf.lfHeight<0) 
 		  {
         int a;
-			  HFONT hFont=CreateFontIndirect(&lf);
+			  HFONT hFont=CreateFontIndirectA(&lf);
 			  HDC hdc=GetDC(NULL);
         a=-MulDiv(lf.lfHeight,72,GetDeviceCaps(hdc, LOGPIXELSY));
 			  ReleaseDC(NULL,hdc);

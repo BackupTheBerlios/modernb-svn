@@ -357,8 +357,18 @@ SKINOBJECTDESCRIPTOR *  FindObjectByRequest(char * szValue,ModernMaskList * mmTe
     return NULL;
 }
 
-
-
+TCHAR * GetParamNT(char * string, TCHAR * buf, int buflen, BYTE paramN, char Delim, BOOL SkipSpaces)
+{
+#ifdef UNICODE
+	char *ansibuf=mir_alloc(buflen/sizeof(TCHAR));
+	GetParamN(string, ansibuf, buflen/sizeof(TCHAR), paramN, Delim, SkipSpaces);
+	MultiByteToWideChar(CP_UTF8,0,ansibuf,-1,buf,buflen);
+	mir_free(ansibuf);
+	return buf;
+#else
+	return GetParamN(string, buf, buflen, paramN, Delim, SkipSpaces);
+#endif
+}
 
 char * GetParamN(char * string, char * buf, int buflen, BYTE paramN, char Delim, BOOL SkipSpaces)
 {

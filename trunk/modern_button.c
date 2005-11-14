@@ -40,12 +40,12 @@ typedef struct _ModernButtonCtrl
   BYTE    focus;   // has focus (1 or 0)
   BYTE    hover;
   BYTE    IsSwitcher;
-  BYTE	Imm;
-  char    * ID;
+  BYTE	  Imm;
+  TCHAR   * ID;
   char    * CommandService;
   char    * StateService;
   char    * HandleService;
-  char    * Hint;
+  TCHAR   * Hint;
   char    * ValueDBSection;
   char    * ValueTypeDef;
   int     Left, Top, Bottom, Right;
@@ -532,7 +532,7 @@ HWND CreateButtonWindow(ModernButtonCtrl * bct, HWND parent)
 {
   HWND hwnd;
   if (bct==NULL) return FALSE;
-  hwnd=CreateWindow(MODERNBUTTONCLASS,bct->ID,WS_VISIBLE|WS_CHILD,bct->Left,bct->Top,bct->Right-bct->Left,bct->Bottom-bct->Top,parent,NULL,g_hInst,NULL);       
+  hwnd=CreateWindow(TEXT(MODERNBUTTONCLASS),bct->ID,WS_VISIBLE|WS_CHILD,bct->Left,bct->Top,bct->Right-bct->Left,bct->Bottom-bct->Top,parent,NULL,g_hInst,NULL);       
   bct->hwnd = hwnd;	
   bct->focus = 0;
   SetWindowLong(hwnd, 0, (LONG)bct);

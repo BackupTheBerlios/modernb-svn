@@ -66,6 +66,14 @@ BOOL __cdecl boolstrcmpi(const char *a, const char *b)
 	if (a==NULL || b==NULL) return _stricmp(a?a:"",b?b:"")==0;
     return _stricmp(a,b)==0;
 }
+
+BOOL __cdecl boolstrcmpiT(const TCHAR *a, const TCHAR *b)
+{
+	if (a==NULL && b==NULL) return 1;
+	if (a==NULL || b==NULL) return _tcsicmp(a?a:"",b?b:"")==0;
+	return _tcsicmp(a,b)==0;
+}
+
 #ifdef strlen
 #undef strcmp
 #undef strlen

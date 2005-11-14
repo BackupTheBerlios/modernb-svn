@@ -75,7 +75,7 @@ pfnImgNewDecoder ImgNewDecoder;
 typedef DWORD (__stdcall *pfnImgDeleteDecoder)(void * pDecoder);
 pfnImgDeleteDecoder ImgDeleteDecoder;
  
-typedef  DWORD  (__stdcall *pfnImgNewDIBFromFile)(LPVOID /*in*/pDecoder, LPCTSTR /*in*/pFileName, LPVOID /*out*/*pImg);
+typedef  DWORD  (__stdcall *pfnImgNewDIBFromFile)(LPVOID /*in*/pDecoder, LPCSTR /*in*/pFileName, LPVOID /*out*/*pImg);
 pfnImgNewDIBFromFile ImgNewDIBFromFile;
 
 typedef DWORD (__stdcall *pfnImgDeleteDIBSection)(LPVOID /*in*/pImg);

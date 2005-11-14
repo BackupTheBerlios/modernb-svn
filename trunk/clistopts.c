@@ -623,7 +623,7 @@ static BOOL CALLBACK DlgProcItemSecondLineOpts(HWND hwndDlg, UINT msg, WPARAM wP
 
         if (!DBGetContactSetting(NULL, "CList","SecondLineText", &dbv))
         {
-          SetWindowText(GetDlgItem(hwndDlg,IDC_VARIABLE_TEXT), dbv.pszVal);
+          SetWindowTextA(GetDlgItem(hwndDlg,IDC_VARIABLE_TEXT), dbv.pszVal);
           DBFreeVariant(&dbv);
         }
       }
@@ -744,7 +744,7 @@ static BOOL CALLBACK DlgProcItemSecondLineOpts(HWND hwndDlg, UINT msg, WPARAM wP
               {
                 char t[TEXT_TEXT_MAX_LENGTH];
 
-                GetWindowText(GetDlgItem(hwndDlg,IDC_VARIABLE_TEXT), t, sizeof(t));
+                GetWindowTextA(GetDlgItem(hwndDlg,IDC_VARIABLE_TEXT), t, sizeof(t));
                 t[TEXT_TEXT_MAX_LENGTH - 1] = '\0';
 
                 DBWriteContactSettingString(NULL, "CList", "SecondLineText", t);
@@ -787,7 +787,7 @@ static BOOL CALLBACK DlgProcItemThirdLineOpts(HWND hwndDlg, UINT msg, WPARAM wPa
 
         if (!DBGetContactSetting(NULL, "CList","ThirdLineText", &dbv))
         {
-          SetWindowText(GetDlgItem(hwndDlg,IDC_VARIABLE_TEXT), dbv.pszVal);
+          SetWindowTextA(GetDlgItem(hwndDlg,IDC_VARIABLE_TEXT), dbv.pszVal);
           DBFreeVariant(&dbv);
         }
       }
@@ -909,7 +909,7 @@ static BOOL CALLBACK DlgProcItemThirdLineOpts(HWND hwndDlg, UINT msg, WPARAM wPa
               {
                 char t[TEXT_TEXT_MAX_LENGTH];
 
-                GetWindowText(GetDlgItem(hwndDlg,IDC_VARIABLE_TEXT), t, sizeof(t));
+                GetWindowTextA(GetDlgItem(hwndDlg,IDC_VARIABLE_TEXT), t, sizeof(t));
                 t[TEXT_TEXT_MAX_LENGTH - 1] = '\0';
 
                 DBWriteContactSettingString(NULL, "CList", "ThirdLineText", t);
@@ -967,7 +967,7 @@ ItemOptionConf opt_items[] = { { "Row", IDD_OPT_ITEM_ROW, DlgProcItemRowOpts },
 
 static DLGTEMPLATE * DoLockDlgRes(LPCSTR lpszResName) 
 { 
-  HRSRC hrsrc = FindResource(g_hInst, lpszResName, RT_DIALOG); 
+  HRSRC hrsrc = FindResourceA(g_hInst, lpszResName, MAKEINTRESOURCEA(5)); 
   HGLOBAL hglb = LoadResource(g_hInst, hrsrc); 
   return (DLGTEMPLATE *) LockResource(hglb); 
 } 
@@ -1020,7 +1020,7 @@ static BOOL CALLBACK DlgProcItemsOpts(HWND hwndDlg, UINT msg, WPARAM wParam, LPA
       HWND hwndTab;
       WndItemsData *data;
       int i;
-      TCITEM tie; 
+      TCITEMA tie; 
       RECT rc_tab;
 
       TranslateDialogDefault(hwndDlg);
@@ -1056,7 +1056,7 @@ static BOOL CALLBACK DlgProcItemsOpts(HWND hwndDlg, UINT msg, WPARAM wParam, LPA
       TabCtrl_AdjustRect(hwndTab, FALSE, &rc_tab); 
 
       // Create big display
-      data->hwndDisplay = CreateWindow("STATIC", "", WS_CHILD|WS_VISIBLE, 
+      data->hwndDisplay = CreateWindow(TEXT("STATIC"), TEXT(""), WS_CHILD|WS_VISIBLE, 
         rc_tab.left, rc_tab.top, 
         rc_tab.right-rc_tab.left, rc_tab.bottom-rc_tab.top, 
         hwndTab, NULL, g_hInst, NULL); 
@@ -1135,7 +1135,7 @@ static BOOL CALLBACK DlgProcGenOpts(HWND hwndDlg, UINT msg, WPARAM wParam, LPARA
       HANDLE hContact=(HANDLE)wParam;
       DBCONTACTWRITESETTING * ws = (DBCONTACTWRITESETTING *)lParam;
       if ( hContact == NULL && ws != NULL && ws->szModule != NULL && ws->szSetting != NULL
-        && lstrcmpi(ws->szModule,"CList")==0 && lstrcmpi(ws->szSetting,"UseGroups")==0
+        && strcmpi(ws->szModule,"CList")==0 && strcmpi(ws->szSetting,"UseGroups")==0
         && IsWindowVisible(hwndDlg) ) {
           CheckDlgButton(hwndDlg,IDC_DISABLEGROUPS,ws->value.bVal == 0);
         }
@@ -1398,10 +1398,10 @@ static BOOL CALLBACK DlgProcHotkeyOpts(HWND hwndDlg, UINT msg, WPARAM wParam, LP
     SendDlgItemMessage(hwndDlg,IDC_HKSEARCH,HKM_SETHOTKEY,DBGetContactSettingWord(NULL,"CList","HKNetSearch",MAKEWORD('S',HOTKEYF_CONTROL|HOTKEYF_SHIFT)),0);
     SendDlgItemMessage(hwndDlg,IDC_HKSHOWOPTIONS,HKM_SETHOTKEY,DBGetContactSettingWord(NULL,"CList","HKShowOptions",MAKEWORD('O',HOTKEYF_CONTROL|HOTKEYF_SHIFT)),0);
     if(!DBGetContactSetting(NULL,"CList","SearchUrl",&dbv)) {
-      SetDlgItemText(hwndDlg,IDC_SEARCHURL,dbv.pszVal);
+      SetDlgItemTextA(hwndDlg,IDC_SEARCHURL,dbv.pszVal);
       DBFreeVariant(&dbv);
     }
-    else SetDlgItemText(hwndDlg,IDC_SEARCHURL,"http://www.google.com/");
+    else SetDlgItemTextA(hwndDlg,IDC_SEARCHURL,"http://www.google.com/");
     CheckDlgButton(hwndDlg, IDC_SEARCHNEWWND, DBGetContactSettingByte(NULL,"CList","HKSearchNewWnd",0) ? BST_CHECKED : BST_UNCHECKED);
     return TRUE;
     }
@@ -1438,7 +1438,7 @@ static BOOL CALLBACK DlgProcHotkeyOpts(HWND hwndDlg, UINT msg, WPARAM wParam, LP
       DBWriteContactSettingWord(NULL,"CList","HKReadMsg",(WORD)SendDlgItemMessage(hwndDlg,IDC_HKREADMSG,HKM_GETHOTKEY,0,0));
       DBWriteContactSettingByte(NULL,"CList","HKEnNetSearch",(BYTE)IsDlgButtonChecked(hwndDlg,IDC_NETSEARCH));
       DBWriteContactSettingWord(NULL,"CList","HKNetSearch",(WORD)SendDlgItemMessage(hwndDlg,IDC_HKSEARCH,HKM_GETHOTKEY,0,0));
-      GetDlgItemText(hwndDlg,IDC_SEARCHURL,str,sizeof(str));
+      GetDlgItemTextA(hwndDlg,IDC_SEARCHURL,str,sizeof(str));
       DBWriteContactSettingString(NULL,"CList","SearchUrl",str);
       DBWriteContactSettingByte(NULL,"CList","HKSearchNewWnd",(BYTE)IsDlgButtonChecked(hwndDlg,IDC_SEARCHNEWWND));
       DBWriteContactSettingByte(NULL,"CList","HKEnShowOptions",(BYTE)IsDlgButtonChecked(hwndDlg,IDC_SHOWOPTIONS));

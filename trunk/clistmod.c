@@ -145,7 +145,7 @@ static int GetStatusModeDescription(WPARAM wParam,LPARAM lParam)
 		case ID_STATUS_IDLE: descr=Translate("Idle"); break;
 		default:
 			if(wParam>ID_STATUS_CONNECTING && wParam<ID_STATUS_CONNECTING+MAX_CONNECT_RETRIES) {
-				wsprintf(szMode,TranslateT("Connecting (attempt %d)"),wParam-ID_STATUS_CONNECTING+1);
+				sprintf(szMode,TranslateT("Connecting (attempt %d)"),wParam-ID_STATUS_CONNECTING+1);
 				return (int)szMode;
 			}
 			return (int)(char*)NULL;
@@ -306,7 +306,7 @@ static BOOL CALLBACK AskForConfirmationDlgProc(HWND hWnd, UINT msg, WPARAM wPara
 			{
 				TranslateDialogDefault(hWnd);
 				{
-					LOGFONT lf;
+					LOGFONTA lf;
 					HFONT hFont;
 
 					hFont = (HFONT)SendDlgItemMessage(hWnd, IDYES, WM_GETFONT, 0, 0);

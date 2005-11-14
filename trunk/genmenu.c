@@ -642,7 +642,7 @@ int MO_AddNewMenuItem(WPARAM wParam,LPARAM lParam)
 
   {
     char buf[256];
-    wsprintf(buf,"added menuitem menu: %s, name: %s,id: %d mi: %x mi.position %d\r\n",MenuObjects[objidx].Name,MenuObjects[objidx].MenuItems[miidx].mi.pszName,
+    sprintf(buf,"added menuitem menu: %s, name: %s,id: %d mi: %x mi.position %d\r\n",MenuObjects[objidx].Name,MenuObjects[objidx].MenuItems[miidx].mi.pszName,
       MenuObjects[objidx].MenuItems[miidx].id,
       pmi,
       MenuObjects[objidx].MenuItems[miidx].mi.position);
@@ -851,7 +851,7 @@ int MO_BuildMenu(WPARAM wParam,LPARAM lParam)
   tick=GetTickCount()-tick;
   {
     char buf[256];
-    wsprintf(buf,"build %s, %d ms\r\n",MenuObjects[pimoidx].Name,tick);
+    sprintf(buf,"build %s, %d ms\r\n",MenuObjects[pimoidx].Name,tick);
     TRACE(buf);
   }
   unlockmo();	
@@ -873,14 +873,14 @@ char DBString[256];
 DBVARIANT dbv;
 
 // check if it visible
-wsprintf(DBString, "%s_visible", menuItemName); 
+sprintf(DBString, "%s_visible", menuItemName); 
 DBWriteContactSettingByte(NULL, "MainMenuItems", DBString,DBGetContactSettingByte(NULL, "MainMenuItems", DBString, 1)); 
 if (!DBGetContactSettingByte(NULL, "MainMenuItems", DBString, 1)) 
 return 0;  // find out what value to return if not getting added
 
 
 // mi.pszName
-wsprintf(DBString, "%s_name", menuItemName);
+sprintf(DBString, "%s_name", menuItemName);
 if (!DBGetContactSetting(NULL, "MainMenuItems", DBString, &dbv))
 mi->pszName = strdup(dbv.pszVal);
 
@@ -922,7 +922,7 @@ HMENU BuildRecursiveMenu(HMENU hMenu,ListParam *param)
   onAddproc=MenuObjects[pimoidx].onAddService;
 
   localparam=*param;
-  wsprintf(MenuNameItems, "%s_Items", MenuObjects[pimoidx].Name); 
+  sprintf(MenuNameItems, "%s_Items", MenuObjects[pimoidx].Name); 
   /*
   while((rootlevel==-1)&&(GetMenuItemCount(hMenu)>(param->cntFlag==MENU_CUSTOMITEMMAIN?1:0)) )
   DeleteMenu(hMenu,0,MF_BYPOSITION);
@@ -955,16 +955,16 @@ HMENU BuildRecursiveMenu(HMENU hMenu,ListParam *param)
       memset(&dbv,0,sizeof(dbv));
       if (MenuItems[j].UniqName)
       {
-        wsprintf(menuItemName,"{%s}",MenuItems[j].UniqName);
+        sprintf(menuItemName,"{%s}",MenuItems[j].UniqName);
       }else
       {
-        wsprintf(menuItemName,"{%s}",mi->pszName);
+        sprintf(menuItemName,"{%s}",mi->pszName);
       };
 
 
 
       // check if it visible
-      wsprintf(DBString, "%s_visible", menuItemName); 
+      sprintf(DBString, "%s_visible", menuItemName); 
       if (DBGetContactSettingByte(NULL, MenuNameItems, DBString, -1)==-1)
         DBWriteContactSettingByte(NULL,MenuNameItems, DBString,1); 
 
@@ -976,7 +976,7 @@ HMENU BuildRecursiveMenu(HMENU hMenu,ListParam *param)
       };
 
       // mi.pszName
-      wsprintf(DBString, "%s_name", menuItemName);
+      sprintf(DBString, "%s_name", menuItemName);
       if (!DBGetContactSetting(NULL, MenuNameItems, DBString, &dbv))
       {
         if (MyStrLen(dbv.pszVal)>0)
@@ -988,7 +988,7 @@ HMENU BuildRecursiveMenu(HMENU hMenu,ListParam *param)
         DBFreeVariant(&dbv);
       };
 
-      wsprintf(DBString, "%s_pos", menuItemName);
+      sprintf(DBString, "%s_pos", menuItemName);
       if (DBGetContactSettingDword(NULL, MenuNameItems, DBString, -1)==-1)
         DBWriteContactSettingDword(NULL,MenuNameItems, DBString,mi->position); 
 
@@ -1039,7 +1039,7 @@ HMENU BuildRecursiveMenu(HMENU hMenu,ListParam *param)
 #ifdef PUTPOSITIONSONMENU
           if (GetKeyState(VK_CONTROL)&0x8000)
           {char str[256];				
-          wsprintf(str,"%s (%d,id %x)",mi->pszName,mi->position,mii.dwItemData);
+          sprintf(str,"%s (%d,id %x)",mi->pszName,mi->position,mii.dwItemData);
           mii.dwTypeData=str;
           };
 #endif
@@ -1075,7 +1075,7 @@ HMENU BuildRecursiveMenu(HMENU hMenu,ListParam *param)
 #ifdef PUTPOSITIONSONMENU
         if (GetKeyState(VK_CONTROL)&0x8000)
         {char str[256];				
-        wsprintf(str,"%s (%d,id %x)",mi->pszName,mi->position,mii.dwItemData);
+        sprintf(str,"%s (%d,id %x)",mi->pszName,mi->position,mii.dwItemData);
         //TRACE(str);
         mii.dwTypeData=str;
         };
@@ -1229,7 +1229,7 @@ int RegisterOneIcon(int mo,int mi)
   {
     //		char buf[256];
     /*
-    wsprintf(buf,"registerd icon menu: %s, name: %s,id: %d mi.position %d, uname: %s iconid: %d\r\n",MenuObjects[mo].Name,MenuObjects[mo].MenuItems[mi].mi.pszName,
+    sprintf(buf,"registerd icon menu: %s, name: %s,id: %d mi.position %d, uname: %s iconid: %d\r\n",MenuObjects[mo].Name,MenuObjects[mo].MenuItems[mi].mi.pszName,
     MenuObjects[mo].MenuItems[mi].id,
     MenuObjects[mo].MenuItems[mi].mi.position,
     uname,
@@ -1244,7 +1244,7 @@ int RegisterOneIcon(int mo,int mi)
 
     char mn[255];
 	HICON defic=0;
-    wsprintf(mn,"Menu icons/%s",MenuObjects[mo].Name);
+    sprintf(mn,"Menu icons/%s",MenuObjects[mo].Name);
 	defic=ImageList_GetIcon(MenuObjects[mo].hMenuIcons,MenuObjects[mo].MenuItems[mi].iconId,0);
     newIcon=LoadIconFromLibrary(
       mn,

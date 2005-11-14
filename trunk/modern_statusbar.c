@@ -58,21 +58,21 @@ char * ApendSubSetting(char * buf, int size, char *first, char *second)
   return buf;
 }
 
-LOGFONT LoadLogFontFromDB(char * section, char * id, DWORD * color);
+LOGFONTA LoadLogFontFromDB(char * section, char * id, DWORD * color);
 
 HFONT LoadFontFromDB(char * section, char * id, DWORD * color)
 {
-  LOGFONT logfont=LoadLogFontFromDB(section, id, color);
+  LOGFONTA logfont=LoadLogFontFromDB(section, id, color);
   HFONT hfont=NULL;
-  hfont=CreateFontIndirect(&logfont);
+  hfont=CreateFontIndirectA(&logfont);
   return hfont;
 }
 
-LOGFONT LoadLogFontFromDB(char * section, char * id, DWORD * color)
+LOGFONTA LoadLogFontFromDB(char * section, char * id, DWORD * color)
 {
   char * facename;
   char buf[255];
-  LOGFONT logfont;
+  LOGFONTA logfont;
   facename=DBGetString(NULL,section,ApendSubSetting(buf,sizeof(buf),id,"Name"));
   if (!facename) facename=mir_strdup("MS Shell Dlg");
   {   
@@ -335,7 +335,7 @@ int ModernDrawStatusBarWorker(HWND hWnd, HDC hDC)
 		  RECT rt=r;
 		  rt.left=x;
 		  rt.top=textY;
-		  DrawTextS(hDC,ProtosData[i].ProtoName,lstrlenA(ProtosData[i].ProtoName),&rt,0);		  
+		  DrawTextSA(hDC,ProtosData[i].ProtoName,lstrlenA(ProtosData[i].ProtoName),&rt,0);		  
           //TextOutS(hDC,x,textY,ProtosData[i].ProtoName,lstrlenA(ProtosData[i].ProtoName));
           if (sbdat.showStatusName)
           {
@@ -348,7 +348,7 @@ int ModernDrawStatusBarWorker(HWND hWnd, HDC hDC)
 		  RECT rt=r;
 		  rt.left=x;
 		  rt.top=textY;
-		  DrawTextS(hDC,ProtosData[i].ProtoStatusText,lstrlenA(ProtosData[i].ProtoStatusText),&rt,0);		  
+		  DrawTextSA(hDC,ProtosData[i].ProtoStatusText,lstrlenA(ProtosData[i].ProtoStatusText),&rt,0);		  
           //TextOutS(hDC,x,textY,ProtosData[i].ProtoStatusText,lstrlenA(ProtosData[i].ProtoStatusText));
         }
         r.left=r.right+sbdat.extraspace;
@@ -547,7 +547,7 @@ int CreateModernStatusBar(HWND parent)
 {
 
   WNDCLASS wndclass={0};
-  char pluginname[]="ModernStatusBar";   
+  TCHAR pluginname[]=TEXT("ModernStatusBar");   
   int h=GetSystemMetrics(SM_CYSMICON)+2;
   if (GetClassInfo(g_hInst,pluginname,&wndclass) ==0)
   {

@@ -11,7 +11,7 @@ typedef struct {
 } FORMATINFO;
 #define MS_VARS_FORMATSTRING			"Vars/FormatString"
 
-__inline static char *variables_parse(char *src, TCHAR *extra, HANDLE hContact) {
+__inline static char *variables_parse(char *src, char *extra, HANDLE hContact) {
 
 	FORMATINFO fi;
 

@@ -49,7 +49,7 @@ DWORD GetDefaultExStyle(void)
   return ret;
 }
 
-static void GetDefaultFontSetting(int i,LOGFONT *lf,COLORREF *colour)
+static void GetDefaultFontSetting(int i,LOGFONTA *lf,COLORREF *colour)
 {
   SystemParametersInfo(SPI_GETICONTITLELOGFONT,sizeof(LOGFONT),lf,FALSE);
   *colour=GetSysColor(COLOR_WINDOWTEXT);
@@ -81,31 +81,31 @@ static void GetDefaultFontSetting(int i,LOGFONT *lf,COLORREF *colour)
   }
 }
 
-void GetFontSetting(int i,LOGFONT *lf,COLORREF *colour)
+void GetFontSetting(int i,LOGFONTA *lf,COLORREF *colour)
 {
   DBVARIANT dbv;
   char idstr[10];
   BYTE style;
 
   GetDefaultFontSetting(i,lf,colour);
-  wsprintf(idstr,"Font%dName",i);
+  sprintf(idstr,"Font%dName",i);
   if(!DBGetContactSetting(NULL,"CLC",idstr,&dbv)) {
     lstrcpyA(lf->lfFaceName,dbv.pszVal);
     mir_free(dbv.pszVal);
     DBFreeVariant(&dbv);
   }
-  wsprintf(idstr,"Font%dCol",i);
+  sprintf(idstr,"Font%dCol",i);
   *colour=DBGetContactSettingDword(NULL,"CLC",idstr,*colour);
-  wsprintf(idstr,"Font%dSize",i);
+  sprintf(idstr,"Font%dSize",i);
   lf->lfHeight=(char)DBGetContactSettingByte(NULL,"CLC",idstr,lf->lfHeight);
-  wsprintf(idstr,"Font%dSty",i);
+  sprintf(idstr,"Font%dSty",i);
   style=(BYTE)DBGetContactSettingByte(NULL,"CLC",idstr,(lf->lfWeight==FW_NORMAL?0:DBFONTF_BOLD)|(lf->lfItalic?DBFONTF_ITALIC:0)|(lf->lfUnderline?DBFONTF_UNDERLINE:0));
   lf->lfWidth=lf->lfEscapement=lf->lfOrientation=0;
   lf->lfWeight=style&DBFONTF_BOLD?FW_BOLD:FW_NORMAL;
   lf->lfItalic=(style&DBFONTF_ITALIC)!=0;
   lf->lfUnderline=(style&DBFONTF_UNDERLINE)!=0;
   lf->lfStrikeOut=0;
-  wsprintf(idstr,"Font%dSet",i);
+  sprintf(idstr,"Font%dSet",i);
   lf->lfCharSet=DBGetContactSettingByte(NULL,"CLC",idstr,lf->lfCharSet);
   lf->lfOutPrecision=OUT_DEFAULT_PRECIS;
   lf->lfClipPrecision=CLIP_DEFAULT_PRECIS;
@@ -210,7 +210,7 @@ struct CheckBoxValues_t {
 
       static void FillCheckBoxTree(HWND hwndTree,const struct CheckBoxValues_t *values,int nValues,DWORD style)
       {
-        TVINSERTSTRUCT tvis;
+        TVINSERTSTRUCTA tvis;
         int i;
 
         tvis.hParent=NULL;
@@ -229,7 +229,7 @@ struct CheckBoxValues_t {
       static DWORD MakeCheckBoxTreeFlags(HWND hwndTree)
       {
         DWORD flags=0;
-        TVITEM tvi;
+        TVITEMA tvi;
 
         tvi.mask=TVIF_HANDLE|TVIF_PARAM|TVIF_IMAGE;
         tvi.hItem=TreeView_GetRoot(hwndTree);
@@ -349,8 +349,8 @@ struct CheckBoxValues_t {
           {
             HIMAGELIST himlCheckBoxes;
             himlCheckBoxes=ImageList_Create(GetSystemMetrics(SM_CXSMICON),GetSystemMetrics(SM_CYSMICON),ILC_COLOR32|ILC_MASK,2,2);
-            ImageList_AddIcon(himlCheckBoxes,LoadIcon(GetModuleHandle(NULL),MAKEINTRESOURCEA(IDI_NOTICK)));
-            ImageList_AddIcon(himlCheckBoxes,LoadIcon(GetModuleHandle(NULL),MAKEINTRESOURCEA(IDI_TICK)));
+            ImageList_AddIcon(himlCheckBoxes,LoadIcon(GetModuleHandle(NULL),MAKEINTRESOURCE(IDI_NOTICK)));
+            ImageList_AddIcon(himlCheckBoxes,LoadIcon(GetModuleHandle(NULL),MAKEINTRESOURCE(IDI_TICK)));
             TreeView_SetImageList(GetDlgItem(hwndDlg,IDC_GREYOUTOPTS),himlCheckBoxes,TVSIL_NORMAL);
             TreeView_SetImageList(GetDlgItem(hwndDlg,IDC_HIDEOFFLINEOPTS),himlCheckBoxes,TVSIL_NORMAL);
           }			
@@ -405,7 +405,7 @@ struct CheckBoxValues_t {
             ScreenToClient(((LPNMHDR)lParam)->hwndFrom,&hti.pt);
             if(TreeView_HitTest(((LPNMHDR)lParam)->hwndFrom,&hti))
               if(hti.flags&TVHT_ONITEMICON) {
-                TVITEM tvi;
+                TVITEMA tvi;
                 tvi.mask=TVIF_HANDLE|TVIF_IMAGE|TVIF_SELECTEDIMAGE;
                 tvi.hItem=hti.hItem;
                 TreeView_GetItem(((LPNMHDR)lParam)->hwndFrom,&tvi);
@@ -425,7 +425,7 @@ struct CheckBoxValues_t {
               ScreenToClient(((LPNMHDR)lParam)->hwndFrom,&hti.pt);
               if(TreeView_HitTest(((LPNMHDR)lParam)->hwndFrom,&hti))
               if(hti.flags&TVHT_ONITEMICON) {
-              TVITEM tvi;
+              TVITEMA tvi;
               tvi.mask=TVIF_HANDLE|TVIF_IMAGE|TVIF_SELECTEDIMAGE;
               tvi.hItem=hti.hItem;
               TreeView_GetItem(((LPNMHDR)lParam)->hwndFrom,&tvi);
@@ -498,12 +498,12 @@ struct CheckBoxValues_t {
           SendDlgItemMessage(hwndDlg,IDC_SELCOLOUR,CPM_SETCOLOUR,0,DBGetContactSettingDword(NULL,"StatusBar","SelBkColour",CLCDEFAULT_SELBKCOLOUR));
           {	DBVARIANT dbv;
           if(!DBGetContactSetting(NULL,"StatusBar","BkBitmap",&dbv)) {
-            SetDlgItemText(hwndDlg,IDC_FILENAME,dbv.pszVal);
+            SetDlgItemTextA(hwndDlg,IDC_FILENAME,dbv.pszVal);
             if (ServiceExists(MS_UTILS_PATHTOABSOLUTE)) {
               char szPath[MAX_PATH];
 
               if (CallService(MS_UTILS_PATHTOABSOLUTE, (WPARAM)dbv.pszVal, (LPARAM)szPath))
-                SetDlgItemText(hwndDlg,IDC_FILENAME,szPath);
+                SetDlgItemTextA(hwndDlg,IDC_FILENAME,szPath);
             }
             else 
               mir_free(dbv.pszVal);
@@ -529,7 +529,7 @@ struct CheckBoxValues_t {
 
           }
           {	HRESULT (STDAPICALLTYPE *MySHAutoComplete)(HWND,DWORD);
-          MySHAutoComplete=(HRESULT (STDAPICALLTYPE*)(HWND,DWORD))GetProcAddress(GetModuleHandle("shlwapi"),"SHAutoComplete");
+          MySHAutoComplete=(HRESULT (STDAPICALLTYPE*)(HWND,DWORD))GetProcAddress(GetModuleHandle(TEXT("shlwapi")),"SHAutoComplete");
           if(MySHAutoComplete) MySHAutoComplete(GetDlgItem(hwndDlg,IDC_FILENAME),1);
           }
           return TRUE;
@@ -547,10 +547,10 @@ struct CheckBoxValues_t {
         case WM_COMMAND:
           if(LOWORD(wParam)==IDC_BROWSE) {
             char str[MAX_PATH];
-            OPENFILENAME ofn={0};
+            OPENFILENAMEA ofn={0};
             char filter[512];
 
-            GetDlgItemText(hwndDlg,IDC_FILENAME,str,sizeof(str));
+            GetDlgItemTextA(hwndDlg,IDC_FILENAME,str,sizeof(str));
             ofn.lStructSize = OPENFILENAME_SIZE_VERSION_400;
             ofn.hwndOwner = hwndDlg;
             ofn.hInstance = NULL;
@@ -561,8 +561,8 @@ struct CheckBoxValues_t {
             ofn.nMaxFile = sizeof(str);
             ofn.nMaxFileTitle = MAX_PATH;
             ofn.lpstrDefExt = "bmp";
-            if(!GetOpenFileName(&ofn)) break;
-            SetDlgItemText(hwndDlg,IDC_FILENAME,str);
+            if(!GetOpenFileNameA(&ofn)) break;
+            SetDlgItemTextA(hwndDlg,IDC_FILENAME,str);
           }
           else if(LOWORD(wParam)==IDC_FILENAME && HIWORD(wParam)!=EN_CHANGE) break;
           if(LOWORD(wParam)==IDC_BITMAP) SendMessage(hwndDlg,WM_USER+10,0,0);
@@ -589,7 +589,7 @@ struct CheckBoxValues_t {
             }
             {	
               char str[MAX_PATH],strrel[MAX_PATH];
-              GetDlgItemText(hwndDlg,IDC_FILENAME,str,sizeof(str));
+              GetDlgItemTextA(hwndDlg,IDC_FILENAME,str,sizeof(str));
               if (ServiceExists(MS_UTILS_PATHTORELATIVE)) {
                 if (CallService(MS_UTILS_PATHTORELATIVE, (WPARAM)str, (LPARAM)strrel))
                   DBWriteContactSettingString(NULL,"StatusBar","BkBitmap",strrel);
@@ -645,12 +645,12 @@ struct CheckBoxValues_t {
           SendDlgItemMessage(hwndDlg,IDC_SELCOLOUR,CPM_SETCOLOUR,0,DBGetContactSettingDword(NULL,"CLC","SelBkColour",CLCDEFAULT_SELBKCOLOUR));
           {	DBVARIANT dbv;
           if(!DBGetContactSetting(NULL,"CLC","BkBitmap",&dbv)) {
-            SetDlgItemText(hwndDlg,IDC_FILENAME,dbv.pszVal);
+            SetDlgItemTextA(hwndDlg,IDC_FILENAME,dbv.pszVal);
             if (ServiceExists(MS_UTILS_PATHTOABSOLUTE)) {
               char szPath[MAX_PATH];
 
               if (CallService(MS_UTILS_PATHTOABSOLUTE, (WPARAM)dbv.pszVal, (LPARAM)szPath))
-                SetDlgItemText(hwndDlg,IDC_FILENAME,szPath);
+                SetDlgItemTextA(hwndDlg,IDC_FILENAME,szPath);
             }
             else 
               mir_free(dbv.pszVal);
@@ -676,7 +676,7 @@ struct CheckBoxValues_t {
 
           }
           {	HRESULT (STDAPICALLTYPE *MySHAutoComplete)(HWND,DWORD);
-          MySHAutoComplete=(HRESULT (STDAPICALLTYPE*)(HWND,DWORD))GetProcAddress(GetModuleHandle("shlwapi"),"SHAutoComplete");
+          MySHAutoComplete=(HRESULT (STDAPICALLTYPE*)(HWND,DWORD))GetProcAddress(GetModuleHandle(TEXT("shlwapi")),"SHAutoComplete");
           if(MySHAutoComplete) MySHAutoComplete(GetDlgItem(hwndDlg,IDC_FILENAME),1);
           }
           return TRUE;
@@ -694,10 +694,10 @@ struct CheckBoxValues_t {
         case WM_COMMAND:
           if(LOWORD(wParam)==IDC_BROWSE) {
             char str[MAX_PATH];
-            OPENFILENAME ofn={0};
+            OPENFILENAMEA ofn={0};
             char filter[512];
 
-            GetDlgItemText(hwndDlg,IDC_FILENAME,str,sizeof(str));
+            GetDlgItemTextA(hwndDlg,IDC_FILENAME,str,sizeof(str));
             ofn.lStructSize = OPENFILENAME_SIZE_VERSION_400;
             ofn.hwndOwner = hwndDlg;
             ofn.hInstance = NULL;
@@ -708,8 +708,8 @@ struct CheckBoxValues_t {
             ofn.nMaxFile = sizeof(str);
             ofn.nMaxFileTitle = MAX_PATH;
             ofn.lpstrDefExt = "bmp";
-            if(!GetOpenFileName(&ofn)) break;
-            SetDlgItemText(hwndDlg,IDC_FILENAME,str);
+            if(!GetOpenFileNameA(&ofn)) break;
+            SetDlgItemTextA(hwndDlg,IDC_FILENAME,str);
           }
           else if(LOWORD(wParam)==IDC_FILENAME && HIWORD(wParam)!=EN_CHANGE) break;
           if(LOWORD(wParam)==IDC_BITMAP) SendMessage(hwndDlg,WM_USER+10,0,0);
@@ -736,7 +736,7 @@ struct CheckBoxValues_t {
             }
             {	
               char str[MAX_PATH],strrel[MAX_PATH];
-              GetDlgItemText(hwndDlg,IDC_FILENAME,str,sizeof(str));
+              GetDlgItemTextA(hwndDlg,IDC_FILENAME,str,sizeof(str));
               if (ServiceExists(MS_UTILS_PATHTORELATIVE)) {
                 if (CallService(MS_UTILS_PATHTORELATIVE, (WPARAM)str, (LPARAM)strrel))
                   DBWriteContactSettingString(NULL,"CLC","BkBitmap",strrel);
@@ -835,21 +835,21 @@ struct CheckBoxValues_t {
 
       void FillFontListThread(HWND hwndDlg)
       {
-        LOGFONT lf={0};
+        LOGFONTA lf={0};
         HDC hdc=GetDC(hwndDlg);
         lf.lfCharSet=DEFAULT_CHARSET;
         lf.lfFaceName[0]=0;
         lf.lfPitchAndFamily=0;
-        EnumFontFamiliesEx(hdc,&lf,(FONTENUMPROC)EnumFontsProc,(LPARAM)GetDlgItem(hwndDlg,IDC_TYPEFACE),0);
+        EnumFontFamiliesExA(hdc,&lf,(FONTENUMPROCA)EnumFontsProc,(LPARAM)GetDlgItem(hwndDlg,IDC_TYPEFACE),0);
         ReleaseDC(hwndDlg,hdc);
         return;
       }
 
-      static int CALLBACK EnumFontScriptsProc(ENUMLOGFONTEX *lpelfe,NEWTEXTMETRICEX *lpntme,int FontType,LPARAM lParam)
+      static int CALLBACK EnumFontScriptsProc(ENUMLOGFONTEXA *lpelfe,NEWTEXTMETRICEXA *lpntme,int FontType,LPARAM lParam)
       {
-        if(SendMessage((HWND)lParam,CB_FINDSTRINGEXACT,-1,(LPARAM)lpelfe->elfScript)==CB_ERR) {
-          int i=SendMessage((HWND)lParam,CB_ADDSTRING,0,(LPARAM)lpelfe->elfScript);
-          SendMessage((HWND)lParam,CB_SETITEMDATA,i,lpelfe->elfLogFont.lfCharSet);
+        if(SendMessageA((HWND)lParam,CB_FINDSTRINGEXACT,-1,(LPARAM)lpelfe->elfScript)==CB_ERR) {
+          int i=SendMessageA((HWND)lParam,CB_ADDSTRING,0,(LPARAM)lpelfe->elfScript);
+          SendMessageA((HWND)lParam,CB_SETITEMDATA,i,lpelfe->elfLogFont.lfCharSet);
         }
         return TRUE;
       }
@@ -869,7 +869,7 @@ struct CheckBoxValues_t {
         ShowWindow(GetDlgItem(hwndDlg,IDC_SAMECOLOUR),expert?SW_SHOW:SW_HIDE);
         ShowWindow(GetDlgItem(hwndDlg,IDC_STSIZETEXT),expert?SW_HIDE:SW_SHOW);
         ShowWindow(GetDlgItem(hwndDlg,IDC_STCOLOURTEXT),expert?SW_HIDE:SW_SHOW);
-        SetDlgItemText(hwndDlg,IDC_STASTEXT,Translate(expert?"as:":"based on:"));
+        SetDlgItemTextA(hwndDlg,IDC_STASTEXT,Translate(expert?"as:":"based on:"));
         {	UTILRESIZEDIALOG urd={0};
         urd.cbSize=sizeof(urd);
         urd.hwndDlg=hwndDlg;
@@ -891,7 +891,7 @@ struct CheckBoxValues_t {
         {
         case WM_INITDIALOG:
           hFontSample=NULL;
-          SetDlgItemText(hwndDlg,IDC_SAMPLE,"Sample");
+          SetDlgItemText(hwndDlg,IDC_SAMPLE,TEXT("Sample"));
           TranslateDialogDefault(hwndDlg);
           //CheckDlgButton(hwndDlg,IDC_NOTCHECKFONTSIZE,DBGetContactSettingByte(NULL,"CLC","DoNotCheckFontSize",0)?BST_CHECKED:BST_UNCHECKED);			
 
@@ -899,7 +899,7 @@ struct CheckBoxValues_t {
             SwitchTextDlgToMode(hwndDlg,0);
           forkthread(FillFontListThread,0,hwndDlg);				
           {	int i,itemId,fontId;
-          LOGFONT lf;
+          LOGFONTA lf;
           COLORREF colour;
           WORD sameAs;
           char str[32];
@@ -907,7 +907,7 @@ struct CheckBoxValues_t {
           for(i=0;i<=FONTID_MAX;i++) {
             fontId=fontListOrder[i];
             GetFontSetting(fontId,&lf,&colour);
-            wsprintf(str,"Font%dAs",fontId);
+            sprintf(str,"Font%dAs",fontId);
             sameAs=DBGetContactSettingWord(NULL,"CLC",str,fontSameAsDefault[fontId]);
             fontSettings[fontId].sameAsFlags=HIBYTE(sameAs);
             fontSettings[fontId].sameAs=LOBYTE(sameAs);
@@ -915,7 +915,7 @@ struct CheckBoxValues_t {
             if(lf.lfHeight<0) {
               HDC hdc;
               SIZE size;
-              HFONT hFont=CreateFontIndirect(&lf);
+              HFONT hFont=CreateFontIndirectA(&lf);
               hdc=GetDC(hwndDlg);
               SelectObject(hdc,hFont);
               GetTextExtentPoint32A(hdc,"_W",2,&size);
@@ -984,14 +984,14 @@ struct CheckBoxValues_t {
           CheckDlgButton(hwndDlg,IDC_SAMECOLOUR,fontSettings[wParam].sameAsFlags&SAMEASF_COLOUR?BST_CHECKED:BST_UNCHECKED);
           break;
         case M_FILLSCRIPTCOMBO:		  //fill the script combo box and set the selection to the value for fontid wParam
-          {	LOGFONT lf={0};
+          {	LOGFONTA lf={0};
           int i;
           HDC hdc=GetDC(hwndDlg);
           lf.lfCharSet=DEFAULT_CHARSET;
-          GetDlgItemText(hwndDlg,IDC_TYPEFACE,lf.lfFaceName,sizeof(lf.lfFaceName));
+          GetDlgItemTextA(hwndDlg,IDC_TYPEFACE,lf.lfFaceName,sizeof(lf.lfFaceName));
           lf.lfPitchAndFamily=0;
           SendDlgItemMessage(hwndDlg,IDC_SCRIPT,CB_RESETCONTENT,0,0);
-          EnumFontFamiliesEx(hdc,&lf,(FONTENUMPROC)EnumFontScriptsProc,(LPARAM)GetDlgItem(hwndDlg,IDC_SCRIPT),0);
+          EnumFontFamiliesExA(hdc,&lf,(FONTENUMPROCA)EnumFontScriptsProc,(LPARAM)GetDlgItem(hwndDlg,IDC_SCRIPT),0);
           ReleaseDC(hwndDlg,hdc);
           for(i=SendDlgItemMessage(hwndDlg,IDC_SCRIPT,CB_GETCOUNT,0,0)-1;i>=0;i--) {
             if(SendDlgItemMessage(hwndDlg,IDC_SCRIPT,CB_GETITEMDATA,i,0)==fontSettings[wParam].charset) {
@@ -1034,7 +1034,7 @@ struct CheckBoxValues_t {
           }
           break;
         case M_REMAKESAMPLE:	//remake the sample edit box font based on the settings in the controls
-          {	LOGFONT lf;
+          {	LOGFONTA lf;
           if(hFontSample) {
             SendDlgItemMessage(hwndDlg,IDC_SAMPLE,WM_SETFONT,SendDlgItemMessage(hwndDlg,IDC_FONTID,WM_GETFONT,0,0),0);
             DeleteObject(hFontSample);
@@ -1056,9 +1056,9 @@ struct CheckBoxValues_t {
           lf.lfClipPrecision=CLIP_DEFAULT_PRECIS;
           lf.lfQuality=DEFAULT_QUALITY;
           lf.lfPitchAndFamily=DEFAULT_PITCH|FF_DONTCARE;
-          GetDlgItemText(hwndDlg,IDC_TYPEFACE,lf.lfFaceName,sizeof(lf.lfFaceName));
-          hFontSample=CreateFontIndirect(&lf);
-          SendDlgItemMessage(hwndDlg,IDC_SAMPLE,WM_SETFONT,(WPARAM)hFontSample,TRUE);
+          GetDlgItemTextA(hwndDlg,IDC_TYPEFACE,lf.lfFaceName,sizeof(lf.lfFaceName));
+          hFontSample=CreateFontIndirectA(&lf);
+          SendDlgItemMessageA(hwndDlg,IDC_SAMPLE,WM_SETFONT,(WPARAM)hFontSample,TRUE);
           break;
           }
         case M_RECALCONEFONT:	   //copy the 'same as' settings for fontid wParam from their sources
@@ -1085,7 +1085,7 @@ struct CheckBoxValues_t {
         case M_SAVEFONT:	//save the font settings from the controls to font wParam
           fontSettings[wParam].sameAsFlags=(IsDlgButtonChecked(hwndDlg,IDC_SAMETYPE)?SAMEASF_FACE:0)|(IsDlgButtonChecked(hwndDlg,IDC_SAMESIZE)?SAMEASF_SIZE:0)|(IsDlgButtonChecked(hwndDlg,IDC_SAMESTYLE)?SAMEASF_STYLE:0)|(IsDlgButtonChecked(hwndDlg,IDC_SAMECOLOUR)?SAMEASF_COLOUR:0);
           fontSettings[wParam].sameAs=(BYTE)SendDlgItemMessage(hwndDlg,IDC_SAMEAS,CB_GETITEMDATA,SendDlgItemMessage(hwndDlg,IDC_SAMEAS,CB_GETCURSEL,0,0),0);
-          GetDlgItemText(hwndDlg,IDC_TYPEFACE,fontSettings[wParam].szFace,sizeof(fontSettings[wParam].szFace));
+          GetDlgItemTextA(hwndDlg,IDC_TYPEFACE,fontSettings[wParam].szFace,sizeof(fontSettings[wParam].szFace));
           fontSettings[wParam].charset=(BYTE)SendDlgItemMessage(hwndDlg,IDC_SCRIPT,CB_GETITEMDATA,SendDlgItemMessage(hwndDlg,IDC_SCRIPT,CB_GETCURSEL,0,0),0);
           fontSettings[wParam].size=(char)GetDlgItemInt(hwndDlg,IDC_FONTSIZE,NULL,FALSE);
           fontSettings[wParam].style=(IsDlgButtonChecked(hwndDlg,IDC_BOLD)?DBFONTF_BOLD:0)|(IsDlgButtonChecked(hwndDlg,IDC_ITALIC)?DBFONTF_ITALIC:0)|(IsDlgButtonChecked(hwndDlg,IDC_UNDERLINE)?DBFONTF_UNDERLINE:0);
@@ -1108,7 +1108,7 @@ struct CheckBoxValues_t {
           SIZE fontSize;
           HFONT hFont, oldfnt; 
           HDC hdc=GetDC(NULL);
-          LOGFONT lf;
+          LOGFONTA lf;
           lf.lfHeight=fontSettings[i].size;			
           {
           HDC hdc=GetDC(NULL);				
@@ -1146,13 +1146,13 @@ struct CheckBoxValues_t {
           }
           */
         case M_LOADFONT:	//load font wParam into the controls
-          SetDlgItemText(hwndDlg,IDC_TYPEFACE,fontSettings[wParam].szFace);
+          SetDlgItemTextA(hwndDlg,IDC_TYPEFACE,fontSettings[wParam].szFace);
           SendMessage(hwndDlg,M_FILLSCRIPTCOMBO,wParam,0);
           SetDlgItemInt(hwndDlg,IDC_FONTSIZE,fontSettings[wParam].size,FALSE);
           CheckDlgButton(hwndDlg,IDC_BOLD,fontSettings[wParam].style&DBFONTF_BOLD?BST_CHECKED:BST_UNCHECKED);
           CheckDlgButton(hwndDlg,IDC_ITALIC,fontSettings[wParam].style&DBFONTF_ITALIC?BST_CHECKED:BST_UNCHECKED);
           CheckDlgButton(hwndDlg,IDC_UNDERLINE,fontSettings[wParam].style&DBFONTF_UNDERLINE?BST_CHECKED:BST_UNCHECKED);
-          {	LOGFONT lf;
+          {	LOGFONTA lf;
           COLORREF colour;
           GetDefaultFontSetting(wParam,&lf,&colour);
           SendDlgItemMessage(hwndDlg,IDC_COLOUR,CPM_SETDEFAULTCOLOUR,0,colour);
@@ -1255,17 +1255,17 @@ struct CheckBoxValues_t {
             char str[20];
 
             for(i=0;i<=FONTID_MAX;i++) {
-              wsprintf(str,"Font%dName",i);
+              sprintf(str,"Font%dName",i);
               DBWriteContactSettingString(NULL,"CLC",str,fontSettings[i].szFace);
-              wsprintf(str,"Font%dSet",i);
+              sprintf(str,"Font%dSet",i);
               DBWriteContactSettingByte(NULL,"CLC",str,fontSettings[i].charset);
-              wsprintf(str,"Font%dSize",i);
+              sprintf(str,"Font%dSize",i);
               DBWriteContactSettingByte(NULL,"CLC",str,fontSettings[i].size);
-              wsprintf(str,"Font%dSty",i);
+              sprintf(str,"Font%dSty",i);
               DBWriteContactSettingByte(NULL,"CLC",str,fontSettings[i].style);
-              wsprintf(str,"Font%dCol",i);
+              sprintf(str,"Font%dCol",i);
               DBWriteContactSettingDword(NULL,"CLC",str,fontSettings[i].colour);
-              wsprintf(str,"Font%dAs",i);
+              sprintf(str,"Font%dAs",i);
               DBWriteContactSettingWord(NULL,"CLC",str,(WORD)((fontSettings[i].sameAsFlags<<8)|fontSettings[i].sameAs));
             }
             }

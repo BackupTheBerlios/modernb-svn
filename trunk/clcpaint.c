@@ -1489,11 +1489,16 @@ void InternalPaintClc(HWND hwnd,struct ClcData *dat,HDC hdc,RECT *rcPaint)
   if(rcPaint==NULL) rcPaint=&clRect;
   if(IsRectEmpty(rcPaint)) return;
   y=-dat->yScroll;
-  hdcMem=CreateCompatibleDC(hdc);
+  if (IsInMainWindow)
+	hdcMem=hdc;
+  else
+	  hdcMem=CreateCompatibleDC(hdc);
   hdcMemOldFont=GetCurrentObject(hdcMem,OBJ_FONT);
-  hBmpOsb=CreateBitmap32(clRect.right,clRect.bottom);//,1,GetDeviceCaps(hdc,BITSPIXEL),NULL);
-  oldbmp=(HBITMAP)  SelectObject(hdcMem,hBmpOsb);
-
+  if (!IsInMainWindow)
+  {
+	  hBmpOsb=CreateBitmap32(clRect.right,clRect.bottom);//,1,GetDeviceCaps(hdc,BITSPIXEL),NULL);
+	  oldbmp=(HBITMAP)  SelectObject(hdcMem,hBmpOsb);
+  }
   if(style&CLS_GREYALTERNATE)
     hBrushAlternateGrey = CreateSolidBrush(GetNearestColor(hdcMem,RGB(GetRValue(tmpbkcolour)-10,GetGValue(tmpbkcolour)-10,GetBValue(tmpbkcolour)-10)));
 
@@ -1531,11 +1536,14 @@ void InternalPaintClc(HWND hwnd,struct ClcData *dat,HDC hdc,RECT *rcPaint)
   indent=0;
   subindex=-1;
   line_num = -1;
-  if (!dat->row_heights) 
+  if (!dat->row_heights ) 
   {
-    SelectObject(hdcMem,oldbmp);
-    DeleteObject(hBmpOsb);
-    DeleteDC(hdcMem);
+	  if (!IsInMainWindow)
+	  {
+		  SelectObject(hdcMem,oldbmp);
+		  DeleteObject(hBmpOsb);
+		  DeleteDC(hdcMem);
+	  }
     return;
   }
   //EnterCriticalSection(&(dat->lockitemCS));
@@ -2293,11 +2301,15 @@ void InternalPaintClc(HWND hwnd,struct ClcData *dat,HDC hdc,RECT *rcPaint)
 
   if (old_stretch_mode != HALFTONE)
     SetStretchBltMode(hdcMem, old_stretch_mode);
-
-  SelectObject(hdcMem,oldbmp);
-  DeleteObject(hBmpOsb);
   SelectObject(hdcMem,hdcMemOldFont);
-  DeleteDC(hdcMem);
+  if (!IsInMainWindow)
+  {
+   SelectObject(hdcMem,oldbmp);
+   DeleteObject(hBmpOsb);
+   DeleteDC(hdcMem);
+  }
+  
+  
 
 }
 

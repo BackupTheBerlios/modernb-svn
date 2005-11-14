@@ -94,7 +94,7 @@ void ShowPopup(const char *title, const char *description, int type)
 	else // if (type == POPUP_TYPE_ERROR)
 	{
 		ppd.iSeconds = 0;
-		ppd.lpzClass = POPUP_CLASS_WARNING;
+		ppd.lpzClass = TEXT(POPUP_CLASS_WARNING);
 		ppd.skinBack = RGB(255,0,0);
 	}
 

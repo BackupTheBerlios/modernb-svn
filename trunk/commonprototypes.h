@@ -5,7 +5,10 @@
 extern BOOL InvalidateRectZ(HWND hWnd, CONST RECT* lpRect,BOOL bErase );
 extern int GetProtocolVisibility(char * ProtoName);
 extern int GetConnectingIconService(WPARAM wParam,LPARAM lParam);
-extern BOOL DrawTextS(HDC hdc, LPCTSTR lpString, int nCount, RECT * lpRect, UINT format);
+extern BOOL TextOutS(HDC hdc, int x, int y, LPCTSTR lpString, int nCount);
+extern BOOL TextOutSA(HDC hdc, int x, int y, char * lpString, int nCount);
+extern BOOL DrawTextSA(HDC hdc, char * lpString, int nCount, RECT * lpRect, UINT format);
+extern BOOL DrawTextS(HDC hdc, LPCTSTR * lpString, int nCount, RECT * lpRect, UINT format);
 extern int InvalidateFrameImage(WPARAM wParam, LPARAM lParam);       // Post request for updating
 extern int UpdateTimer(BYTE BringIn);
 extern int TestCursorOnBorders();

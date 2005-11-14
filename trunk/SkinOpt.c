@@ -266,7 +266,10 @@ int SetToGlyphControls()
 			SendDlgItemMessage(hwndDlg,IDC_SPIN_ALPHA,UDM_SETRANGE,0,MAKELONG(255,0));
 			SendDlgItemMessage(hwndDlg,IDC_SPIN_ALPHA,UDM_SETPOS,0,MAKELONG(a,0));
 		}
-		SetDlgItemText(hwndDlg, IDC_EDIT_FILENAME, GetParamN(CurrentActiveObject->szValue,buf,sizeof(buf),2,',',0));
+		{
+		TCHAR bufU[255];
+		SetDlgItemText(hwndDlg, IDC_EDIT_FILENAME, GetParamNT(CurrentActiveObject->szValue,bufU,sizeof(bufU),2,',',0));
+		}
 		{
 			BYTE l,r,t,b;
 			l=atoi(GetParamN(CurrentActiveObject->szValue,buf,sizeof(buf),4,',',1));
@@ -353,10 +356,10 @@ static BOOL CALLBACK DlgSkinOpts(HWND hwndDlg, UINT msg, WPARAM wParam, LPARAM l
 		{   		
 			char str[MAX_PATH]={0};
 			char strshort[MAX_PATH]={0};
-			OPENFILENAME ofn={0};
+			OPENFILENAMEA ofn={0};
 			char filter[512]={0};
 			char pngfilt[520]={0};
-			GetDlgItemText(hwndDlg,IDC_EDIT_FILENAME, strshort, sizeof(strshort));
+			GetDlgItemTextA(hwndDlg,IDC_EDIT_FILENAME, strshort, sizeof(strshort));
 			ofn.lStructSize = OPENFILENAME_SIZE_VERSION_400;
 			ofn.hwndOwner = hwndDlg;
 			ofn.hInstance = NULL;
@@ -407,17 +410,17 @@ static BOOL CALLBACK DlgSkinOpts(HWND hwndDlg, UINT msg, WPARAM wParam, LPARAM l
 			{
 				DWORD tick=GetTickCount();
 
-				if(!GetOpenFileName(&ofn)) 
+				if(!GetOpenFileNameA(&ofn)) 
 					if (GetTickCount()-tick<100)
 					{
-						if(!GetOpenFileName(&ofn)) break;
+						if(!GetOpenFileNameA(&ofn)) break;
 					}
 					else break;
 
 
 			}
 			CallService(MS_UTILS_PATHTORELATIVE,(WPARAM)str,(LPARAM)strshort);
-			SetDlgItemText(hwndDlg, IDC_EDIT_FILENAME, strshort);
+			SetDlgItemTextA(hwndDlg, IDC_EDIT_FILENAME, strshort);
 			if (!boolstrcmpi(strshort,glCurObj->szFileName))
 			{
 				if (glCurObj->szFileName) 
@@ -588,10 +591,10 @@ static BOOL CALLBACK DlgSkinOpts(HWND hwndDlg, UINT msg, WPARAM wParam, LPARAM l
 					if (item==-1) return 0;
 					sd=(SkinListData*)SendDlgItemMessage(hwndDlg,IDC_SKINS_LIST,LB_GETITEMDATA,(WPARAM)item,(LPARAM)0);              
 					if (!sd) return 0;
-					GetPrivateProfileString("Skin_Description_Section","Author","(unknown)",Author,sizeof(Author),sd->File);
-					GetPrivateProfileString("Skin_Description_Section","URL","",URL,sizeof(URL),sd->File);
-					GetPrivateProfileString("Skin_Description_Section","Contact","",Contact,sizeof(Contact),sd->File);
-					GetPrivateProfileString("Skin_Description_Section","Description","",Description,sizeof(Description),sd->File);
+					GetPrivateProfileStringA("Skin_Description_Section","Author","(unknown)",Author,sizeof(Author),sd->File);
+					GetPrivateProfileStringA("Skin_Description_Section","URL","",URL,sizeof(URL),sd->File);
+					GetPrivateProfileStringA("Skin_Description_Section","Contact","",Contact,sizeof(Contact),sd->File);
+					GetPrivateProfileStringA("Skin_Description_Section","Description","",Description,sizeof(Description),sd->File);
 					_snprintf(text,sizeof(text),Translate("%s\n\n%s\n\nAuthor(s):\t %s\nContact:\t %s\nWeb:\t %s\n\nFile:\t %s"),
 						sd->Name,Description,Author,Contact,URL,sd->File);
 					MessageBoxA(hwndDlg,text,"Skin Information",MB_OK|MB_ICONINFORMATION);
@@ -627,7 +630,7 @@ static BOOL CALLBACK DlgSkinOpts(HWND hwndDlg, UINT msg, WPARAM wParam, LPARAM l
 				{
 					{   		
 						char str[MAX_PATH]={0};
-						OPENFILENAME ofn={0};
+						OPENFILENAMEA ofn={0};
 						char filter[512]={0};
 						int res=0;
 						ofn.lStructSize = OPENFILENAME_SIZE_VERSION_400;
@@ -645,11 +648,11 @@ static BOOL CALLBACK DlgSkinOpts(HWND hwndDlg, UINT msg, WPARAM wParam, LPARAM l
 
 						{
 							DWORD tick=GetTickCount();
-							res=GetOpenFileName(&ofn);
+							res=GetOpenFileNameA(&ofn);
 							if(!res) 
 								if (GetTickCount()-tick<100)
 								{
-									res=GetOpenFileName(&ofn);
+									res=GetOpenFileNameA(&ofn);
 									if(!res) break;
 								}
 								else break;
@@ -702,7 +705,7 @@ static BOOL CALLBACK DlgSkinOpts(HWND hwndDlg, UINT msg, WPARAM wParam, LPARAM l
 										char prfn[MAX_PATH]={0};
 										char imfn[MAX_PATH]={0};
 										char skinfolder[MAX_PATH]={0};
-										GetPrivateProfileString("Skin_Description_Section","Preview","",imfn,sizeof(imfn),sd->File);
+										GetPrivateProfileStringA("Skin_Description_Section","Preview","",imfn,sizeof(imfn),sd->File);
 										GetSkinFolder(sd->File,skinfolder);
 										_snprintf(prfn,sizeof(prfn),"%s\\%s",skinfolder,imfn);
 										CallService(MS_UTILS_PATHTOABSOLUTE,(WPARAM)prfn,(LPARAM) imfn);
@@ -735,10 +738,10 @@ static BOOL CALLBACK DlgSkinOpts(HWND hwndDlg, UINT msg, WPARAM wParam, LPARAM l
 								if (item==-1) return 0;
 								sd=(SkinListData*)SendDlgItemMessage(hwndDlg,IDC_SKINS_LIST,LB_GETITEMDATA,(WPARAM)item,(LPARAM)0);              
 								if (!sd) return 0;
-								GetPrivateProfileString("Skin_Description_Section","Author","(unknown)",Author,sizeof(Author),sd->File);
-								GetPrivateProfileString("Skin_Description_Section","URL","",URL,sizeof(URL),sd->File);
-								GetPrivateProfileString("Skin_Description_Section","Contact","",Contact,sizeof(Contact),sd->File);
-								GetPrivateProfileString("Skin_Description_Section","Description","",Description,sizeof(Description),sd->File);
+								GetPrivateProfileStringA("Skin_Description_Section","Author","(unknown)",Author,sizeof(Author),sd->File);
+								GetPrivateProfileStringA("Skin_Description_Section","URL","",URL,sizeof(URL),sd->File);
+								GetPrivateProfileStringA("Skin_Description_Section","Contact","",Contact,sizeof(Contact),sd->File);
+								GetPrivateProfileStringA("Skin_Description_Section","Description","",Description,sizeof(Description),sd->File);
 								_snprintf(text,sizeof(text),Translate("Preview is not available\n\n%s\n----------------------\n\n%s\n\nAUTHOR(S):\n%s\n\nCONTACT:\n%s\n\nHOMEPAGE:\n%s"),
 									sd->Name,Description,Author,Contact,URL);
 								SendDlgItemMessage(hwndDlg,IDC_STATIC_INFO,WM_SETTEXT,0,(LPARAM)text);
@@ -840,7 +843,7 @@ static BOOL CALLBACK DlgSkinOpts(HWND hwndDlg, UINT msg, WPARAM wParam, LPARAM l
 
 			//  case TVN_SELCHANGED:
 			//    {
-			//      TVITEM tvi;
+			//      TVITEMA tvi;
 			//      HTREEITEM hti;
 			//      SKINOBJECTDESCRIPTOR * obj;
 
@@ -1011,9 +1014,9 @@ int AddSkinToList(HWND hwndDlg,char * path, char* file)
 		_snprintf(fullName,sizeof(fullName),"%s\\%s",path,file);
 		memcpy(defskinname,file,MyStrLen(file)-4);
 		defskinname[MyStrLen(file)+1]='\0';
-		GetPrivateProfileString("Skin_Description_Section","Name",defskinname,sd->Name,sizeof(sd->Name),fullName);
+		GetPrivateProfileStringA("Skin_Description_Section","Name",defskinname,sd->Name,sizeof(sd->Name),fullName);
 		strcpy(sd->File,fullName);
-		//    GetPrivateProfileString("Skin_Description_Section","Author","",skin_author,sizeof(skin_author),fullName);
+		//    GetPrivateProfileStringA("Skin_Description_Section","Author","",skin_author,sizeof(skin_author),fullName);
 		{
 			int i,c;
 			SkinListData * sd2;
@@ -1044,7 +1047,7 @@ int AddSkinToList(HWND hwndDlg,char * path, char* file)
 //  else tmp=TreeView_GetRoot(hTree);
 //  while (tmp)
 //  {
-//    TVITEM tvi;
+//    TVITEMA tvi;
 //    char buf[255];
 //    tvi.hItem=tmp;
 //    tvi.mask=TVIF_TEXT|TVIF_HANDLE;
@@ -1062,7 +1065,7 @@ int AddSkinToList(HWND hwndDlg,char * path, char* file)
 //{
 //  DWORD i;
 //  char buf[255];
-//  TVINSERTSTRUCT tvis;
+//  TVINSERTSTRUCTA tvis;
 //  tvis.hParent=NULL;
 //  tvis.hInsertAfter=TVI_SORT;
 //  tvis.item.mask=TVIF_PARAM|TVIF_TEXT|TVIF_IMAGE|TVIF_PARAM;
@@ -1103,7 +1106,7 @@ int AddSkinToList(HWND hwndDlg,char * path, char* file)
 //      st=fin+1;
 //    } while (fin!=NULL);
 //    {
-//      TVITEM tv; 
+//      TVITEMA tv; 
 //      int res;
 //      tv.hItem=hti;
 //      tv.mask=TVIF_HANDLE|TVIF_IMAGE|TVIF_SELECTEDIMAGE|TVIF_PARAM;

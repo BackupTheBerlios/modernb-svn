@@ -199,7 +199,7 @@ void CheckPDNCE(pdisplayNameCacheEntry pdnce)
 				pdnce->protoNotExists=FALSE;
 			}else
 			{
-				if (CallService(MS_PROTO_ISPROTOCOLLOADED,0,(LPARAM)pdnce->szProto)==(int)NULL && 0)
+				if (CallService(MS_PROTO_ISPROTOCOLLOADED,0,(LPARAM)pdnce->szProto)==(int)NULL &&0)
 				{
 					pdnce->protoNotExists=TRUE;
 				}else

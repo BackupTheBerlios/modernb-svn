@@ -250,11 +250,11 @@ static int ClcSettingChanged(WPARAM wParam,LPARAM lParam)
 				if(pdnce->szProto==NULL || MyStrCmp(pdnce->szProto,cws->szModule)) return 0;
 
 				if (!MyStrCmp(cws->szSetting,"UIN"))
-					WindowList_Broadcast(hClcWindowList,INTM_NAMECHANGED,wParam,lParam);
+					WindowList_BroadcastAsync(hClcWindowList,INTM_NAMECHANGED,wParam,lParam);
 				else if (!MyStrCmp(cws->szSetting,"Nick") || !MyStrCmp(cws->szSetting,"FirstName") 
 					|| !MyStrCmp(cws->szSetting,"e-mail") || !MyStrCmp(cws->szSetting,"LastName") 
 					|| !MyStrCmp(cws->szSetting,"JID"))
-					WindowList_Broadcast(hClcWindowList,INTM_NAMECHANGED,wParam,lParam);
+					WindowList_BroadcastAsync(hClcWindowList,INTM_NAMECHANGED,wParam,lParam);
 				else if(!MyStrCmp(cws->szSetting,"ApparentMode"))
 					WindowList_Broadcast(hClcWindowList,INTM_APPARENTMODECHANGED,wParam,lParam);
 				else if(!MyStrCmp(cws->szSetting,"IdleTS"))
@@ -978,6 +978,7 @@ static LRESULT CALLBACK ContactListControlWndProc(HWND hwnd, UINT msg, WPARAM wP
 	case INTM_NAMECHANGED:
 		{
 			struct ClcContact *contact;
+			InvalidateDisplayNameCacheEntry((HANDLE)wParam);
 			if(!FindItem(hwnd,dat,(HANDLE)wParam,&contact,NULL,NULL,FALSE)) break;
 
 			//ShowTracePopup("INTM_NAMECHANGED");

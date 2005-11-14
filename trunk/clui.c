@@ -93,9 +93,6 @@ struct sUpdatingWindow Update;
 extern int HideWindow(HWND hwndContactList, int mode);
 extern HFONT ChangeToFont(HDC hdc,struct ClcData *dat,int id,int *fontHeight);
 static HANDLE hContactDraggingEvent,hContactDroppedEvent,hContactDragStopEvent;
-extern BOOL DrawTextS(HDC hdc, LPCTSTR lpString, int nCount, RECT * lpRect, UINT format);
-extern BOOL TextOutS(HDC hdc, int x, int y, LPCTSTR lpString, int nCount);
-extern BOOL InvalidateRectZ(HWND hWnd, CONST RECT* lpRect,BOOL bErase );
 extern int SetParentForContainers(HWND parent);
 extern int OnShowHide(HWND hwnd, int mode);
 extern int RedrawCompleteWindow();
@@ -655,7 +652,7 @@ int PrepeareWindowImage(struct sUpdatingWindow * sUpdate)
 //            (LPTSTR) &lpMsgBuf,
 //            0, NULL );
 //
-//        wsprintf(szBuf,  "UPDATE LAYERED WINDOW  failed with error %d: %s\n",  dw, lpMsgBuf); 
+//        sprintf(szBuf,  "UPDATE LAYERED WINDOW  failed with error %d: %s\n",  dw, lpMsgBuf); 
 //
 //        TRACE(szBuf);
 //        MessageBoxA(NULL, szBuf, "UPDATE LAYERED WINDOW FAILURE", MB_OK); 
@@ -714,7 +711,7 @@ MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT),
 (LPTSTR) &lpMsgBuf,
 0, NULL );
 
-wsprintf(szBuf,  "failed with error %d: %s",  dw, lpMsgBuf); 
+sprintf(szBuf,  "failed with error %d: %s",  dw, lpMsgBuf); 
 
 MessageBoxA(NULL, szBuf, "POST MESSAGE FAILURE", MB_OK); 
 DebugBreak();

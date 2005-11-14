@@ -70,5 +70,6 @@ extern char * ModernMaskToString(ModernMask * mm, char * buf, UINT bufsize);
 BOOL _inline WildCompare(char * name, char * mask, BYTE option);
 extern int RegisterObjectByParce(char * ObjectName, char * Params);
 extern SKINOBJECTDESCRIPTOR *  FindObjectByRequest(char * szValue,ModernMaskList * mmTemplateList);
+extern TCHAR * GetParamNT(char * string, TCHAR * buf, int buflen, BYTE paramN, char Delim, BOOL SkipSpaces);
 
 #endif

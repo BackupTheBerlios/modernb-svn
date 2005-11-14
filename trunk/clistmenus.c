@@ -284,7 +284,7 @@ static int AddContactMenuItem(WPARAM wParam,LPARAM lParam)
   op.Setting=OPT_MENUITEMSETUNIQNAME;
   {
     char buf[256];
-    wsprintf(buf,"%s/%s",mi->pszContactOwner?mi->pszContactOwner:"",mi->pszService?mi->pszService:"");
+    sprintf(buf,"%s/%s",mi->pszContactOwner?mi->pszContactOwner:"",mi->pszService?mi->pszService:"");
     op.Value=(int)buf;
     CallService(MO_SETOPTIONSMENUITEM,(WPARAM)0,(LPARAM)&op);
   }
@@ -965,7 +965,7 @@ int MenuModulesLoaded(WPARAM wParam,LPARAM lParam)
           tmi.root=-1;
           tmi.hotKey=MAKELPARAM(MOD_CONTROL,'0'+j);
           tmi.pszName=(char*)CallService(MS_CLIST_GETSTATUSMODEDESCRIPTION,statusModeList[j],0);
-          wsprintf((LPTSTR)buf,"%s\tCtrl+%c",tmi.pszName,'0'+j);
+          sprintf((LPTSTR)buf,"%s\tCtrl+%c",tmi.pszName,'0'+j);
           tmi.pszName=(char *)buf;
           {
             //owner data
@@ -1351,7 +1351,7 @@ static int AddStatusMenuItem(WPARAM wParam,LPARAM lParam)
   op.Setting=OPT_MENUITEMSETUNIQNAME;
   {
     char buf[256];
-    wsprintf(buf,"%s/%s",mi->pszPopupName?mi->pszPopupName:"",mi->pszService?mi->pszService:"");
+    sprintf(buf,"%s/%s",mi->pszPopupName?mi->pszPopupName:"",mi->pszService?mi->pszService:"");
     op.Value=(int)buf;
     CallService(MO_SETOPTIONSMENUITEM,(WPARAM)0,(LPARAM)&op);
   }

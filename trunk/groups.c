@@ -124,7 +124,7 @@ static int DeleteGroup(WPARAM wParam,LPARAM lParam)
 	if(DBGetContactSetting(NULL,"CListGroups",str,&dbv)) return 1;
 	lstrcpynA(name,dbv.pszVal+1,sizeof(name));
 	DBFreeVariant(&dbv);
-	SetCursor(LoadCursorA(NULL,IDC_WAIT));
+	SetCursor(LoadCursor(NULL,IDC_WAIT));
 	//must remove setting from all child contacts too
 	//children are demoted to the next group up, not deleted.
 	lstrcpyA(szNewParent,name);

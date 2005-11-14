@@ -363,7 +363,7 @@ void PaintClc(HWND hwnd,struct ClcData *dat,HDC hdc,RECT *rcPaint);
 //clcopts.c
 int ClcOptInit(WPARAM wParam,LPARAM lParam);
 DWORD GetDefaultExStyle(void);
-void GetFontSetting(int i,LOGFONT *lf,COLORREF *colour);
+void GetFontSetting(int i,LOGFONTA *lf,COLORREF *colour);
 
 //clcfiledrop.c
 void InitFileDropping(void);

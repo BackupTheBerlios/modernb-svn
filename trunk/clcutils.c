@@ -409,6 +409,7 @@ void EndRename(HWND hwnd,struct ClcData *dat,int save)
 						else DBWriteContactSettingTString(contact->hContact,"CList","MyHandle",text);
 					}
 					if (otherName) mir_free(otherName);
+					InvalidateDisplayNameCacheEntry(contact->hContact);
 				}
 			}
 		}
@@ -657,7 +658,7 @@ void LoadClcOptions(HWND hwnd,struct ClcData *dat)
   int i;
 //	dat->rowHeight=DBGetContactSettingByte(NULL,"CLC","RowHeight",CLCDEFAULT_ROWHEIGHT);
 	{	
-		LOGFONT lf;
+		LOGFONTA lf;
         HFONT holdfont;
 		SIZE fontSize;
 		HDC hdc=GetDC(hwnd);

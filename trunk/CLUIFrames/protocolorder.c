@@ -156,7 +156,7 @@ int CheckProtocolOrder()
 
 int FillTree(HWND hwnd)
 {
-			TVINSERTSTRUCT tvis;
+			TVINSERTSTRUCTA tvis;
 			ProtocolData *PD;
 			char szName[64];
 			char *szSTName;
@@ -224,8 +224,8 @@ static BOOL CALLBACK ProtocolOrderOpts(HWND hwndDlg, UINT msg, WPARAM wParam, LP
 
 			{	HIMAGELIST himlCheckBoxes;
 				himlCheckBoxes=ImageList_Create(GetSystemMetrics(SM_CXSMICON),GetSystemMetrics(SM_CYSMICON),ILC_COLOR32|ILC_MASK,2,2);
-				ImageList_AddIcon(himlCheckBoxes,LoadIcon(GetModuleHandle(NULL),MAKEINTRESOURCEA(IDI_NOTICK)));
-				ImageList_AddIcon(himlCheckBoxes,LoadIcon(GetModuleHandle(NULL),MAKEINTRESOURCEA(IDI_TICK)));
+				ImageList_AddIcon(himlCheckBoxes,LoadIcon(GetModuleHandle(NULL),MAKEINTRESOURCE(IDI_NOTICK)));
+				ImageList_AddIcon(himlCheckBoxes,LoadIcon(GetModuleHandle(NULL),MAKEINTRESOURCE(IDI_TICK)));
 				TreeView_SetImageList(GetDlgItem(hwndDlg,IDC_PROTOCOLORDER),himlCheckBoxes,TVSIL_NORMAL);
 			}
 
@@ -259,7 +259,7 @@ static BOOL CALLBACK ProtocolOrderOpts(HWND hwndDlg, UINT msg, WPARAM wParam, LP
 					{
 						case PSN_APPLY:
 						{	
-							TVITEM tvi;
+							TVITEMA tvi;
 							int count;
 							char idstr[33];
 							char buf[10];
@@ -305,7 +305,7 @@ static BOOL CALLBACK ProtocolOrderOpts(HWND hwndDlg, UINT msg, WPARAM wParam, LP
 						ScreenToClient(((LPNMHDR)lParam)->hwndFrom,&hti.pt);
 						if(TreeView_HitTest(((LPNMHDR)lParam)->hwndFrom,&hti))
 							if(hti.flags&TVHT_ONITEMICON) {
-								TVITEM tvi;
+								TVITEMA tvi;
 								tvi.mask=TVIF_HANDLE|TVIF_IMAGE|TVIF_SELECTEDIMAGE;
 								tvi.hItem=hti.hItem;
 								TreeView_GetItem(((LPNMHDR)lParam)->hwndFrom,&tvi);
@@ -336,7 +336,7 @@ static BOOL CALLBACK ProtocolOrderOpts(HWND hwndDlg, UINT msg, WPARAM wParam, LP
 						ScreenToClient(((LPNMHDR)lParam)->hwndFrom,&hti.pt);
 						if(TreeView_HitTest(((LPNMHDR)lParam)->hwndFrom,&hti))
 							if(hti.flags&TVHT_ONITEMICON) {
-								TVITEM tvi;
+								TVITEMA tvi;
 								tvi.mask=TVIF_HANDLE|TVIF_IMAGE|TVIF_SELECTEDIMAGE;
 								tvi.hItem=hti.hItem;
 								TreeView_GetItem(((LPNMHDR)lParam)->hwndFrom,&tvi);
@@ -382,7 +382,7 @@ static BOOL CALLBACK ProtocolOrderOpts(HWND hwndDlg, UINT msg, WPARAM wParam, LP
 			dat->dragging=0;
 			ReleaseCapture();
 			{	TVHITTESTINFO hti;
-				TVITEM tvi;
+				TVITEMA tvi;
 				hti.pt.x=(short)LOWORD(lParam);
 				hti.pt.y=(short)HIWORD(lParam);
 				ClientToScreen(hwndDlg,&hti.pt);
@@ -394,7 +394,7 @@ static BOOL CALLBACK ProtocolOrderOpts(HWND hwndDlg, UINT msg, WPARAM wParam, LP
 				tvi.hItem=hti.hItem;
 				TreeView_GetItem(GetDlgItem(hwndDlg,IDC_PROTOCOLORDER),&tvi);
 				if(hti.flags&(TVHT_ONITEM|TVHT_ONITEMRIGHT)) {
-					TVINSERTSTRUCT tvis;
+					TVINSERTSTRUCTA tvis;
 					char name[128];
 					tvis.item.mask=TVIF_HANDLE|TVIF_PARAM|TVIF_TEXT|TVIF_IMAGE|TVIF_SELECTEDIMAGE;
 					tvis.item.stateMask=0xFFFFFFFF;

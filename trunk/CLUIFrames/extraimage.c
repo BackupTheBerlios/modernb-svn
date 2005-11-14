@@ -189,12 +189,12 @@ void LoadClientIcons()
 		if (ClientImageListIdx[i]==0)
 		{
 		hicon=LoadIconFromExternalFile("clisticons.dll",i+100,TRUE,TRUE,name,Translate("Contact List/Client Icons"),ClientNamesDesc[i],-ClientICOIDX[i]);
-        if (!hicon) hicon=LoadIcon(g_hInst, MAKEINTRESOURCEA(ClientICOIDX[i]));
+        if (!hicon) hicon=LoadIcon(g_hInst, MAKEINTRESOURCE(ClientICOIDX[i]));
 		if (hicon) ClientImageListIdx[i]=ImageList_AddIcon(hExtraImageList,hicon );		
 		}else
 		{
 		hicon=LoadIconFromExternalFile("clisticons.dll",i+100,TRUE,FALSE,name, Translate("Contact List/Client Icons"),ClientNamesDesc[i],-ClientICOIDX[i]);			
-        if (!hicon) hicon=LoadIcon(g_hInst, MAKEINTRESOURCEA(ClientICOIDX[ClientNumber]));
+        if (!hicon) hicon=LoadIcon(g_hInst, MAKEINTRESOURCE(ClientICOIDX[ClientNumber]));
 		if (hicon) ClientImageListIdx[i]=ImageList_ReplaceIcon(hExtraImageList,ClientImageListIdx[i],hicon );		
 };
 
@@ -284,16 +284,16 @@ void ReloadExtraIcons()
 	
 				//loading icons
 				hicon=LoadIconFromExternalFile("clisticons.dll",0,TRUE,TRUE,"Email","Contact List",Translate("Email Icon"),-IDI_EMAIL);
-				if (!hicon) hicon=LoadIcon(g_hInst, MAKEINTRESOURCEA(IDI_EMAIL));
+				if (!hicon) hicon=LoadIcon(g_hInst, MAKEINTRESOURCE(IDI_EMAIL));
 				ExtraImageIconsIndex[0]=ImageList_AddIcon(hExtraImageList,hicon );
 
 
 				hicon=LoadIconFromExternalFile("clisticons.dll",1,TRUE,TRUE,"Sms","Contact List",Translate("Sms Icon"),-IDI_SMS);
-				if (!hicon) hicon=LoadIcon(g_hInst, MAKEINTRESOURCEA(IDI_SMS));
+				if (!hicon) hicon=LoadIcon(g_hInst, MAKEINTRESOURCE(IDI_SMS));
 				ExtraImageIconsIndex[1]=ImageList_AddIcon(hExtraImageList,hicon );
 
 				hicon=LoadIconFromExternalFile("clisticons.dll",4,TRUE,TRUE,"Web","Contact List",Translate("Web Icon"),-IDI_GLOBUS);
-				if (!hicon) hicon=LoadIcon(g_hInst, MAKEINTRESOURCEA(IDI_GLOBUS));
+				if (!hicon) hicon=LoadIcon(g_hInst, MAKEINTRESOURCE(IDI_GLOBUS));
 				ExtraImageIconsIndex[2]=ImageList_AddIcon(hExtraImageList,hicon );	
 				//calc only needed protocols
 				for(i=0;i<count;i++) {
@@ -496,7 +496,7 @@ pdisplayNameCacheEntry pdnce;
 	if (tick>0)
 	{
 		char buf[256];
-		wsprintf(buf,"SetAllExtraIcons %d ms, for %x\r\n",tick,inphcont);
+		sprintf(buf,"SetAllExtraIcons %d ms, for %x\r\n",tick,inphcont);
 		TRACE(buf);
 		DBWriteContactSettingDword((HANDLE)0,"CLUI","PF:Last SetAllExtraIcons Time:",tick);
 	}	

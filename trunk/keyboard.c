@@ -222,8 +222,8 @@ int RegistersAllHotkey(HWND hwnd)
 	{
 		phi=&HotKeyList[i];
 		if(DBGetContactSettingByte(NULL, "SkinHotKeysOff", phi->name, 0)==0) {
-        //if (!aOpts) aOpts = GlobalAddAtom("HKEnShowOptions");
-		if(!phi->aAtom) phi->aAtom=GlobalAddAtom(phi->name);
+        //if (!aOpts) aOpts = GlobalAddAtomA("HKEnShowOptions");
+		if(!phi->aAtom) phi->aAtom=GlobalAddAtomA(phi->name);
 		WordToModAndVk((WORD)DBGetContactSettingWord(NULL,"SkinHotKeys",phi->name,0),&mod,&vk);
 		RegisterHotKey(hwnd,phi->aAtom,mod,vk);
 	}
@@ -391,7 +391,7 @@ static int ServiceSkinPlayHotKey(WPARAM wParam, LPARAM lParam)
 
 static HTREEITEM FindNamedTreeItemAtRoot(HWND hwndTree,const char *name)
 {
-	TVITEM tvi;
+	TVITEMA tvi;
 	char str[128];
 
 	tvi.mask=TVIF_TEXT;
@@ -426,7 +426,7 @@ BOOL CALLBACK DlgProcHotKeyOpts2(HWND hwndDlg, UINT msg, WPARAM wParam, LPARAM l
 		}
         case DM_REBUILD_STREE:
         {
-            TVINSERTSTRUCT tvis;
+            TVINSERTSTRUCTA tvis;
             int i;
 
             TreeView_SelectItem(hwndTree ,NULL);
@@ -456,7 +456,7 @@ BOOL CALLBACK DlgProcHotKeyOpts2(HWND hwndDlg, UINT msg, WPARAM wParam, LPARAM l
 				TreeView_InsertItem(hwndTree,&tvis);
             }
             {
-                TVITEM tvi;
+                TVITEMA tvi;
                 tvi.hItem = TreeView_GetRoot(hwndTree);
                 while(tvi.hItem!=NULL) {
                     tvi.mask = TVIF_PARAM|TVIF_HANDLE|TVIF_STATE;
@@ -498,7 +498,7 @@ BOOL CALLBACK DlgProcHotKeyOpts2(HWND hwndDlg, UINT msg, WPARAM wParam, LPARAM l
             break;
 		case WM_COMMAND:
 			if(LOWORD(wParam)==IDC_PREVIEW) {
-                TVITEM tvi;
+                TVITEMA tvi;
                 HTREEITEM hti;
 
                 ZeroMemory(&tvi,sizeof(tvi));
@@ -525,8 +525,8 @@ BOOL CALLBACK DlgProcHotKeyOpts2(HWND hwndDlg, UINT msg, WPARAM wParam, LPARAM l
 			}
 			if(LOWORD(wParam)==IDC_CHANGE) {
 				char str[MAX_PATH], strFull[MAX_PATH];
-				OPENFILENAME ofn;
-                TVITEM tvi;
+				OPENFILENAMEA ofn;
+                TVITEMA tvi;
                 HTREEITEM hti;
 
                 ZeroMemory(&tvi,sizeof(tvi));
@@ -563,10 +563,10 @@ BOOL CALLBACK DlgProcHotKeyOpts2(HWND hwndDlg, UINT msg, WPARAM wParam, LPARAM l
 				ofn.nMaxFile = sizeof(str);
 				ofn.nMaxFileTitle = MAX_PATH;
 				ofn.lpstrDefExt = "wav";
-				if(!GetOpenFileName(&ofn)) break;
+				if(!GetOpenFileNameA(&ofn)) break;
                 CallService(MS_UTILS_PATHTORELATIVE, (WPARAM)str, (LPARAM)strFull);
                 HotKeyList[tvi.lParam].tempFile = _strdup(strFull);
-                SetDlgItemText(hwndDlg, IDC_LOCATION, strFull);
+                SetDlgItemTextA(hwndDlg, IDC_LOCATION, strFull);
 			}
 			if(LOWORD(wParam)==IDC_GETMORE) {
 				CallService(MS_UTILS_OPENURL,1,(LPARAM)"http://www.miranda-im.org/download/index.php?action=display&id=5");
@@ -576,7 +576,7 @@ BOOL CALLBACK DlgProcHotKeyOpts2(HWND hwndDlg, UINT msg, WPARAM wParam, LPARAM l
 			
 //				char str[MAX_PATH], strFull[MAX_PATH];
 //				OPENFILENAME ofn;
-                TVITEM tvi;
+                TVITEMA tvi;
                 HTREEITEM hti;
 
                 ZeroMemory(&tvi,sizeof(tvi));
@@ -607,7 +607,7 @@ BOOL CALLBACK DlgProcHotKeyOpts2(HWND hwndDlg, UINT msg, WPARAM wParam, LPARAM l
 									DBWriteContactSettingWord(NULL,"SkinHotKeys",HotKeyList[i].name,(WORD)HotKeyList[i].DefHotKey);
 							}
                             {
-                                TVITEM tvi,tvic;
+                                TVITEMA tvi,tvic;
                                 tvi.hItem = TreeView_GetRoot(hwndTree);
                                 while(tvi.hItem!=NULL) {
                                     tvi.mask = TVIF_PARAM|TVIF_HANDLE|TVIF_STATE;
@@ -641,8 +641,8 @@ BOOL CALLBACK DlgProcHotKeyOpts2(HWND hwndDlg, UINT msg, WPARAM wParam, LPARAM l
                     switch(((NMHDR*)lParam)->code) {
                         case TVN_SELCHANGED:
                         {
-                            NMTREEVIEW *pnmtv = (NMTREEVIEW*)lParam;
-                            TVITEM tvi = pnmtv->itemNew;
+                            NMTREEVIEWA *pnmtv = (NMTREEVIEWA*)lParam;
+                            TVITEMA tvi = pnmtv->itemNew;
 
                             if (tvi.lParam==-1) {
                                 SendMessage(hwndDlg, DM_HIDEPANE, 0, 0);
@@ -652,7 +652,7 @@ BOOL CALLBACK DlgProcHotKeyOpts2(HWND hwndDlg, UINT msg, WPARAM wParam, LPARAM l
                                 DBVARIANT dbv={0};
                                 
                                 _snprintf(buf, sizeof(buf), "%s: %s", HotKeyList[tvi.lParam].section, HotKeyList[tvi.lParam].description);
-                                SetDlgItemText(hwndDlg, IDC_NAMEVAL, buf);
+                                SetDlgItemTextA(hwndDlg, IDC_NAMEVAL, buf);
 								SendDlgItemMessage(hwndDlg,IDC_SETHOTKEY,HKM_SETHOTKEY,DBGetContactSettingWord(NULL,"SkinHotKeys",HotKeyList[tvi.lParam].name,HotKeyList[tvi.lParam].DefHotKey ),0);
 
 								/*
@@ -669,7 +669,7 @@ BOOL CALLBACK DlgProcHotKeyOpts2(HWND hwndDlg, UINT msg, WPARAM wParam, LPARAM l
                                 }
                                 else 
 								*/
-								SetDlgItemText(hwndDlg, IDC_LOCATION, Translate("<not specified>"));
+								SetDlgItemText(hwndDlg, IDC_LOCATION, TranslateT("<not specified>"));
                                 SendMessage(hwndDlg, DM_SHOWPANE, 0, 0);
                             }
                             break;
