@@ -300,7 +300,14 @@ void Cache_ReplaceSmileys(struct ClcData *dat, struct ClcContact *contact, TCHAR
 
 			List_Append(*plText, piece);
 		}
-
+		/*
+		 *	Bokra SmileyAdd Fix:
+		 */
+		// Get next
+		CallService(MS_SMILEYADD_PARSE, 0, (LPARAM)&sp);
+	}
+	while (sp.size != 0);
+/*
 		// Get next
 		sp.str += sp.startChar + sp.size;
 		sp.startChar = 0;
@@ -308,7 +315,7 @@ void Cache_ReplaceSmileys(struct ClcData *dat, struct ClcContact *contact, TCHAR
 		CallService(MS_SMILEYADD_PARSE, 0, (LPARAM)&sp);
 	}
 	while (sp.SmileyIcon != NULL && sp.size != 0);
-
+*/
 	// Add rest of text
 	if (sp.str[0] != '\0')
 	{
