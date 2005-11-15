@@ -222,6 +222,7 @@ void Cache_ReplaceSmileys(struct ClcData *dat, struct ClcContact *contact, TCHAR
 						  BOOL replace_smileys)
 {
 	SMADD_PARSE sp;
+	int last_pos=0;
 
 	if (!dat->text_replace_smileys || !replace_smileys || text == NULL || !ServiceExists(MS_SMILEYADD_PARSE))
 	{
@@ -266,14 +267,13 @@ void Cache_ReplaceSmileys(struct ClcData *dat, struct ClcContact *contact, TCHAR
 	do
 	{
 		// Add text
-		if (sp.startChar > 0)
+		if (sp.startChar-last_pos > 0)
 		{
 			ClcContactTextPiece *piece = (ClcContactTextPiece *) malloc(sizeof(ClcContactTextPiece));
 
 			piece->type = TEXT_PIECE_TYPE_TEXT;
-			piece->start_pos = sp.str - text;
-			piece->len = sp.startChar;
-
+			piece->start_pos = last_pos ;//sp.str - text;
+			piece->len = sp.startChar-last_pos;
 			List_Append(*plText, piece);
 		}
 
@@ -304,26 +304,28 @@ void Cache_ReplaceSmileys(struct ClcData *dat, struct ClcContact *contact, TCHAR
 		 *	Bokra SmileyAdd Fix:
 		 */
 		// Get next
+		last_pos=sp.startChar+sp.size;
 		CallService(MS_SMILEYADD_PARSE, 0, (LPARAM)&sp);
+		
 	}
 	while (sp.size != 0);
-/*
-		// Get next
-		sp.str += sp.startChar + sp.size;
-		sp.startChar = 0;
-		sp.size = 0;
-		CallService(MS_SMILEYADD_PARSE, 0, (LPARAM)&sp);
-	}
-	while (sp.SmileyIcon != NULL && sp.size != 0);
-*/
+
+	//	// Get next
+	//	sp.str += sp.startChar + sp.size;
+	//	sp.startChar = 0;
+	//	sp.size = 0;
+	//	CallService(MS_SMILEYADD_PARSE, 0, (LPARAM)&sp);
+	//}
+	//while (sp.SmileyIcon != NULL && sp.size != 0);
+
 	// Add rest of text
-	if (sp.str[0] != '\0')
+	if (last_pos < text_size)
 	{
 		ClcContactTextPiece *piece = (ClcContactTextPiece *) malloc(sizeof(ClcContactTextPiece));
 
 		piece->type = TEXT_PIECE_TYPE_TEXT;
-		piece->start_pos = sp.str - text;
-		piece->len = MyStrLen(sp.str);
+		piece->start_pos = last_pos;
+		piece->len = text_size-last_pos;
 
 		List_Append(*plText, piece);
 	}
@@ -408,7 +410,7 @@ void Cache_GetLineText(struct ClcContact *contact, int type, LPSTR text, int tex
 				if (!DBGetContactSetting(contact->hContact, contact->proto, "XStatusMsg", &dbv)) 
 				{
 					//lstrcpynA(text, dbv.pszVal, text_size);
-					CopySkipUnPrintableChars(text, dbv.pszVal, text_size);
+					CopySkipUnPrintableChars(text, dbv.pszVal, text_size-1);
 					DBFreeVariant(&dbv);
 				}
 			}
@@ -418,7 +420,7 @@ void Cache_GetLineText(struct ClcContact *contact, int type, LPSTR text, int tex
 			{
 				if (!DBGetContactSetting(contact->hContact, "CList", "StatusMsg", &dbv)) 
 				{
-					CopySkipUnPrintableChars(text, dbv.pszVal, text_size);
+					CopySkipUnPrintableChars(text, dbv.pszVal, text_size-1);
 					DBFreeVariant(&dbv);
 				}
 			}
@@ -429,7 +431,7 @@ void Cache_GetLineText(struct ClcContact *contact, int type, LPSTR text, int tex
 				// Try to get XStatusMsg
 				if (!DBGetContactSetting(contact->hContact, contact->proto, "XStatusMsg", &dbv)) 
 				{
-					CopySkipUnPrintableChars(text, dbv.pszVal, text_size);
+					CopySkipUnPrintableChars(text, dbv.pszVal, text_size-1);
 					DBFreeVariant(&dbv);
 				}
 			}
@@ -471,7 +473,7 @@ void Cache_GetFirstLineText(struct ClcData *dat, struct ClcContact *contact)
 
 void Cache_GetSecondLineText(struct ClcData *dat, struct ClcContact *contact)
 {
-  TCHAR *Text[120-MAXEXTRACOLUMNS]={0};
+  char Text[120-MAXEXTRACOLUMNS]={0};
 	Cache_GetLineText(contact, dat->second_line_type, (char*)Text, sizeof(Text), dat->second_line_text,
     dat->second_line_xstatus_has_priority,dat->second_line_show_status_if_no_away);
   if (contact->szSecondLineText) mir_free(contact->szSecondLineText);
@@ -479,13 +481,15 @@ void Cache_GetSecondLineText(struct ClcData *dat, struct ClcContact *contact)
     contact->szSecondLineText=mir_strdupT((TCHAR*)Text);
   else
     contact->szSecondLineText=NULL;
-	Cache_ReplaceSmileys(dat, contact, contact->szSecondLineText, lstrlen(contact->szSecondLineText)+1, &contact->plSecondLineText, 
+  Text[120-MAXEXTRACOLUMNS-1]='\0';
+	Cache_ReplaceSmileys(dat, contact, contact->szSecondLineText, lstrlen(contact->szSecondLineText), &contact->plSecondLineText, 
     dat->second_line_draw_smileys);
+
 }
 
 void Cache_GetThirdLineText(struct ClcData *dat, struct ClcContact *contact)
 {
-  TCHAR *Text[120-MAXEXTRACOLUMNS]={0};
+  TCHAR Text[120-MAXEXTRACOLUMNS]={0};
 	Cache_GetLineText(contact, dat->third_line_type,(char*)Text, sizeof(Text), dat->third_line_text,
     dat->third_line_xstatus_has_priority,dat->third_line_show_status_if_no_away);
   if (contact->szThirdLineText) mir_free(contact->szThirdLineText);
@@ -493,7 +497,8 @@ void Cache_GetThirdLineText(struct ClcData *dat, struct ClcContact *contact)
     contact->szThirdLineText=mir_strdupT((TCHAR*)Text);
   else
     contact->szThirdLineText=NULL;
-	Cache_ReplaceSmileys(dat, contact, contact->szThirdLineText, lstrlen(contact->szThirdLineText)+1, &contact->plThirdLineText, 
+  Text[120-MAXEXTRACOLUMNS-1]='\0';
+	Cache_ReplaceSmileys(dat, contact, contact->szThirdLineText, lstrlen(contact->szThirdLineText), &contact->plThirdLineText, 
 		dat->third_line_draw_smileys);
 }
 

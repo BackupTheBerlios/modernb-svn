@@ -1827,7 +1827,7 @@ int AlphaTextOut (HDC hDC, LPCTSTR lpString, int nCount, RECT * lpRect, UINT for
         BufScanLine=bufbits+a;
         for(x=0; x<width; x++)
         {
-          BYTE ax,bx,rx,gx,mx;
+          BYTE bx,rx,gx,mx;
           pix=ScanLine+x*4;
           bufpix=BufScanLine+(x<<2);
           
@@ -1850,7 +1850,7 @@ int AlphaTextOut (HDC hDC, LPCTSTR lpString, int nCount, RECT * lpRect, UINT for
           }
 		  if (mx)                                      
           {
-			short rrx,grx,brx,aax;
+			short rrx,grx,brx;
 			BYTE axx=bufpix[3];
 			BYTE nx;
 			nx=weight[mx];
