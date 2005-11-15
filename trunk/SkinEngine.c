@@ -1830,32 +1830,49 @@ int AlphaTextOut (HDC hDC, LPCTSTR lpString, int nCount, RECT * lpRect, UINT for
           BYTE ax,bx,rx,gx,mx;
           pix=ScanLine+x*4;
           bufpix=BufScanLine+(x<<2);
-          bx=weight2[pix[0]];
+          
+		  bx=weight2[pix[0]];
           gx=weight2[pix[1]];
           rx=weight2[pix[2]];
 
-          mx=(BYTE)(max(max(bx,rx),gx));;
-          if (1) 
+		  bx=(weight[bx]*(255-b)+bx*(b))/255;
+		  gx=(weight[gx]*(255-g)+gx*(g))/255;
+		  rx=(weight[rx]*(255-r)+rx*(r))/255;
+          
+		  mx=(BYTE)(max(max(bx,rx),gx));
+          
+		  if (1) 
           {
-            bx=(bx<mx)?(BYTE)(((WORD)bx*3+(WORD)mx)>>2):bx;
-            rx=(rx<mx)?(BYTE)(((WORD)rx*3+(WORD)mx)>>2):rx;
-            gx=(gx<mx)?(BYTE)(((WORD)gx*3+(WORD)mx)>>2):gx;
+            bx=(bx<mx)?(BYTE)(((WORD)bx*7+(WORD)mx)>>3):bx;
+            rx=(rx<mx)?(BYTE)(((WORD)rx*7+(WORD)mx)>>3):rx;
+            gx=(gx<mx)?(BYTE)(((WORD)gx*7+(WORD)mx)>>3):gx;
+			// reduce boldeness at white fonts
           }
-          //ax=(BYTE)(max(max(bx,rx),gx));            // alpha on new should be mid of three components
-          ax=(BYTE)((max(bx,rx)-gx)/2+gx);            // alpha on new should be mid of three components
-          //ax=(BYTE)((bx+rx)/4+gx/2);
-          if (bufpix[3]<128) ax=weight[ax];                               // gamma correction of alpha level 
-          if (ax)                                      
+		  if (mx)                                      
           {
-            bx=(BYTE)(bx*ax/255);            // Next we had some visual effects... at dark on light we should correct collors too        
-            gx=(BYTE)(gx*ax/255);            // otherwise black font will be bolder, errors are due to we paint mask as white on black        
-            rx=(BYTE)(rx*ax/255);  
+			short rrx,grx,brx,aax;
+			BYTE axx=bufpix[3];
+			BYTE nx;
+			nx=weight[mx];
+			{
 
-            bufpix[0]=(BYTE)(((DWORD)(bx*b+bufpix[0]*(BYTE)(255-bx)))/255);
-            bufpix[1]=(BYTE)(((DWORD)(gx*g+bufpix[1]*(BYTE)(255-gx)))/255);
-            bufpix[2]=(BYTE)(((DWORD)(rx*r+bufpix[2]*(BYTE)(255-rx)))/255);			
-            bufpix[3]=(BYTE)(ax+(BYTE)(255-ax)*bufpix[3]/255);
-          }
+
+				//Normalize components	to alpha level
+				bx=(nx*(255-axx)+bx*axx)/255;
+				gx=(nx*(255-axx)+gx*axx)/255;
+				rx=(nx*(255-axx)+rx*axx)/255;
+				mx=(nx*(255-axx)+mx*axx)/255;
+			}
+			{
+				brx=(short)((b-bufpix[0])*bx/255);
+				grx=(short)((g-bufpix[1])*gx/255);
+				rrx=(short)((r-bufpix[2])*rx/255);
+				bufpix[0]+=brx;
+				bufpix[1]+=grx;
+				bufpix[2]+=rrx;
+				bufpix[3]=(BYTE)(mx+(BYTE)(255-mx)*bufpix[3]/255);
+			}
+		  }
         }
       }
 
@@ -2068,6 +2085,8 @@ BOOL DrawTextSA(HDC hdc, char * lpString, int nCount, RECT * lpRect, UINT format
 BOOL DrawTextS(HDC hdc, LPCTSTR lpString, int nCount, RECT * lpRect, UINT format)
 {
   DWORD form=0, color=0;
+  RECT r=*lpRect;
+  OffsetRect(&r,1,1);
   if (format&DT_CALCRECT) return DrawText(hdc,lpString,nCount,lpRect,format);
 
   //form|=(format&DT_VCENTER)?ADT_VCENTER:0;
@@ -2081,8 +2100,9 @@ BOOL DrawTextS(HDC hdc, LPCTSTR lpString, int nCount, RECT * lpRect, UINT format
     TextOutWithGDIp(hdc,lpRect->left,lpRect->top,lpString,nCount);
     return 0;
   }
-
+//  AlphaTextOut(hdc,lpString,nCount,&r,form,0);
   return AlphaTextOut(hdc,lpString,nCount,lpRect,form,color);
+
   /*    int i;
   DWORD tick;
   char buf[255];

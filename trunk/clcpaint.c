@@ -1489,12 +1489,12 @@ void InternalPaintClc(HWND hwnd,struct ClcData *dat,HDC hdc,RECT *rcPaint)
   if(rcPaint==NULL) rcPaint=&clRect;
   if(IsRectEmpty(rcPaint)) return;
   y=-dat->yScroll;
-  if (IsInMainWindow)
+  if (!(NotInMain || dat->force_in_dialog))
 	hdcMem=hdc;
   else
 	  hdcMem=CreateCompatibleDC(hdc);
   hdcMemOldFont=GetCurrentObject(hdcMem,OBJ_FONT);
-  if (!IsInMainWindow)
+  if (NotInMain || dat->force_in_dialog)
   {
 	  hBmpOsb=CreateBitmap32(clRect.right,clRect.bottom);//,1,GetDeviceCaps(hdc,BITSPIXEL),NULL);
 	  oldbmp=(HBITMAP)  SelectObject(hdcMem,hBmpOsb);
@@ -1526,7 +1526,10 @@ void InternalPaintClc(HWND hwnd,struct ClcData *dat,HDC hdc,RECT *rcPaint)
 
   // Draw background
   if (NotInMain || dat->force_in_dialog)
-    FillRect(hdcMem,rcPaint,GetSysColorBrush(COLOR_BTNFACE));
+  {
+	  FillRect(hdcMem,rcPaint,GetSysColorBrush(COLOR_BTNFACE));
+	  FillRect255Alpha(hdcMem,rcPaint);
+  }
   else
     SkinDrawGlyph(hdcMem,&clRect,rcPaint,"CL,ID=Background");
 
@@ -1538,7 +1541,7 @@ void InternalPaintClc(HWND hwnd,struct ClcData *dat,HDC hdc,RECT *rcPaint)
   line_num = -1;
   if (!dat->row_heights ) 
   {
-	  if (!IsInMainWindow)
+	  if (NotInMain || dat->force_in_dialog)
 	  {
 		  SelectObject(hdcMem,oldbmp);
 		  DeleteObject(hBmpOsb);
@@ -2258,11 +2261,6 @@ void InternalPaintClc(HWND hwnd,struct ClcData *dat,HDC hdc,RECT *rcPaint)
 	{
 		BitBlt(hdc,rcPaint->left,rcPaint->top,rcPaint->right-rcPaint->left,rcPaint->bottom-rcPaint->top,hdcMem,rcPaint->left,rcPaint->top,SRCCOPY);
 	}
-	else
-	{    
-		BLENDFUNCTION bf={AC_SRC_OVER, 0, 255, AC_SRC_ALPHA };
-		MyAlphaBlend(hdc,rcPaint->left,rcPaint->top,rcPaint->right-rcPaint->left,rcPaint->bottom-rcPaint->top,hdcMem,rcPaint->left,rcPaint->top,rcPaint->right-rcPaint->left,rcPaint->bottom-rcPaint->top,bf);  
-	}
   }
   if(hBrushAlternateGrey) DeleteObject(hBrushAlternateGrey);
   if(grey) {
@@ -2302,7 +2300,7 @@ void InternalPaintClc(HWND hwnd,struct ClcData *dat,HDC hdc,RECT *rcPaint)
   if (old_stretch_mode != HALFTONE)
     SetStretchBltMode(hdcMem, old_stretch_mode);
   SelectObject(hdcMem,hdcMemOldFont);
-  if (!IsInMainWindow)
+  if (NotInMain || dat->force_in_dialog)
   {
    SelectObject(hdcMem,oldbmp);
    DeleteObject(hBmpOsb);

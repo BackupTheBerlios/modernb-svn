@@ -104,6 +104,7 @@ extern int ReposButtons(HWND parent, BOOL draw,RECT *r);
 extern int ValidateFrameImageProc(RECT * r);
 extern int CLUIFramesApplyNewSizes(int mode);
 extern int CLUIFramesOnClistResize2(WPARAM wParam,LPARAM lParam, int mode);
+BOOL IS_WM_MOUSE_DOWN_IN_TRAY=0;
 
 //int SkinUpdateWindow (HWND hwnd, HWND Caller);
 HWND hwndContactTree;
@@ -2295,7 +2296,7 @@ LRESULT CALLBACK ContactListWndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM l
 	case WM_ACTIVATE:
 		{
 			BOOL IsOption=FALSE;
-
+			SetCursor(LoadCursor(NULL, IDC_ARROW));
 
 			TRACE("CLUI------- WM_ACTIVATE\n");
 			if (DBGetContactSettingByte(NULL, "ModernData", "HideBehind", 0))
@@ -2325,10 +2326,16 @@ LRESULT CALLBACK ContactListWndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM l
 				//  //---+++SetWindowPos(hwndContactList, HWND_NOTOPMOST, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE|SWP_NOACTIVATE);
 				//  //ActivateSubContainers(0);					
 				//}
-				if(DBGetContactSettingByte(NULL,"CList","Transparent",SETTING_TRANSPARENT_DEFAULT))
-					if(transparentFocus)
-						SetTimer(hwnd, TM_AUTOALPHA,250,NULL);
-
+				//if (IS_WM_MOUSE_DOWN_IN_TRAY) //check cursor is over trayicon
+				//{
+				//	IS_WM_MOUSE_DOWN_IN_TRAY=0;
+				//	return DefWindowProc(hwnd,msg,wParam,lParam);
+				//}
+				//else
+					if(DBGetContactSettingByte(NULL,"CList","Transparent",SETTING_TRANSPARENT_DEFAULT))
+						if(transparentFocus)
+							SetTimer(hwnd, TM_AUTOALPHA,250,NULL);
+	
 			}
 			else {
 				if (!DBGetContactSettingByte(NULL,"CList","OnTop",SETTING_ONTOP_DEFAULT))
@@ -3528,7 +3535,8 @@ int TestCursorOnBorders()
 	RECT r;  
 	POINT pt;
 	int k=0, t=0, fx,fy;
-
+    HWND hAux;
+	BOOL mouse_in_window=0;
 	HWND gf=GetForegroundWindow();
 	if(DBGetContactSettingByte(NULL,"CList","Transparent",SETTING_TRANSPARENT_DEFAULT)) {
 		if (!transparentFocus && gf!=hwnd) {
@@ -3542,6 +3550,12 @@ int TestCursorOnBorders()
 	GetCursorPos(&pt);
 	IgnoreActivation=0;
 	GetWindowRect(hwnd,&r);
+	hAux = WindowFromPoint(pt);
+	while(hAux != NULL) 
+	{
+		if (hAux == hwnd) {mouse_in_window=1; break;}
+		hAux = GetParent(hAux);
+	}
 	fx=GetSystemMetrics(SM_CXFULLSCREEN);
 	fy=GetSystemMetrics(SM_CYFULLSCREEN);
 	if (docked || ((pt.x<fx-1) && (pt.y<fy-1) && pt.x>1 && pt.y>1)) // workarounds for behind the edge.
@@ -3553,6 +3567,7 @@ int TestCursorOnBorders()
 		if (pt.x<=r.right && pt.x>=r.right-SIZING_MARGIN) k+=2;
 		else if (pt.x>=r.left && pt.x<=r.left+SIZING_MARGIN)k+=1;
 		if (!(pt.x>=r.left && pt.x<=r.right && pt.y>=r.top && pt.y<=r.bottom)) k=0;
+		k*=mouse_in_window;
 		hCurs1 = LoadCursor(NULL, IDC_ARROW);
 		if(BehindEdge_State<=0)
 			switch(k)
@@ -3573,6 +3588,7 @@ int TestCursorOnBorders()
 
 	return 0;
 }
+
 int SizingOnBorder(POINT pt, int PerformSize)
 {
 	if (!(DBGetContactSettingByte(NULL,"CLUI","LockSize",0)))

@@ -46,7 +46,7 @@ static int cycleTimerId=0,cycleStep=0;
 static int RefreshTimerId=0;   /////by FYR
 static VOID CALLBACK RefreshTimerProc(HWND hwnd,UINT message,UINT idEvent,DWORD dwTime); ///// by FYR
 void TrayIconUpdateBase(char *szChangedProto);///by FYR
-
+extern BOOL IS_WM_MOUSE_DOWN_IN_TRAY;
 struct trayIconInfo_t {
 	int id;
 	char *szProto;
@@ -659,7 +659,7 @@ int TrayIconProcessMessage(WPARAM wParam,LPARAM lParam)
 		case WM_ACTIVATE:
             {
               HWND h1,h2,h4;
-
+			  SetCursor(LoadCursor(NULL, IDC_ARROW));	
               h1=(HWND)msg->lParam;
               h2=GetParent(h1);
               h4=(HWND)CallService(MS_CLUI_GETHWND,0,0);
@@ -678,9 +678,13 @@ int TrayIconProcessMessage(WPARAM wParam,LPARAM lParam)
 			{
 				ShowHide(0,0);				
 			}
+			else if (msg->lParam==WM_MBUTTONDOWN ||msg->lParam==WM_LBUTTONDOWN ||msg->lParam==WM_RBUTTONDOWN)
+			{
+				IS_WM_MOUSE_DOWN_IN_TRAY=1;
+			}
 			else if (msg->lParam==(DBGetContactSettingByte(NULL,"CList","Tray1Click",SETTING_TRAY1CLICK_DEFAULT)?WM_LBUTTONUP:WM_LBUTTONDBLCLK))
 			{
-        OnTrayRightClick=1;
+                OnTrayRightClick=1;
 				if ((GetAsyncKeyState(VK_CONTROL)&0x8000)) ShowHide(0,0);
 				else {
 					if(EventsProcessTrayDoubleClick()) ShowHide(0,0);
