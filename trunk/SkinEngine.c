@@ -1473,7 +1473,7 @@ int GetSkinFolder(char * szFileName, char * t2)
 
     GetPrivateProfileStringA("Skin_Description_Section","SkinFolder","",cus,sizeof(custom_folder),szFileName);
     if (MyStrLen(cus)>0)
-      _snprintf(t2,sizeof(t2),"%s\\%s",custom_folder,cus);
+      _snprintf(t2,MAX_PATH,"%s\\%s",custom_folder,cus);
   }   	
   mir_free(b2);
   CallService(MS_UTILS_PATHTORELATIVE, (WPARAM)t2, (LPARAM)t2);
