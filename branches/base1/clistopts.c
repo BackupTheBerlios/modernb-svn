@@ -127,7 +127,7 @@ static BOOL CALLBACK DlgProcItemRowOpts(HWND hwndDlg, UINT msg, WPARAM wParam, L
       {
         char tmp[128];
         int type;
-        int pos;
+        int pos=0;
 
         mir_snprintf(tmp, sizeof(tmp), "RowPos%d", i);
         type = DBGetContactSettingWord(NULL, "CList", tmp, i);
