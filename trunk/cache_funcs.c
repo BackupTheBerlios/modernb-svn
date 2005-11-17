@@ -113,6 +113,7 @@ int AskStatusMessageThread(HWND hwnd)
   
   h=GetCurrChain(); 
   if (!h) return 0;
+
   ISTREADSTARTED=1;
   while (h)
   { 
@@ -126,6 +127,7 @@ int AskStatusMessageThread(HWND hwnd)
               return 0; 
             }
     }
+
 	{
 		pdisplayNameCacheEntry pdnce = GetDisplayNameCacheEntry((HANDLE)h);
 		if (pdnce->ApparentMode!=ID_STATUS_OFFLINE) //don't ask if contact is always invisible (should be done with protocol)
@@ -158,6 +160,14 @@ void ReAskStatusMessage(HANDLE wParam)
 {
   int res;
   if (!DBGetContactSettingByte(NULL,"ModernData","InternalAwayMsgDiscovery",0)) return;
+  {//Do not re-ask if it is IRC protocol    
+	char *szProto = (char *) CallService(MS_PROTO_GETCONTACTBASEPROTO, (WPARAM) wParam, 0);
+	if (szProto != NULL) 
+	{
+		if(DBGetContactSettingByte(wParam, szProto, "ChatRoom", 0) != 0) return;
+	}
+	else return;
+  }
   res=AddHandleToChain(wParam); 
   //if (res) {
 		//char buf[256];

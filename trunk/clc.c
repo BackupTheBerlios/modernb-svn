@@ -378,6 +378,10 @@ int ClcProtoAck(WPARAM wParam,LPARAM lParam)
 	else if (ack->type==ACKTYPE_AWAYMSG)
 	{
 		if (ack->result==ACKRESULT_SUCCESS && ack->lParam) {
+			{//Do not change DB if it is IRC protocol    
+				if (ack->szModule!= NULL) 
+					if(DBGetContactSettingByte(ack->hContact, ack->szModule, "ChatRoom", 0) != 0) return 0;
+			}
 			DBWriteContactSettingString(ack->hContact,"CList","StatusMsg",(const char *)ack->lParam);
 			//WindowList_Broadcast(hClcWindowList,INTM_STATUSMSGCHANGED,(WPARAM)ack->hContact,(LPARAM)ack->lParam);      
 
@@ -386,6 +390,10 @@ int ClcProtoAck(WPARAM wParam,LPARAM lParam)
 		{
 			//DBDeleteContactSetting(ack->hContact,"CList","StatusMsg");
 			//char a='\0';
+			{//Do not change DB if it is IRC protocol    
+				if (ack->szModule!= NULL) 
+					if(DBGetContactSettingByte(ack->hContact, ack->szModule, "ChatRoom", 0) != 0) return 0;
+			}
 			DBWriteContactSettingString(ack->hContact,"CList","StatusMsg","");
 			//WindowList_Broadcast(hClcWindowList,INTM_STATUSMSGCHANGED,(WPARAM)ack->hContact,&a);              
 		}
