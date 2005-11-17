@@ -1,0 +1,30 @@
+Microsoft Visual Studio Solution File, Format Version 8.00
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "mwclist", "mwclist.vcproj", "{A8426716-7E3F-416F-A0A0-8F10092DB6B3}"
+	ProjectSection(ProjectDependencies) = postProject
+	EndProjectSection
+EndProject
+Global
+	GlobalSection(DPCodeReviewSolutionGUID) = preSolution
+		DPCodeReviewSolutionGUID = {00000000-0000-0000-0000-000000000000}
+	EndGlobalSection
+	GlobalSection(SolutionConfiguration) = preSolution
+		Debug = Debug
+		Debug in Main = Debug in Main
+		debug UNICODE = debug UNICODE
+		Release = Release
+	EndGlobalSection
+	GlobalSection(ProjectConfiguration) = postSolution
+		{A8426716-7E3F-416F-A0A0-8F10092DB6B3}.Debug.ActiveCfg = Debug|Win32
+		{A8426716-7E3F-416F-A0A0-8F10092DB6B3}.Debug.Build.0 = Debug|Win32
+		{A8426716-7E3F-416F-A0A0-8F10092DB6B3}.Debug in Main.ActiveCfg = Debug in Main|Win32
+		{A8426716-7E3F-416F-A0A0-8F10092DB6B3}.Debug in Main.Build.0 = Debug in Main|Win32
+		{A8426716-7E3F-416F-A0A0-8F10092DB6B3}.debug UNICODE.ActiveCfg = debug UNICODE|Win32
+		{A8426716-7E3F-416F-A0A0-8F10092DB6B3}.debug UNICODE.Build.0 = debug UNICODE|Win32
+		{A8426716-7E3F-416F-A0A0-8F10092DB6B3}.Release.ActiveCfg = Release|Win32
+		{A8426716-7E3F-416F-A0A0-8F10092DB6B3}.Release.Build.0 = Release|Win32
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+	EndGlobalSection
+	GlobalSection(ExtensibilityAddIns) = postSolution
+	EndGlobalSection
+EndGlobal
