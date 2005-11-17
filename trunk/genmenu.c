@@ -642,7 +642,7 @@ int MO_AddNewMenuItem(WPARAM wParam,LPARAM lParam)
 
   {
     char buf[256];
-    sprintf(buf,"added menuitem menu: %s, name: %s,id: %d mi: %x mi.position %d\r\n",MenuObjects[objidx].Name,MenuObjects[objidx].MenuItems[miidx].mi.pszName,
+		mir_snprintf(buf,sizeof(buf),"added menuitem menu: %s, name: %s,id: %d mi: %x mi.position %d\r\n",MenuObjects[objidx].Name,MenuObjects[objidx].MenuItems[miidx].mi.pszName,
       MenuObjects[objidx].MenuItems[miidx].id,
       pmi,
       MenuObjects[objidx].MenuItems[miidx].mi.position);

@@ -192,6 +192,26 @@ BOOL ExecuteOnAllContactsOfGroup(struct ClcGroup *group, ExecuteOnAllContactsFun
 
 
 // Get all lines of text
+void Cache_GetTimezone(struct ClcData *dat, struct ClcContact *contact)
+{
+	contact->timezone = (DWORD)DBGetContactSettingByte(contact->hContact,"UserInfo","Timezone", 
+									DBGetContactSettingByte(contact->hContact, contact->proto,"Timezone",-1));
+	contact->timediff = 0;
+
+	if (contact->timezone != -1)
+	{
+		int contact_gmt_diff = contact->timezone;
+		contact_gmt_diff = contact_gmt_diff > 128 ? 256 - contact_gmt_diff : 0 - contact_gmt_diff;
+		contact_gmt_diff *= 60*60/2;
+
+		// Only in case of same timezone, ignore DST
+		if (contact_gmt_diff != dat->local_gmt_diff)
+			contact->timediff = (int)dat->local_gmt_diff_dst - contact_gmt_diff;
+	}
+}
+
+
+// Get all lines of text
 void Cache_GetText(struct ClcData *dat, struct ClcContact *contact)
 {
 	Cache_GetFirstLineText(dat, contact);
@@ -214,12 +234,13 @@ void Cache_DestroySmileyList( SortedList* p_list )
 			{
 				ClcContactTextPiece *piece = (ClcContactTextPiece *) p_list->items[i];
 
-				if (piece->smiley)
+				if (!IsBadWritePtr(piece, sizeof(ClcContactTextPiece)))
 				{
+				if (piece->smiley)
 					DestroyIcon(piece->smiley);
-				}
 
-				free(piece);
+					mir_free(piece);
+				}
 			}
 		}
 	}
@@ -229,10 +250,11 @@ void Cache_DestroySmileyList( SortedList* p_list )
 
 // Generete the list of smileys / text to be drawn
 void Cache_ReplaceSmileys(struct ClcData *dat, struct ClcContact *contact, TCHAR *text, int text_size, SortedList **plText, 
-						  BOOL replace_smileys)
+						 int *max_smiley_height, BOOL replace_smileys)
 {
 	SMADD_PARSE sp;
 	int last_pos=0;
+        *max_smiley_height = 0;
 
 	if (!dat->text_replace_smileys || !replace_smileys || text == NULL || !ServiceExists(MS_SMILEYADD_PARSE))
 	{
@@ -254,6 +276,15 @@ void Cache_ReplaceSmileys(struct ClcData *dat, struct ClcContact *contact, TCHAR
 	if (dat->text_use_protocol_smileys)
 	{
 		sp.Protocolname = contact->proto;
+
+		if (DBGetContactSettingByte(NULL,"CLC","Meta",0) != 1 && contact->proto != NULL && strcmp(contact->proto, "MetaContacts") == 0)
+		{
+			HANDLE hContact = (HANDLE)CallService(MS_MC_GETMOSTONLINECONTACT, (UINT)contact->hContact, 0);
+			if (hContact != 0)
+			{
+				sp.Protocolname = (char*)CallService(MS_PROTO_GETCONTACTBASEPROTO, (UINT)hContact, 0);
+			}
+		}
 	}
 	else
 	{
@@ -265,7 +296,7 @@ void Cache_ReplaceSmileys(struct ClcData *dat, struct ClcContact *contact, TCHAR
 	sp.size = 0;
 	CallService(MS_SMILEYADD_PARSE, 0, (LPARAM)&sp);
 
-	if (sp.SmileyIcon == NULL || sp.size == 0)
+	if (sp.size == 0)
 	{
 		// Did not find a simley
 		return;
@@ -276,6 +307,8 @@ void Cache_ReplaceSmileys(struct ClcData *dat, struct ClcContact *contact, TCHAR
 
 	do
 	{
+		if (sp.SmileyIcon != NULL)	// For deffective smileypacks
+		{
 		// Add text
 		if (sp.startChar-last_pos > 0)
 		{
@@ -308,8 +341,12 @@ void Cache_ReplaceSmileys(struct ClcData *dat, struct ClcContact *contact, TCHAR
 				piece->smiley_height = 16;
 			}
 
+				dat->text_smiley_height = max(piece->smiley_height, dat->text_smiley_height);
+				*max_smiley_height = max(piece->smiley_height, *max_smiley_height);
+
 			List_Append(*plText, piece);
 		}
+}
 		/*
 		 *	Bokra SmileyAdd Fix:
 		 */
@@ -478,7 +515,7 @@ void Cache_GetFirstLineText(struct ClcData *dat, struct ClcContact *contact)
   contact->szText=mir_strdupT(ch);
 	
 	Cache_ReplaceSmileys(dat, contact, contact->szText, lstrlen(contact->szText)+1, &(contact->plText),
-		dat->first_line_draw_smileys);
+		&contact->iTextMaxSmileyHeight,dat->first_line_draw_smileys);
 }
 
 void Cache_GetSecondLineText(struct ClcData *dat, struct ClcContact *contact)
@@ -493,7 +530,7 @@ void Cache_GetSecondLineText(struct ClcData *dat, struct ClcContact *contact)
     contact->szSecondLineText=NULL;
   Text[120-MAXEXTRACOLUMNS-1]='\0';
 	Cache_ReplaceSmileys(dat, contact, contact->szSecondLineText, lstrlen(contact->szSecondLineText), &contact->plSecondLineText, 
-    dat->second_line_draw_smileys);
+    &contact->iSecondLineMaxSmileyHeight,dat->second_line_draw_smileys);
 
 }
 
@@ -509,7 +546,7 @@ void Cache_GetThirdLineText(struct ClcData *dat, struct ClcContact *contact)
     contact->szThirdLineText=NULL;
   Text[120-MAXEXTRACOLUMNS-1]='\0';
 	Cache_ReplaceSmileys(dat, contact, contact->szThirdLineText, lstrlen(contact->szThirdLineText), &contact->plThirdLineText, 
-		dat->third_line_draw_smileys);
+		&contact->iThirdLineMaxSmileyHeight,dat->third_line_draw_smileys);
 }
 
 
@@ -621,7 +658,7 @@ void Cache_GetAvatar(struct ClcData *dat, struct ClcContact *contact)
 		if (dat->avatars_show && !DBGetContactSettingByte(contact->hContact, "CList", "HideContactAvatar", 0))
 		{
 			DBVARIANT dbv;
-			if (!DBGetContactSetting(contact->hContact, "ContactPhoto", "File", &dbv) && dbv.type == DBVT_ASCIIZ)
+			if (!DBGetContactSetting(contact->hContact, "ContactPhoto", "File", &dbv) && (dbv.type == DBVT_ASCIIZ || dbv.type == DBVT_UTF8))
 			{
 				HBITMAP hBmp = (HBITMAP) CallService(MS_UTILS_LOADBITMAP, 0, (LPARAM)dbv.pszVal);
 				if (hBmp != NULL)

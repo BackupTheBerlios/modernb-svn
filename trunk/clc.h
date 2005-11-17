@@ -53,6 +53,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #define INTM_STATUSMSGCHANGED	(WM_USER+26)
 #define INTM_STATUSCHANGED	(WM_USER+27)
 #define INTM_AVATARCHANGED	(WM_USER+28)
+#define INTM_TIMEZONECHANGED	(WM_USER+29)
 
 #define TIMERID_RENAME         10
 #define TIMERID_DRAGAUTOSCROLL 11
@@ -60,6 +61,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #define TIMERID_REBUILDAFTER   14
 #define TIMERID_DELAYEDRESORTCLC   15
 #define TIMERID_SUBEXPAND 21
+#define TIMERID_INVALIDATE 22
 
 struct ClcGroup;
 
@@ -127,6 +129,11 @@ struct ClcContact {
 	TCHAR *szThirdLineText;//[120-MAXEXTRACOLUMNS];
 	SortedList *plThirdLineText;				// List of ClcContactTextPiece
 	char * proto;	// MS_PROTO_GETBASEPROTO
+  int iTextMaxSmileyHeight;
+  int iThirdLineMaxSmileyHeight;
+  int iSecondLineMaxSmileyHeight;
+    DWORD timezone;
+    DWORD timediff;
 
 	// For hittest
 	int pos_indent;
@@ -134,7 +141,7 @@ struct ClcContact {
 	RECT pos_avatar;
 	RECT pos_icon;
 	RECT pos_label;
-  RECT pos_full_first_row;
+	RECT pos_contact_time;
 	RECT pos_extra[MAXEXTRACOLUMNS];
 };
 
@@ -170,7 +177,8 @@ typedef struct {
 #define ITEM_ICON 1
 #define ITEM_TEXT 2
 #define ITEM_EXTRA_ICONS 3
-#define NUM_ITEM_TYPE 4
+#define ITEM_CONTACT_TIME 4
+#define NUM_ITEM_TYPE 5
 
 #define TEXT_EMPTY -1
 #define TEXT_STATUS 0
@@ -213,6 +221,7 @@ struct ClcData {
 	int avatars_custom_corner_size;
 	BOOL avatars_ignore_size_for_row_height;
 	BOOL avatars_draw_overlay;
+	int avatars_overlay_type;
 	int avatars_size;
 
 	// Icon
@@ -220,9 +229,18 @@ struct ClcData {
 	BOOL icon_draw_on_avatar_space;
 	BOOL icon_ignore_size_for_row_height;
 
+	// Contact time
+	BOOL contact_time_show;
+	BOOL contact_time_show_only_if_different;
+	DWORD local_gmt_diff;
+	DWORD local_gmt_diff_dst;
+
 	// Text
 	BOOL text_rtl;
+	BOOL text_align_right;
 	BOOL text_replace_smileys;
+	BOOL text_resize_smileys;
+	int text_smiley_height;
 	BOOL text_use_protocol_smileys;
 	BOOL text_ignore_size_for_row_height;
 

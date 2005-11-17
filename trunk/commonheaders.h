@@ -88,6 +88,8 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #include "rowheight_funcs.h"
 #include "cache_funcs.h"
 
+#include "log.h"
+
 #include "richedit.h"
 #include "m_variables.h"
 #include "m_avatars.h"

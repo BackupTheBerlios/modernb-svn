@@ -184,7 +184,7 @@ void LoadClientIcons()
 	char name[256];
 	for (i=0;i<ClientNumber;i++)
 	{
-		_snprintf(name,sizeof(name),"ClientIcons_%s",ClientNames[i]);
+		mir_snprintf(name,sizeof(name),"ClientIcons_%s",ClientNames[i]);
 		
 		if (ClientImageListIdx[i]==0)
 		{
@@ -496,7 +496,7 @@ pdisplayNameCacheEntry pdnce;
 	if (tick>0)
 	{
 		char buf[256];
-		sprintf(buf,"SetAllExtraIcons %d ms, for %x\r\n",tick,inphcont);
+		mir_snprintf(buf,sizeof(buf),"SetAllExtraIcons %d ms, for %x\r\n",tick,inphcont);
 		TRACE(buf);
 		DBWriteContactSettingDword((HANDLE)0,"CLUI","PF:Last SetAllExtraIcons Time:",tick);
 	}	

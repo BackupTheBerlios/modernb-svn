@@ -577,7 +577,6 @@ typedef struct {
 //or -1 to toggle the value
 #define MS_CLIST_SETHIDEOFFLINE  "CList/SetHideOffline"
 
-
 //do the message processing associated with double clicking a contact v0.1.1.0+
 //wParam=(WPARAM)(HANDLE)hContact
 //lParam=0
@@ -671,4 +670,9 @@ typedef struct {
 #define SETTING_STATE_NORMAL      2
 
 #define SETTING_BRINGTOFRONT_DEFAULT 0
+
+
+#define SETTING_AVATAR_OVERLAY_TYPE_NORMAL 0
+#define SETTING_AVATAR_OVERLAY_TYPE_PROTOCOL 1
+#define SETTING_AVATAR_OVERLAY_TYPE_CONTACT 2
 

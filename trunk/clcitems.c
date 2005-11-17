@@ -42,6 +42,7 @@ void AddSubcontacts(struct ClcData *dat, struct ClcContact * cont)
 	pdisplayNameCacheEntry cacheEntry;
 	cacheEntry=GetContactFullCacheEntry(cont->hContact);
 	TRACE("Proceed AddSubcontacts\r\n");
+	cont->SubExpanded=(DBGetContactSettingByte(cont->hContact,"CList","Expanded",0) && (DBGetContactSettingByte(NULL,"CLC","MetaExpanding",1)));
 	subcount=(int)CallService(MS_MC_GETNUMCONTACTS,(WPARAM)cont->hContact,0);
 	
 	if (subcount <= 0) 
@@ -52,7 +53,6 @@ void AddSubcontacts(struct ClcData *dat, struct ClcContact * cont)
 		return;
 	}
 
-	cont->SubExpanded=(DBGetContactSettingByte(cont->hContact,"CList","Expanded",0) && (DBGetContactSettingByte(NULL,"CLC","MetaExpanding",1)));
 	cont->isSubcontact=0;
 	cont->subcontacts=(struct ClcContact *) mir_alloc(sizeof(struct ClcContact)*subcount);
 	ZeroMemory(cont->subcontacts, sizeof(struct ClcContact)*subcount);
@@ -75,13 +75,18 @@ void AddSubcontacts(struct ClcData *dat, struct ClcContact * cont)
 			cont->subcontacts[i].proto=cacheEntry->szProto;		
 
 			//lstrcpynA(cont->subcontacts[i].szText,cacheEntry->name,sizeof(cont->subcontacts[i].szText));
-			Cache_GetText(dat, &cont->subcontacts[i]);
+			//Cache_GetText(dat, &cont->subcontacts[i]);
 			cont->subcontacts[i].type=CLCIT_CONTACT;
 			cont->subcontacts[i].flags=0;//CONTACTF_ONLINE;
 			cont->subcontacts[i].isSubcontact=i+1;
             cont->subcontacts[i].subcontacts=cont;
 			cont->subcontacts[i].image_is_special=FALSE;
 			cont->subcontacts[i].status=cacheEntry->status;
+
+			//lstrcpyn(cont->subcontacts[i].szText,cacheEntry->name,sizeof(cont->subcontacts[i].szText));
+			Cache_GetText(dat, &cont->subcontacts[i]);
+			Cache_GetTimezone(dat, &cont->subcontacts[i]);
+
             {
                 int apparentMode;
                 char *szProto;  
@@ -133,12 +138,9 @@ static int AddItemToGroup(struct ClcGroup *group,int iAboveItem)
   group->contact[iAboveItem].szText=NULL;
   group->contact[iAboveItem].szSecondLineText=NULL;
   group->contact[iAboveItem].szThirdLineText=NULL;
-	//group->contact[iAboveItem].szText[0]='\0';
-	//group->contact[iAboveItem].szSecondLineText[0]='\0';
-	//group->contact[iAboveItem].szThirdLineText[0]='\0';
-	//group->contact[iAboveItem].SubAllocated=0;
-	//group->contact[iAboveItem].subcontacts=NULL;
-	//group->contact[iAboveItem].SubExpanded=0;
+  group->contact[iAboveItem].SubAllocated=0;
+  group->contact[iAboveItem].subcontacts=NULL;
+	group->contact[iAboveItem].SubExpanded=0;
 	
 	ClearRowByIndexCache();
 	return iAboveItem;
@@ -213,6 +215,7 @@ struct ClcGroup *AddGroup(HWND hwnd,struct ClcData *dat,const TCHAR *szName,DWOR
 			group->contact[i].szText=mir_strdupT(szThisField);
 			group->contact[i].groupId=(WORD)(pNextField?0:groupId);
 			group->contact[i].group=(struct ClcGroup*)mir_alloc(sizeof(struct ClcGroup));
+			ZeroMemory(group->contact[i].group, sizeof(struct ClcGroup));
 			group->contact[i].group->parent=group;
 			group=group->contact[i].group;
 			group->allocedCount=group->contactCount=0;
@@ -392,7 +395,23 @@ static struct ClcContact * AddContactToGroup(struct ClcData *dat,struct ClcGroup
 	//lstrcpynA(group->contact[i].szText,cacheEntry->name,sizeof(group->contact[i].szText));
 	group->contact[i].proto = szProto;
 	
+	group->contact[i].timezone = (DWORD)DBGetContactSettingByte(hContact,"UserInfo","Timezone", DBGetContactSettingByte(hContact, szProto,"Timezone",-1));
+	if (group->contact[i].timezone != -1)
+	{
+		int contact_gmt_diff = group->contact[i].timezone;
+		contact_gmt_diff = contact_gmt_diff > 128 ? 256 - contact_gmt_diff : 0 - contact_gmt_diff;
+		contact_gmt_diff *= 60*60/2;
+
+		// Only in case of same timezone, ignore DST
+		if (contact_gmt_diff == dat->local_gmt_diff)
+			group->contact[i].timediff = 0;
+		else
+			group->contact[i].timediff = (int)dat->local_gmt_diff_dst - contact_gmt_diff;
+	}
+
 	Cache_GetText(dat, &group->contact[i]);
+	Cache_GetTimezone(dat, &group->contact[i]);
+
 	ClearRowByIndexCache();
 	return &(group->contact[i]);
 }
@@ -551,8 +570,6 @@ void DeleteItemFromTree(HWND hwnd,HANDLE hItem)
 	struct ClcGroup *group;
 	struct ClcData *dat=(struct ClcData*)GetWindowLong(hwnd,0);
 	ClearRowByIndexCache();
-	dat->NeedResort=0;
-	
 	if(!FindItem(hwnd,dat,hItem,&contact,&group,NULL,TRUE)) {
 		DBVARIANT dbv;
 		int i,nameOffset;
@@ -674,10 +691,9 @@ void RebuildEntireList(HWND hwnd,struct ClcData *dat)
 			}
 		}
 		if (cont)	
-			if (cont->proto)
 		{	
 			cont->SubAllocated=0;
-			if (MyStrCmp(cont->proto,"MetaContacts")==0)
+			if (cont->proto && strcmp(cont->proto,"MetaContacts")==0)
 				AddSubcontacts(dat,cont);
 		}
 		hContact=(HANDLE)CallService(MS_DB_CONTACT_FINDNEXT,(WPARAM)hContact,0);
@@ -883,8 +899,7 @@ void SortCLC(HWND hwnd,struct ClcData *dat,int useInsertionSort)
 	int dividers=dat->exStyle&CLS_EX_DIVIDERONOFF;
 	HANDLE hSelItem;
 	int tick=GetTickCount();
-    //LOCK_IMAGE_UPDATING=1;
-	if (dat->NeedResort==1||1)
+	if (dat->NeedResort==1 &&1)
 	{
 
 		if(GetRowByIndex(dat,dat->selection,&selcontact,NULL)==-1) hSelItem=NULL;

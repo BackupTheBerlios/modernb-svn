@@ -648,13 +648,12 @@ int ContactSettingChanged(WPARAM wParam,LPARAM lParam)
 	DBCONTACTWRITESETTING *cws = (DBCONTACTWRITESETTING*)lParam;
 	DBVARIANT dbv;
 	pdisplayNameCacheEntry pdnce;
-	//	char buf[256];
 
 	// Early exit
 	if ((HANDLE)wParam == NULL)
 		return 0;
-	//__try 
-	//__try 
+	
+//__try 
 	{
 		dbv.pszVal = NULL;
 		pdnce=GetDisplayNameCacheEntry((HANDLE)wParam);
@@ -665,13 +664,13 @@ int ContactSettingChanged(WPARAM wParam,LPARAM lParam)
 			if (dbv.pszVal) mir_free(dbv.pszVal);
 			return 0;
 		}
-		//#endif
 		if (pdnce->protoNotExists==FALSE && pdnce->szProto)
 		{
-			if (!MyStrCmp(cws->szModule,pdnce->szProto))
+				if (!strcmp(cws->szModule,pdnce->szProto))
 			{
 				InvalidateDisplayNameCacheEntryByPDNE((HANDLE)wParam,pdnce,cws->value.type);
-				if (!MyStrCmp(cws->szSetting,"IsSubcontact"))
+
+					if (!strcmp(cws->szSetting,"IsSubcontact"))
 				{
 					PostMessage(hwndContactTree,CLM_AUTOREBUILD,0,0);
 				}
@@ -731,18 +730,18 @@ int ContactSettingChanged(WPARAM wParam,LPARAM lParam)
 				}
 			}
 
-			if (!MyStrCmp(cws->szModule,"CList")) 
+			if(!strcmp(cws->szModule,"CList")) 
 			{
-
-				if (pdnce->name==NULL||(!MyStrCmp(cws->szSetting,"MyHandle")) ) 
+				//name is null or (setting is myhandle)
+				if (pdnce->name==NULL || !strcmp(cws->szSetting,"MyHandle"))
 				{
 					InvalidateDisplayNameCacheEntryByPDNE((HANDLE)wParam,pdnce,cws->value.type);
 				}
-				else if (!MyStrCmp(cws->szSetting,"Group")) 
+				else if (!strcmp(cws->szSetting,"Group")) 
 				{
 					InvalidateDisplayNameCacheEntryByPDNE((HANDLE)wParam,pdnce,cws->value.type);
 				}
-				else if (!MyStrCmp(cws->szSetting,"Hidden")) 
+				else if (!strcmp(cws->szSetting,"Hidden")) 
 				{
 					InvalidateDisplayNameCacheEntryByPDNE((HANDLE)wParam,pdnce,cws->value.type);		
 					if(cws->value.type==DBVT_DELETED || cws->value.bVal==0) 
@@ -752,15 +751,14 @@ int ContactSettingChanged(WPARAM wParam,LPARAM lParam)
 						ChangeContactIcon((HANDLE)wParam,ExtIconFromStatusMode((HANDLE)wParam,szProto,szProto==NULL?ID_STATUS_OFFLINE:DBGetContactSettingWord((HANDLE)wParam,szProto,"Status",ID_STATUS_OFFLINE)),1);  //by FYR
 					}
 				}
-				else if(!MyStrCmp(cws->szSetting,"noOffline")) 
+				else if(!strcmp(cws->szSetting,"noOffline")) 
 				{
 					InvalidateDisplayNameCacheEntryByPDNE((HANDLE)wParam,pdnce,cws->value.type);		
 				}
-
 			}
-			else if(!MyStrCmp(cws->szModule,"Protocol")) 
+			else if(!strcmp(cws->szModule,"Protocol")) 
 			{
-				if(!MyStrCmp(cws->szSetting,"p")) 
+				if(!strcmp(cws->szSetting,"p")) 
 				{
 					char *szProto;
 

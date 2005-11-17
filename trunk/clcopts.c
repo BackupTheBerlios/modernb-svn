@@ -84,28 +84,27 @@ static void GetDefaultFontSetting(int i,LOGFONTA *lf,COLORREF *colour)
 void GetFontSetting(int i,LOGFONTA *lf,COLORREF *colour)
 {
   DBVARIANT dbv;
-  char idstr[10];
+	char idstr[32];
   BYTE style;
 
   GetDefaultFontSetting(i,lf,colour);
-  sprintf(idstr,"Font%dName",i);
+	mir_snprintf(idstr,sizeof(idstr),"Font%dName",i);
   if(!DBGetContactSetting(NULL,"CLC",idstr,&dbv)) {
-    lstrcpyA(lf->lfFaceName,dbv.pszVal);
+		lstrcpy(lf->lfFaceName,dbv.pszVal);
     mir_free(dbv.pszVal);
-    DBFreeVariant(&dbv);
   }
-  sprintf(idstr,"Font%dCol",i);
+	mir_snprintf(idstr,sizeof(idstr),"Font%dCol",i);
   *colour=DBGetContactSettingDword(NULL,"CLC",idstr,*colour);
-  sprintf(idstr,"Font%dSize",i);
+	mir_snprintf(idstr,sizeof(idstr),"Font%dSize",i);
   lf->lfHeight=(char)DBGetContactSettingByte(NULL,"CLC",idstr,lf->lfHeight);
-  sprintf(idstr,"Font%dSty",i);
+	mir_snprintf(idstr,sizeof(idstr),"Font%dSty",i);
   style=(BYTE)DBGetContactSettingByte(NULL,"CLC",idstr,(lf->lfWeight==FW_NORMAL?0:DBFONTF_BOLD)|(lf->lfItalic?DBFONTF_ITALIC:0)|(lf->lfUnderline?DBFONTF_UNDERLINE:0));
   lf->lfWidth=lf->lfEscapement=lf->lfOrientation=0;
   lf->lfWeight=style&DBFONTF_BOLD?FW_BOLD:FW_NORMAL;
   lf->lfItalic=(style&DBFONTF_ITALIC)!=0;
   lf->lfUnderline=(style&DBFONTF_UNDERLINE)!=0;
   lf->lfStrikeOut=0;
-  sprintf(idstr,"Font%dSet",i);
+	mir_snprintf(idstr,sizeof(idstr),"Font%dSet",i);
   lf->lfCharSet=DBGetContactSettingByte(NULL,"CLC",idstr,lf->lfCharSet);
   lf->lfOutPrecision=OUT_DEFAULT_PRECIS;
   lf->lfClipPrecision=CLIP_DEFAULT_PRECIS;
@@ -793,7 +792,17 @@ struct CheckBoxValues_t {
       "Dividers",
       "Offline contacts to whom you have a different visibility",
       "Second line",
-      "Third line"};
+	"Third line",
+	"Away contacts",
+	"DND contacts",
+	"NA contacts",
+	"Occupied contacts",
+	"Free for chat contacts",
+	"Invisible contacts",
+	"On the phone contacts",
+	"Out to lunch contacts",
+	"Contact time"
+	};
 
 #define SAMEASF_FACE   1
 #define SAMEASF_SIZE   2
@@ -809,9 +818,11 @@ struct CheckBoxValues_t {
         char szFace[LF_FACESIZE];
       } static fontSettings[FONTID_MAX+1];
 #include <poppack.h>
-      static WORD fontSameAsDefault[FONTID_MAX+1]={0x00FF,0x0B00,0x0F00,0x0700,0x0B00,0x0104,0x0D00,0x0B02,0x0300,0x0300};
+static WORD fontSameAsDefault[FONTID_MAX+1]={0x00FF,0x0B00,0x0F00,0x0700,0x0B00,0x0104,0x0D00,0x0B02,0x0300,0x0300,
+											0x0F00,0x0F00,0x0F00,0x0F00,0x0F00,0x0F00,0x0F00,0x0F00,0x0F00};
       static char *fontSizes[]={"7","8","10","14","16","18","20","24","28"};
-      static int fontListOrder[FONTID_MAX+1]={FONTID_CONTACTS,FONTID_INVIS,FONTID_OFFLINE,FONTID_OFFINVIS,FONTID_NOTONLIST,FONTID_GROUPS,FONTID_GROUPCOUNTS,FONTID_DIVIDERS,FONTID_SECONDLINE,FONTID_THIRDLINE};
+static int fontListOrder[FONTID_MAX+1]={FONTID_CONTACTS,FONTID_INVIS,FONTID_OFFLINE,FONTID_OFFINVIS,FONTID_NOTONLIST,FONTID_GROUPS,FONTID_GROUPCOUNTS,FONTID_DIVIDERS,FONTID_SECONDLINE,FONTID_THIRDLINE,
+										FONTID_AWAY,FONTID_DND,FONTID_NA,FONTID_OCCUPIED,FONTID_CHAT,FONTID_INVISIBLE,FONTID_PHONE,FONTID_LUNCH,FONTID_CONTACT_TIME};
 
 #define M_REBUILDFONTGROUP   (WM_USER+10)
 #define M_REMAKESAMPLE       (WM_USER+11)
@@ -1255,17 +1266,17 @@ struct CheckBoxValues_t {
             char str[20];
 
             for(i=0;i<=FONTID_MAX;i++) {
-              sprintf(str,"Font%dName",i);
+									mir_snprintf(str,sizeof(str),"Font%dName",i);
               DBWriteContactSettingString(NULL,"CLC",str,fontSettings[i].szFace);
-              sprintf(str,"Font%dSet",i);
+									mir_snprintf(str,sizeof(str),"Font%dSet",i);
               DBWriteContactSettingByte(NULL,"CLC",str,fontSettings[i].charset);
-              sprintf(str,"Font%dSize",i);
+									mir_snprintf(str,sizeof(str),"Font%dSize",i);
               DBWriteContactSettingByte(NULL,"CLC",str,fontSettings[i].size);
-              sprintf(str,"Font%dSty",i);
+									mir_snprintf(str,sizeof(str),"Font%dSty",i);
               DBWriteContactSettingByte(NULL,"CLC",str,fontSettings[i].style);
-              sprintf(str,"Font%dCol",i);
+									mir_snprintf(str,sizeof(str),"Font%dCol",i);
               DBWriteContactSettingDword(NULL,"CLC",str,fontSettings[i].colour);
-              sprintf(str,"Font%dAs",i);
+									mir_snprintf(str,sizeof(str),"Font%dAs",i);
               DBWriteContactSettingWord(NULL,"CLC",str,(WORD)((fontSettings[i].sameAsFlags<<8)|fontSettings[i].sameAs));
             }
             }

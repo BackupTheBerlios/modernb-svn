@@ -11,6 +11,7 @@
 #define MIM_V3                          30
 #define MIM_V4                          30
 #define IDI_MIRANDA                     102
+#define IDD_OPT_ITEM_CONTACT_TIME       102
 #define IDD_ABOUT                       103
 #define IDI_SMS                         103
 #define IDI_ONLINE                      104
@@ -594,6 +595,7 @@
 #define IDC_RESUMEALL                   1500
 #define IDC_OVERWRITE                   1501
 #define IDC_OVERWRITEALL                1502
+#define IDC_AVATAR_OVERLAY_ICON_CONTACT 1502
 #define IDC_SKIP                        1503
 #define IDC_EXISTINGSIZE                1506
 #define IDC_EXISTINGDATE                1507
@@ -708,6 +710,8 @@
 #define IDC_DISCOVER_AWAYMSG            1763
 #define IDC_OFFSETSPIN                  1763
 #define IDC_CHECK_IMAGE                 1763
+#define IDC_XSTATUS_HAS_PRIORITY2       1763
+#define IDC_USE_NAME_AND_MESSAGE        1763
 #define IDC_STATUSTEXT                  1763
 #define IDC_DRAGTOSCROLL                1764
 #define IDC_OFFSETSUB                   1764
@@ -778,6 +782,8 @@
 #define IDC_IGNORE_SIZE                 1805
 #define IDC_LIST1                       1806
 #define IDC_OBJECTSLIST                 1806
+#define IDC_IGNORE_SIZE2                1806
+#define IDC_ALIGN_RIGHT                 1806
 #define IDC_CHECK2                      1807
 #define IDC_OBJECTSLIST2                1807
 #define IDC_SKINS_LIST                  1807
@@ -785,8 +791,11 @@
 #define IDC_CHECK4                      1809
 #define IDC_CHECK5                      1810
 #define IDC_RADIO1                      1811
+#define IDC_AVATAR_OVERLAY_ICON_NORMAL  1811
 #define IDC_RADIO2                      1812
+#define IDC_AVATAR_OVERLAY_ICON_PROTOCOL 1812
 #define IDC_RADIO3                      1813
+#define IDC_OVERLAY_ICON3               1813
 #define IDC_RADIO4                      1814
 #define IDC_RADIO5                      1815
 #define IDC_CHECK7                      1816
@@ -806,6 +815,7 @@
 #define IDC_USE_PROTOCOL_SMILEYS        1825
 #define IDC_DRAW_SMILEYS_ON_FIRST_LINE  1826
 #define IDC_TOP_SPACE                   1827
+#define IDC_RESIZE_SMILEYS              1827
 #define IDC_TOP_SPACE_SPIN              1828
 #define IDC_DRAW_SMILEYS                1829
 #define IDC_EMPTY                       1830
@@ -819,6 +829,7 @@
 #define IDC_AVATAR_BORDER_COLOR_L       1839
 #define IDC_AVATAR_BORDER_COLOR         1840
 #define IDC_VARIABLES_L                 1841
+#define IDC_SHOW_ONLY_IF_DIFFERENT      1842
 #define IDC_COMBO2                      1842
 #define IDC_EDIT1                       1843
 #define IDC_HIDE_GROUPSICON             1844

@@ -209,36 +209,41 @@ static int ClcSettingChanged(WPARAM wParam,LPARAM lParam)
 	}
 	else // (HANDLE)wParam != NULL
 	{
-		if (!MyStrCmp(cws->szSetting,"TickTS"))
+		if (!strcmp(cws->szSetting,"TickTS"))
 		{
-			WindowList_Broadcast(hClcWindowList,INTM_STATUSCHANGED,wParam,0);
+			WindowList_BroadcastAsync(hClcWindowList,INTM_STATUSCHANGED,wParam,0);
 		}
-		else if (!MyStrCmp(cws->szModule,"MetaContacts") && !MyStrCmp(cws->szSetting,"Handle"))
+		else if (!strcmp(cws->szModule,"MetaContacts") && !strcmp(cws->szSetting,"Handle"))
 		{
-			WindowList_Broadcast(hClcWindowList,INTM_NAMEORDERCHANGED,0,0);	
+			WindowList_BroadcastAsync(hClcWindowList,INTM_NAMEORDERCHANGED,0,0);	
 		}
-		else if (!MyStrCmp(cws->szModule,"CList")) 
+		else if (!strcmp(cws->szModule,"UserInfo"))
 		{
-			if(!MyStrCmp(cws->szSetting,"MyHandle"))
-				WindowList_Broadcast(hClcWindowList,INTM_NAMECHANGED,wParam,lParam);
-			else if(!MyStrCmp(cws->szSetting,"Group"))
+			if (!strcmp(cws->szSetting,"Timezone"))
+				WindowList_BroadcastAsync(hClcWindowList,INTM_TIMEZONECHANGED,wParam,0);	
+		}
+		else if (!strcmp(cws->szModule,"CList")) 
+		{
+			if(!strcmp(cws->szSetting,"MyHandle"))
+				WindowList_BroadcastAsync(hClcWindowList,INTM_NAMECHANGED,wParam,lParam);
+			else if(!strcmp(cws->szSetting,"Group"))
 				WindowList_Broadcast(hClcWindowList,INTM_GROUPCHANGED,wParam,lParam);
-			else if(!MyStrCmp(cws->szSetting,"Hidden"))
+			else if(!strcmp(cws->szSetting,"Hidden"))
 				WindowList_Broadcast(hClcWindowList,INTM_HIDDENCHANGED,wParam,lParam);
-			else if(!MyStrCmp(cws->szSetting,"noOffline"))
+			else if(!strcmp(cws->szSetting,"noOffline"))
 				WindowList_Broadcast(hClcWindowList,INTM_NAMEORDERCHANGED,wParam,lParam);
-			else if(!MyStrCmp(cws->szSetting,"NotOnList"))
+			else if(!strcmp(cws->szSetting,"NotOnList"))
 				WindowList_Broadcast(hClcWindowList,INTM_NOTONLISTCHANGED,wParam,lParam);
-			else if(!MyStrCmp(cws->szSetting,"Status"))
-				WindowList_Broadcast(hClcWindowList,INTM_STATUSCHANGED,wParam,0);
-			else if(!MyStrCmp(cws->szSetting,"NameOrder"))
+			else if(!strcmp(cws->szSetting,"Status"))
+				WindowList_BroadcastAsync(hClcWindowList,INTM_STATUSCHANGED,wParam,0);
+			else if(!strcmp(cws->szSetting,"NameOrder"))
 				WindowList_Broadcast(hClcWindowList,INTM_NAMEORDERCHANGED,0,0);
-			else if(!MyStrCmp(cws->szSetting,"StatusMsg")) 
+			else if(!strcmp(cws->szSetting,"StatusMsg")) 
 				WindowList_Broadcast(hClcWindowList,INTM_STATUSMSGCHANGED,wParam,0);    
 		}
-		else if(!MyStrCmp(cws->szModule,"ContactPhoto")) 
+		else if(!strcmp(cws->szModule,"ContactPhoto")) 
 		{
-			if (!MyStrCmp(cws->szSetting,"File")) 
+			if (!strcmp(cws->szSetting,"File")) 
 				WindowList_Broadcast(hClcWindowList,INTM_AVATARCHANGED,wParam,0);
 		}
 		else 
@@ -249,27 +254,29 @@ static int ClcSettingChanged(WPARAM wParam,LPARAM lParam)
 			{					
 				if(pdnce->szProto==NULL || MyStrCmp(pdnce->szProto,cws->szModule)) return 0;
 
-				if (!MyStrCmp(cws->szSetting,"UIN"))
+				if (!strcmp(cws->szSetting,"UIN"))
+					WindowList_Broadcast(hClcWindowList,INTM_NAMECHANGED,wParam,lParam);
+				else if (!strcmp(cws->szSetting,"Nick") || !strcmp(cws->szSetting,"FirstName") 
+					|| !strcmp(cws->szSetting,"e-mail") || !strcmp(cws->szSetting,"LastName") 
+					|| !strcmp(cws->szSetting,"JID"))
 					WindowList_BroadcastAsync(hClcWindowList,INTM_NAMECHANGED,wParam,lParam);
-				else if (!MyStrCmp(cws->szSetting,"Nick") || !MyStrCmp(cws->szSetting,"FirstName") 
-					|| !MyStrCmp(cws->szSetting,"e-mail") || !MyStrCmp(cws->szSetting,"LastName") 
-					|| !MyStrCmp(cws->szSetting,"JID"))
-					WindowList_BroadcastAsync(hClcWindowList,INTM_NAMECHANGED,wParam,lParam);
-				else if(!MyStrCmp(cws->szSetting,"ApparentMode"))
+				else if (!strcmp(cws->szSetting,"ApparentMode"))
 					WindowList_Broadcast(hClcWindowList,INTM_APPARENTMODECHANGED,wParam,lParam);
-				else if(!MyStrCmp(cws->szSetting,"IdleTS"))
+				else if (!strcmp(cws->szSetting,"IdleTS"))
 					WindowList_Broadcast(hClcWindowList,INTM_IDLECHANGED,wParam,lParam);
-				else if (!MyStrCmp(cws->szSetting,"XStatusMsg"))
+				else if (!strcmp(cws->szSetting,"XStatusMsg"))
 					WindowList_Broadcast(hClcWindowList,INTM_STATUSMSGCHANGED,wParam,0);
-				else if(!MyStrCmp(cws->szSetting,"Status") || !MyStrCmp(cws->szSetting,"XStatusId") || !MyStrCmp(cws->szSetting,"XStatusName"))
-					WindowList_Broadcast(hClcWindowList,INTM_STATUSCHANGED,wParam,0);
+				else if (!strcmp(cws->szSetting,"Status") || !strcmp(cws->szSetting,"XStatusId") || !strcmp(cws->szSetting,"XStatusName"))
+					WindowList_BroadcastAsync(hClcWindowList,INTM_STATUSCHANGED,wParam,0);
+				else if (!strcmp(cws->szSetting,"Timezone"))
+					WindowList_BroadcastAsync(hClcWindowList,INTM_TIMEZONECHANGED,wParam,0);
 			}
 		}
 	}
 	return 0;
 }
 
-
+// IcoLib hook to handle icon changes
 static int ReloadAvatarOverlayIcons(WPARAM wParam, LPARAM lParam) 
 {
 	int i;
@@ -427,6 +434,8 @@ static int ClcContactDeleted(WPARAM wParam,LPARAM lParam)
 
 static int ClcContactIconChanged(WPARAM wParam,LPARAM lParam)
 {
+	log1("[StatusUpdate] [2] [%ld]: Icon changed", (HANDLE)wParam);
+
 	WindowList_BroadcastAsync(hClcWindowList,INTM_ICONCHANGED,wParam,lParam);
 	return 0;
 }
@@ -527,8 +536,8 @@ static LRESULT CALLBACK ContactListControlWndProc(HWND hwnd, UINT msg, WPARAM wP
 			dat->use_avatar_service = ServiceExists(MS_AV_GETAVATARBITMAP);
 			if (dat->use_avatar_service)
 			{
-        if (!hAvatarChanged)
-				hAvatarChanged=HookEvent(ME_AV_AVATARCHANGED, AvatarChanged);
+				if (!hAvatarChanged)
+					hAvatarChanged=HookEvent(ME_AV_AVATARCHANGED, AvatarChanged);
 			}
 			else
 			{
@@ -591,6 +600,8 @@ static LRESULT CALLBACK ContactListControlWndProc(HWND hwnd, UINT msg, WPARAM wP
 			}
 			TRACE("Create New ClistControl END\r\n");
 			//			forkthread(StatusUpdaterThread,0,0);
+
+			SetTimer(hwnd,TIMERID_INVALIDATE,30000,NULL);
 
 			break;
 		}
@@ -692,7 +703,7 @@ static LRESULT CALLBACK ContactListControlWndProc(HWND hwnd, UINT msg, WPARAM wP
 					memcpy(szFullName,group->contact[i].szText,nameLen);
 					szFullName[nameLen]=TEXT('\\');
 				}
-        //TODO. dbw
+				//TODO. dbw
 				if(!lstrcmp(szFullName,((TCHAR*)dbcws->value.pszVal)+1) && (contact->group->hideOffline!=0)==((dbcws->value.pszVal[0]&GROUPF_HIDEOFFLINE)!=0))
 					break;  //only expanded has changed: no action reqd
 			}
@@ -870,95 +881,82 @@ static LRESULT CALLBACK ContactListControlWndProc(HWND hwnd, UINT msg, WPARAM wP
 					}
 				}
 
-				if(!shouldShow && !(style&CLS_NOHIDEOFFLINE) && (style&CLS_HIDEOFFLINE || group->hideOffline)) 
+			if(!shouldShow && !(style&CLS_NOHIDEOFFLINE) && (style&CLS_HIDEOFFLINE || group->hideOffline)) 
+			{
+				HANDLE hSelItem;
+				struct ClcContact *selcontact;
+				struct ClcGroup *selgroup;
+				if(GetRowByIndex(dat,dat->selection,&selcontact,NULL)==-1) hSelItem=NULL;
+				else hSelItem=ContactToHItem(selcontact);
+				RemoveItemFromGroup(hwnd,group,contact,0);
+				contact=NULL;
+				if(hSelItem)
+					if(FindItem(hwnd,dat,hSelItem,&selcontact,&selgroup,NULL,FALSE))
+						dat->selection=GetRowsPriorTo(&dat->list,selgroup,selcontact-selgroup->contact);
+				recalcScrollBar=1;
+				dat->NeedResort=1;
+				NeedResort=1;
+
+			}
+			else 
+			{
+				int oldflags;
+				contact->iImage=(WORD)lParam;
+
+				oldflags=contact->flags;
+				if(!IsHiddenMode(dat,status)||cacheEntry->noHiddenOffline) contact->flags|=CONTACTF_ONLINE;
+				else contact->flags&=~CONTACTF_ONLINE;
+
+				if (oldflags!=contact->flags)
 				{
-					HANDLE hSelItem;
-					struct ClcContact *selcontact;
-					struct ClcGroup *selgroup;
-					if(GetRowByIndex(dat,dat->selection,&selcontact,NULL)==-1) hSelItem=NULL;
-					else hSelItem=ContactToHItem(selcontact);
-					RemoveItemFromGroup(hwnd,group,contact,0);
-					contact=NULL;
-					if(hSelItem)
-						if(FindItem(hwnd,dat,hSelItem,&selcontact,&selgroup,NULL,FALSE))
-							dat->selection=GetRowsPriorTo(&dat->list,selgroup,selcontact-selgroup->contact);
-					recalcScrollBar=1;
 					dat->NeedResort=1;
 					NeedResort=1;
-
+					moveToGroup=2;
 				}
-				else 
-				{
-					int oldflags;
-					contact->iImage=(WORD)lParam;
 
-					oldflags=contact->flags;
-					if(!IsHiddenMode(dat,status)||cacheEntry->noHiddenOffline) contact->flags|=CONTACTF_ONLINE;
-					else contact->flags&=~CONTACTF_ONLINE;
-
-					if (oldflags!=contact->flags)
+				//Propagate icon to parent
+					if (contact->isSubcontact)
 					{
-						dat->NeedResort=1;
-						NeedResort=1;
-						moveToGroup=2;
-					}
-					//Propagate icon to parent
-					if (0&&contact->isSubcontact)
-					{
-						if (!IsBadReadPtr(contact->subcontacts, sizeof(struct ClcContact)))
+						if (image_is_special)
 						{
-							if (image_is_special)
-							{
-								PostMessage(hwnd, INTM_ICONCHANGED, (WPARAM) contact->/*by_fyr_*/subcontacts/*by_fyr_*/->hContact, 
-									lParam);
-							}
-							else
-							{
-								PostMessage(hwnd, INTM_ICONCHANGED, (WPARAM) contact->/*by_fyr_*/subcontacts/*by_fyr_*/->hContact, 
-									(LPARAM) GetContactIcon((WPARAM) contact->/*by_fyr_*/subcontacts/*by_fyr_*/->hContact, 0));
-							}
+							SendMessage(hwnd, INTM_ICONCHANGED, (WPARAM) contact->/*by_fyr_*/subcontacts/*by_fyr_*/->hContact, 
+								lParam);
 						}
-						else 
+						else
 						{
-							int i=0;
-							TRACE("Propagate icon to parent. Error contact is not valid\n");
-							i++;
+							SendMessage(hwnd, INTM_ICONCHANGED, (WPARAM) contact->/*by_fyr_*/subcontacts/*by_fyr_*/->hContact, 
+								(LPARAM) GetContactIcon((WPARAM) contact->/*by_fyr_*/subcontacts/*by_fyr_*/->hContact, 0));
 						}
-
 					}
 				}
-			}
+		}
 
-			if (!IsBadWritePtr(contact, sizeof(struct ClcContact)))
+		if (contact != NULL)
 			{
-				contact->image_is_special = image_is_special;
-				contact->status = status;
-				if (DBGetContactSettingByte(NULL,"CList","PlaceOfflineToRoot",0) && moveToGroup)
+				if (!IsBadWritePtr(contact, sizeof(struct ClcContact)))
 				{
-					if (contact->hContact)
-						WindowList_Broadcast(hClcWindowList,INTM_GROUPCHANGED,(WPARAM)contact->hContact,0);
+					contact->image_is_special = image_is_special;
+					contact->status = status;
+					if (DBGetContactSettingByte(NULL,"CList","PlaceOfflineToRoot",0) && moveToGroup)
+					{
+						if (contact->hContact)
+							WindowList_Broadcast(hClcWindowList,INTM_GROUPCHANGED,(WPARAM)contact->hContact,0);
+					}
 				}
-			}
 #ifdef _DEBUG
-			else
-			{
-				if (contact != NULL)
-					MessageBoxA(hwnd, "Please report this error in the forum thread: IsBadWritePtr(contact, sizeof(ClcContact)) | INTM_ICONCHANGED",
-					"Error", MB_OK|MB_ICONERROR);
-			}
+				else
+				{
+					log1("IsBadWritePtr(contact, sizeof(ClcContact)) | INTM_ICONCHANGED  [%08x]", contact);
+					break;
+				}
 #endif
-			//contact->group
-			//      }
+			}
 			if (NeedResort)// || image_is_special)
 			{
 				SortContacts(hwnd);
 				//SortCLC(hwnd,dat,1);
 				//RecalcScrollBar(hwnd,dat);             
 			}
-			//is sorts list if only icon changed !!! very bad
-			//SortCLC(hwnd,dat,1); 
-			//SortContacts(hwnd);
-			//SortContacts(hwnd); /*SortClcByTimer(hwnd);*/
 			if(recalcScrollBar) 
 			{
 				RecalcScrollBar(hwnd,dat); 	
@@ -983,17 +981,50 @@ static LRESULT CALLBACK ContactListControlWndProc(HWND hwnd, UINT msg, WPARAM wP
 			break;
 		}
 
+	case INTM_TIMEZONECHANGED:
+		{
+			struct ClcContact *contact;
+
+			if(!FindItem(hwnd,dat,(HANDLE)wParam,&contact,NULL,NULL,FALSE)) break;
+
+			if (!IsBadWritePtr(contact, sizeof(struct ClcContact)))
+			{
+				Cache_GetTimezone(dat,contact);
+
+				RecalcScrollBar(hwnd,dat);
+			}
+#ifdef _DEBUG
+			else
+			{
+				log1("IsBadWritePtr(contact, sizeof(ClcContact)) | INTM_TIMEZONECHANGED  [%x]", contact);
+			}
+#endif
+
+			break;
+		}
+
 	case INTM_NAMECHANGED:
 		{
 			struct ClcContact *contact;
-			InvalidateDisplayNameCacheEntry((HANDLE)wParam);
+			//InvalidateDisplayNameCacheEntry((HANDLE)wParam);
 			if(!FindItem(hwnd,dat,(HANDLE)wParam,&contact,NULL,NULL,FALSE)) break;
 
 			//ShowTracePopup("INTM_NAMECHANGED");
-      if (contact->szText) mir_free(contact->szText);
-      contact->szText=mir_strdupT((TCHAR*)CallService(MS_CLIST_GETCONTACTDISPLAYNAME,wParam,0)); //TODO: UNICODE
-			
-			Cache_GetText(dat,contact);
+			if (contact->szText) mir_free(contact->szText);
+			contact->szText=mir_strdupT((TCHAR*)CallService(MS_CLIST_GETCONTACTDISPLAYNAME,wParam,0)); //TODO: UNICODE
+
+			if (!IsBadWritePtr(contact, sizeof(struct ClcContact)))
+			{
+				Cache_GetText(dat,contact);
+
+				RecalcScrollBar(hwnd,dat);
+			}
+#ifdef _DEBUG
+			else
+			{
+				log1("IsBadWritePtr(contact, sizeof(ClcContact)) | INTM_NAMECHANGED  [%x]", contact);
+			}
+#endif
 
 			dat->NeedResort=1;
 			//SortCLC(hwnd,dat,1);		
@@ -1026,9 +1057,7 @@ static LRESULT CALLBACK ContactListControlWndProc(HWND hwnd, UINT msg, WPARAM wP
 #ifdef _DEBUG
 			else
 			{
-				if (contact != NULL)
-					MessageBoxA(hwnd, "Please report this error in the forum thread: IsBadWritePtr(contact, sizeof(ClcContact)) | INTM_STATUSMSGCHANGED",
-					"Error", MB_OK|MB_ICONERROR);
+				log1("IsBadWritePtr(contact, sizeof(ClcContact)) | INTM_STATUSMSGCHANGED  [%08x]", contact);
 			}
 #endif
 
@@ -1449,7 +1478,12 @@ static LRESULT CALLBACK ContactListControlWndProc(HWND hwnd, UINT msg, WPARAM wP
 				SaveStateAndRebuildList(hwnd,dat);
 				break;
 			}
-			if (wParam==TIMERID_DELAYEDRESORTCLC)
+			else if (wParam==TIMERID_INVALIDATE)
+			{
+				InvalidateRectZ(hwnd,NULL,FALSE);
+				break;
+			}
+			else if (wParam==TIMERID_DELAYEDRESORTCLC)
 			{
 				if (!dat) break;
 				KillTimer(hwnd,TIMERID_DELAYEDRESORTCLC);
@@ -1927,8 +1961,8 @@ static LRESULT CALLBACK ContactListControlWndProc(HWND hwnd, UINT msg, WPARAM wP
 					if (!contSour->isSubcontact)
 					{
 						HANDLE hDest=contDest->hContact;
-						sprintf(Wording,Translate("Do You want contact '%s' to be converted to MetaContact and '%s' be added to it?"),contDest->szText, contSour->szText);
-						res=MessageBoxA(hwnd,Wording,Translate("Converting to MetaContact"),MB_OKCANCEL|MB_ICONQUESTION);
+						mir_snprintf(Wording,sizeof(Wording),Translate("Do You want contact '%s' to be converted to MetaContact and '%s' be added to it?"),contDest->szText, contSour->szText);
+						res=MessageBox(hwnd,Wording,Translate("Converting to MetaContact"),MB_OKCANCEL|MB_ICONQUESTION);
 						if (res==1)
 						{
 							handle=(HANDLE)CallService(MS_MC_CONVERTTOMETA,(WPARAM)hDest,0);
@@ -1942,8 +1976,8 @@ static LRESULT CALLBACK ContactListControlWndProc(HWND hwnd, UINT msg, WPARAM wP
 						hcontact=contSour->hContact;
 						hfrom=contSour->subcontacts->hContact;
 						hdest=contDest->hContact;
-						sprintf(Wording,Translate("Do You want contact '%s' to be converted to MetaContact and '%s' be added to it (remove it from '%s')?"), contDest->szText,contSour->szText,contSour->subcontacts->szText);
-						res=MessageBoxA(hwnd,Wording,Translate("Converting to MetaContact (Moving)"),MB_OKCANCEL|MB_ICONQUESTION);
+						mir_snprintf(Wording,sizeof(Wording),Translate("Do You want contact '%s' to be converted to MetaContact and '%s' be added to it (remove it from '%s')?"), contDest->szText,contSour->szText,contSour->subcontacts->szText);
+						res=MessageBox(hwnd,Wording,Translate("Converting to MetaContact (Moving)"),MB_OKCANCEL|MB_ICONQUESTION);
 						if (res==1)
 						{
 
@@ -1968,15 +2002,15 @@ static LRESULT CALLBACK ContactListControlWndProc(HWND hwnd, UINT msg, WPARAM wP
 			if (contSour->type==CLCIT_CONTACT)
 			{
 
-				if (MyStrCmp(contSour->proto,"MetaContacts"))
+				if (strcmp(contSour->proto,"MetaContacts"))
 				{
 					if (!contSour->isSubcontact)
 					{   
 						HANDLE handle,hcontact;
 						hcontact=contSour->hContact;
 						handle=contDest->hContact;
-						sprintf(Wording,Translate(Translate("Do you want to contact '%s' be added to metacontact '%s'?")),contSour->szText, contDest->szText);
-						res=MessageBoxA(hwnd,Wording,Translate("Adding contact to MetaContact"),MB_OKCANCEL|MB_ICONQUESTION);
+						mir_snprintf(Wording,sizeof(Wording),Translate(Translate("Do you want to contact '%s' be added to metacontact '%s'?")),contSour->szText, contDest->szText);
+						res=MessageBox(hwnd,Wording,Translate("Adding contact to MetaContact"),MB_OKCANCEL|MB_ICONQUESTION);
 						if (res==1)
 						{
 
@@ -1990,8 +2024,8 @@ static LRESULT CALLBACK ContactListControlWndProc(HWND hwnd, UINT msg, WPARAM wP
 						{   
 							HANDLE hsour;
 							hsour=contSour->hContact;
-							sprintf(Wording,Translate("Do You want contact '%s' to be default ?"),contSour->szText);
-							res=MessageBoxA(hwnd,Wording,Translate("Set default contact"),MB_OKCANCEL|MB_ICONQUESTION);
+							mir_snprintf(Wording,sizeof(Wording),Translate("Do You want contact '%s' to be default ?"),contSour->szText);
+							res=MessageBox(hwnd,Wording,Translate("Set default contact"),MB_OKCANCEL|MB_ICONQUESTION);
 
 							if (res==1)
 							{
@@ -2004,8 +2038,8 @@ static LRESULT CALLBACK ContactListControlWndProc(HWND hwnd, UINT msg, WPARAM wP
 							hcontact=contSour->hContact;
 							hfrom=contSour->subcontacts->hContact;
 							handle=contDest->hContact;
-							sprintf(Wording,Translate("Do You want contact '%s' to be removed from MetaContact '%s' and added to '%s'?"), contSour->szText,contSour->subcontacts->szText,contDest->szText);
-							res=MessageBoxA(hwnd,Wording,Translate("Changing MetaContacts (Moving)"),MB_OKCANCEL|MB_ICONQUESTION);
+							mir_snprintf(Wording,sizeof(Wording),Translate("Do You want contact '%s' to be removed from MetaContact '%s' and added to '%s'?"), contSour->szText,contSour->subcontacts->szText,contDest->szText);
+							res=MessageBox(hwnd,Wording,Translate("Changing MetaContacts (Moving)"),MB_OKCANCEL|MB_ICONQUESTION);
 							if (res==1)
 							{
 
@@ -2025,7 +2059,7 @@ static LRESULT CALLBACK ContactListControlWndProc(HWND hwnd, UINT msg, WPARAM wP
 			contDest=contDest->subcontacts;
 			}
 			sprintf(buf,Translate("Do you want to contact '%s' be added to metacontact '%s'?"),contSour->szText, contDest->szText);
-			res=MessageBoxA(hwnd,buf,Translate("Adding contact to MetaContact"),MB_OKCANCEL|MB_ICONQUESTION);                         
+			res=MessageBox(hwnd,buf,Translate("Adding contact to MetaContact"),MB_OKCANCEL|MB_ICONQUESTION);                         
 			if (res==1)
 			{
 			CallService(MS_MC_ADDTOMETA,(WPARAM)contSour->hContact,(LPARAM)contDest->hContact);
@@ -2041,15 +2075,15 @@ static LRESULT CALLBACK ContactListControlWndProc(HWND hwnd, UINT msg, WPARAM wP
 			GetRowByIndex(dat,dat->selection,&contDest,NULL);  
 			if (contSour->type==CLCIT_CONTACT)
 			{
-				if (MyStrCmp(contSour->proto,"MetaContacts"))
+				if (strcmp(contSour->proto,"MetaContacts"))
 				{
 					if (!contSour->isSubcontact)
 					{
 						HANDLE handle,hcontact;
 						hcontact=contSour->hContact;
 						handle=contDest->subcontacts->hContact;
-						sprintf(Wording,Translate("Do You want contact '%s' to be added to MetaContact '%s'?"), contSour->szText,contDest->subcontacts->szText);
-						res=MessageBoxA(hwnd,Wording,Translate("Changing MetaContacts (Moving)"),MB_OKCANCEL|MB_ICONQUESTION);
+						mir_snprintf(Wording,sizeof(Wording),Translate("Do You want contact '%s' to be added to MetaContact '%s'?"), contSour->szText,contDest->subcontacts->szText);
+						res=MessageBox(hwnd,Wording,Translate("Changing MetaContacts (Moving)"),MB_OKCANCEL|MB_ICONQUESTION);
 						if (res==1)
 						{
 
@@ -2065,8 +2099,8 @@ static LRESULT CALLBACK ContactListControlWndProc(HWND hwnd, UINT msg, WPARAM wP
 							hcontact=contSour->hContact;
 							hfrom=contSour->subcontacts->hContact;
 							handle=contDest->subcontacts->hContact;                                     
-							sprintf(Wording,Translate("Do You want contact '%s' to be removed from MetaContact '%s' and added to '%s'?"), contSour->szText,contSour->subcontacts->szText,contDest->subcontacts->szText);
-							res=MessageBoxA(hwnd,Wording,Translate("Changing MetaContacts (Moving)"),MB_OKCANCEL|MB_ICONQUESTION);
+							mir_snprintf(Wording,sizeof(Wording),Translate("Do You want contact '%s' to be removed from MetaContact '%s' and added to '%s'?"), contSour->szText,contSour->subcontacts->szText,contDest->subcontacts->szText);
+							res=MessageBox(hwnd,Wording,Translate("Changing MetaContacts (Moving)"),MB_OKCANCEL|MB_ICONQUESTION);
 							if (res==1)
 							{
 
@@ -2119,8 +2153,8 @@ static LRESULT CALLBACK ContactListControlWndProc(HWND hwnd, UINT msg, WPARAM wP
 				HANDLE hcontact,hfrom;
 				hcontact=contact->hContact;
 				hfrom=contact->subcontacts->hContact;
-				sprintf(Wording,Translate("Do You want contact '%s' to be removed from MetaContact '%s' to group '%s'?"), contact->szText,contact->subcontacts->szText,szGroup);
-				res=MessageBoxA(hwnd,Wording,Translate("Changing MetaContact (Removing)"),MB_OKCANCEL|MB_ICONQUESTION);
+				mir_snprintf(Wording,sizeof(Wording),Translate("Do You want contact '%s' to be removed from MetaContact '%s' to group '%s'?"), contact->szText,contact->subcontacts->szText,szGroup);
+				res=MessageBox(hwnd,Wording,Translate("Changing MetaContact (Removing)"),MB_OKCANCEL|MB_ICONQUESTION);
 				if (res==1)
 				{
 
@@ -2131,7 +2165,7 @@ static LRESULT CALLBACK ContactListControlWndProc(HWND hwnd, UINT msg, WPARAM wP
 			}
 		else if(contact->type==CLCIT_GROUP) { //dropee is a group
 			char szNewName[120];
-			_snprintf(szNewName,sizeof(szNewName),"%s\\%s",szGroup,contact->szText);
+			mir_snprintf(szNewName,sizeof(szNewName),"%s\\%s",szGroup,contact->szText);
 			CallService(MS_CLIST_GROUPRENAME,contact->groupId,(LPARAM)szNewName);
 		}
 		break;
@@ -2181,8 +2215,8 @@ static LRESULT CALLBACK ContactListControlWndProc(HWND hwnd, UINT msg, WPARAM wP
 					HANDLE hcontact,hfrom;
 					hcontact=contact->hContact;
 					hfrom=contact->subcontacts->hContact;
-					sprintf(Wording,Translate("Do You want contact '%s' to be removed from MetaContact '%s'?"), contact->szText,contact->subcontacts->szText);
-					res=MessageBoxA(hwnd,Wording,Translate("Changing MetaContact (Removing)"),MB_OKCANCEL|MB_ICONQUESTION);
+					mir_snprintf(Wording,sizeof(Wording),Translate("Do You want contact '%s' to be removed from MetaContact '%s'?"), contact->szText,contact->subcontacts->szText);
+					res=MessageBox(hwnd,Wording,Translate("Changing MetaContact (Removing)"),MB_OKCANCEL|MB_ICONQUESTION);
 					if (res==1)
 					{
 

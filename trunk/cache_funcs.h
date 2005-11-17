@@ -38,7 +38,7 @@ void Cache_GetAvatar(struct ClcData *dat, struct ClcContact *contact);
 
 void Cache_DestroySmileyList(SortedList* p_list);
 
-
+void Cache_GetTimezone(struct ClcData *dat, struct ClcContact *contact);
 
 
 #endif // __CACHE_FUNCS_H__

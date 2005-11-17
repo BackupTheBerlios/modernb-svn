@@ -102,16 +102,20 @@ void* List_Find( SortedList* p_list, void* p_value )
 
 void List_Sort( SortedList* p_list )
 {
+#ifdef _DEBUG
 		char buf [255];
 		int tick;
 
 		tick=GetTickCount();
+#endif
+
 		qsort(&(p_list->items[0]),p_list->realCount,sizeof(p_list->items[0]), (int (*)(const void *, const void * ))(p_list->sortQsortFunc));   
 
+#ifdef _DEBUG
 		tick=GetTickCount()-tick;
-		sprintf(buf,"Resort List %x cnt:%d, %d ms\r\n",(DWORD)p_list,p_list->realCount,tick);
+		mir_snprintf(buf,sizeof(buf),"Resort List %x cnt:%d, %d ms\r\n",(DWORD)p_list,p_list->realCount,tick);
 	    TRACE(buf);
-
+#endif
 }
 
 int List_GetIndex( SortedList* p_list, void* p_value, int* p_index )
@@ -165,7 +169,7 @@ int List_Insert( SortedList* p_list, void* p_value, int p_index)
 
 int List_Remove( SortedList* p_list, int index )
 {
-	if ( index < 0 || index > p_list->realCount )
+	if ( index < 0 || index >= p_list->realCount )
 		return(0);
 
    p_list->realCount--;
