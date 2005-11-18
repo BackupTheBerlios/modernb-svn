@@ -884,7 +884,7 @@ void InternalPaintRowItems(HWND hwnd, HDC hdcMem, struct ClcData *dat, struct Cl
 						case SETTING_AVATAR_OVERLAY_TYPE_CONTACT:
 							{
 								if (Drawing->iImage != -1)
-									ImageList_DrawEx(himlCListClc, Drawing->iImage, hdcMem, 
+									ImageList_DrawEx_New(himlCListClc, Drawing->iImage, hdcMem, 
 									real_rc.left,  real_rc.top,ICON_HEIGHT,ICON_HEIGHT,
 									CLR_NONE,CLR_NONE,ILD_NORMAL);
 								break;

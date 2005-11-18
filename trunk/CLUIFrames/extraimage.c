@@ -110,7 +110,7 @@ int ExtraToColumnNum(int extra)
 
 char *ClientNames[ClientNumber]=
 {"Miranda","&RQ","Trillian","Gaim","IM2","Kopete","Licq","QIP","SIM"
-,"ICQ 2000","ICQ 2001b","ICQ 200","ICQ2Go! (Flash)","ICQ2Go! (Java)","icq5","ICQ Lite v5","ICQ Lite v4","ICQ Lite",
+,"ICQ 2000","ICQ 2001b","ICQ 200","ICQ2Go! (Flash)","ICQ2Go!","icq5","ICQ Lite v5","ICQ Lite v4","ICQ Lite",
 "Agile Messenger","GnomeICU","mobicq","Jimm",
 "alicq","ICQ for Mac","IMPLUS","libicq2000","NICQ","Psi","spam bot","Sticq","StrICQ","vICQ","WebICQ","YAMIGO","YSM","CenterICQ"
 
