@@ -942,7 +942,10 @@ void InternalPaintRowItems(HWND hwnd, HDC hdcMem, struct ClcData *dat, struct Cl
 
 				// Get image
 				if (Drawing->type == CLCIT_GROUP)
-					iImage = Drawing->group->expanded ? IMAGE_GROUPOPEN : IMAGE_GROUPSHUT;
+				{
+					if (!dat->row_hide_group_icon) iImage = Drawing->group->expanded ? IMAGE_GROUPOPEN : IMAGE_GROUPSHUT;
+					else iImage=-1;
+				}
 				else if (Drawing->type == CLCIT_CONTACT)
 					iImage = Drawing->iImage;
 
@@ -1228,7 +1231,7 @@ void InternalPaintRowItems(HWND hwnd, HDC hdcMem, struct ClcData *dat, struct Cl
 
 				ChangeToFont(hdcMem,dat,FONTID_GROUPS,NULL);
 			}
-			/*
+			
 			if (dat->row_align_group_mode==1) //center
 			{
 			int x;
@@ -1246,11 +1249,26 @@ void InternalPaintRowItems(HWND hwnd, HDC hdcMem, struct ClcData *dat, struct Cl
 			text_rc.left=free_row_rc.left;
 			text_rc.right=free_row_rc.left+full_text_width;
 			}
-			*/
+			
 		}
 		else if (Drawing->type == CLCIT_CONTACT)
 		{
 			int tmp;
+			if (dat->second_line_show && dat->second_line_type == TEXT_CONTACT_TIME && Drawing->timezone != -1 && 
+						(!dat->contact_time_show_only_if_different || Drawing->timediff != 0))
+			{
+				// Get contact time
+				DBTIMETOSTRING dbtts;
+				time_t contact_time;
+
+				contact_time = time(NULL) - Drawing->timediff;
+				Drawing->szSecondLineText[0] = '\0';
+
+				dbtts.szDest = Drawing->szSecondLineText;
+				dbtts.cbDest = 70;
+				dbtts.szFormat = "t";
+				CallService(MS_DB_TIME_TIMESTAMPTOSTRING, contact_time, (LPARAM) & dbtts);
+			}
 
 			if (dat->second_line_show && Drawing->szSecondLineText 
 				&& free_height > dat->second_line_top_space)
@@ -1280,7 +1298,21 @@ void InternalPaintRowItems(HWND hwnd, HDC hdcMem, struct ClcData *dat, struct Cl
 
 				max_bottom_selection_border = min(max_bottom_selection_border, dat->second_line_top_space / 2);
 			}
+			if (dat->third_line_show && dat->third_line_type == TEXT_CONTACT_TIME && Drawing->timezone != -1 && 
+						(!dat->contact_time_show_only_if_different || Drawing->timediff != 0))
+			{
+				// Get contact time
+				DBTIMETOSTRING dbtts;
+				time_t contact_time;
 
+				contact_time = time(NULL) - Drawing->timediff;
+				Drawing->szThirdLineText[0] = '\0';
+
+				dbtts.szDest = Drawing->szThirdLineText;
+				dbtts.cbDest = 70;
+				dbtts.szFormat = "t";
+				CallService(MS_DB_TIME_TIMESTAMPTOSTRING, contact_time, (LPARAM) & dbtts);
+			}
 			if (dat->third_line_show && Drawing->szThirdLineText!= NULL 
 				&& free_height > dat->third_line_top_space)
 			{

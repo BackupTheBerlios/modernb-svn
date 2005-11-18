@@ -532,7 +532,7 @@ static LRESULT CALLBACK ContactListControlWndProc(HWND hwnd, UINT msg, WPARAM wP
 				int i;
 				for(i=0;i<=FONTID_MAX;i++) dat->fontInfo[i].changed=1;
 			}
-
+			dat->last_tick_time=0;
 			dat->use_avatar_service = ServiceExists(MS_AV_GETAVATARBITMAP);
 			if (dat->use_avatar_service)
 			{
@@ -601,7 +601,7 @@ static LRESULT CALLBACK ContactListControlWndProc(HWND hwnd, UINT msg, WPARAM wP
 			TRACE("Create New ClistControl END\r\n");
 			//			forkthread(StatusUpdaterThread,0,0);
 
-			SetTimer(hwnd,TIMERID_INVALIDATE,30000,NULL);
+			SetTimer(hwnd,TIMERID_INVALIDATE,2000,NULL);
 
 			break;
 		}
@@ -990,6 +990,7 @@ static LRESULT CALLBACK ContactListControlWndProc(HWND hwnd, UINT msg, WPARAM wP
 			if (!IsBadWritePtr(contact, sizeof(struct ClcContact)))
 			{
 				Cache_GetTimezone(dat,contact);
+				Cache_GetText(dat, contact);
 
 				RecalcScrollBar(hwnd,dat);
 			}
@@ -1050,7 +1051,6 @@ static LRESULT CALLBACK ContactListControlWndProc(HWND hwnd, UINT msg, WPARAM wP
 			if (!IsBadWritePtr(contact, sizeof(struct ClcContact)))
 			{
 				Cache_GetText(dat,contact);
-				//	{	
 				RecalcScrollBar(hwnd,dat);
 				PostMessage(hwnd,INTM_INVALIDATE,0,0);
 			}
@@ -1480,7 +1480,12 @@ static LRESULT CALLBACK ContactListControlWndProc(HWND hwnd, UINT msg, WPARAM wP
 			}
 			else if (wParam==TIMERID_INVALIDATE)
 			{
-				InvalidateRectZ(hwnd,NULL,FALSE);
+				time_t cur_time=(time(NULL)/60);
+				if (cur_time!=dat->last_tick_time)
+				{
+					InvalidateRectZ(hwnd,NULL,FALSE);
+					dat->last_tick_time=cur_time;
+				}
 				break;
 			}
 			else if (wParam==TIMERID_DELAYEDRESORTCLC)

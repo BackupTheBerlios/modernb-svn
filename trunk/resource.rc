@@ -289,8 +289,8 @@ LANGUAGE LANG_RUSSIAN, SUBLANG_DEFAULT
 //
 
 VS_VERSION_INFO VERSIONINFO
- FILEVERSION 0,3,1,233
- PRODUCTVERSION 0,3,1,233
+ FILEVERSION 0,3,1,334
+ PRODUCTVERSION 0,3,1,334
  FILEFLAGSMASK 0x3fL
 #ifdef _DEBUG
  FILEFLAGS 0x1L
@@ -308,12 +308,12 @@ BEGIN
             VALUE "Comments", "Licensed under the terms of the GNU General Public License"
             VALUE "CompanyName", " "
             VALUE "FileDescription", "Miranda IM Contact List. Display contacts, event notifications, protocol status with advantage visual modifications. Supported MW modifications, enchanced metacontact cooperation."
-            VALUE "FileVersion", "0, 3, 1, build 233 irc topic fix"
+            VALUE "FileVersion", "0, 3, 1, build 334 Merged with mod"
             VALUE "InternalName", "Modern Contact List"
             VALUE "LegalCopyright", "Copyright © 2000-2005 Artem Shpynov, Richard Hughes, Roland Rabien, Tristan Van de Vreede, Martin Oberg, Robert Rainwater, Sam Kothari and Lyon Lim"
             VALUE "OriginalFilename", "clist_modern.dll"
             VALUE "ProductName", "Miranda IM Contact List. Display contacts, event notifications, protocol status with advantage visual modifications. Supported MW modifications, enchanced metacontact cooperation."
-            VALUE "ProductVersion", "0, 3, 1, build 233 irc topic fix"
+            VALUE "ProductVersion", "0, 3, 1, build 334 Merged with mod"
         END
     END
     BLOCK "VarFileInfo"
@@ -840,11 +840,11 @@ STYLE DS_SETFONT | DS_FIXEDSYS | WS_CHILD
 EXSTYLE WS_EX_CONTROLPARENT
 FONT 8, "MS Shell Dlg", 0, 0, 0x0
 BEGIN
-    CONTROL         "Only if different from current time",
+    CONTROL         "Show time only if it is different from current time",
                     IDC_SHOW_ONLY_IF_DIFFERENT,"Button",BS_AUTOCHECKBOX | 
-                    WS_TABSTOP,19,20,217,8
-    CONTROL         "Show contact time",IDC_SHOW,"Button",BS_AUTOCHECKBOX | 
-                    WS_TABSTOP,7,7,229,8
+                    WS_TABSTOP,7,20,217,8
+    CONTROL         "Show contact time as row item",IDC_SHOW,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,7,7,217,8
 END
 
 
@@ -981,7 +981,6 @@ BEGIN
         LEFTMARGIN, 7
         RIGHTMARGIN, 236
         TOPMARGIN, 7
-        BOTTOMMARGIN, 28
     END
 END
 #endif    // APSTUDIO_INVOKED
@@ -1370,26 +1369,26 @@ STYLE DS_SETFONT | DS_FIXEDSYS | WS_CHILD
 EXSTYLE WS_EX_CONTROLPARENT
 FONT 8, "MS Shell Dlg", 400, 0, 0x1
 BEGIN
-    CONTROL         "RTL",IDC_RTL,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,7,
+    CONTROL         "RTL",IDC_RTL,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,25,
                     246,8
     CONTROL         "Replace smileys in clist",IDC_REPLACE_SMILEYS,"Button",
-                    BS_AUTOCHECKBOX | WS_TABSTOP,7,46,246,8
+                    BS_AUTOCHECKBOX | WS_TABSTOP,7,64,246,8
     CONTROL         "Use protocol smileys",IDC_USE_PROTOCOL_SMILEYS,"Button",
-                    BS_AUTOCHECKBOX | WS_TABSTOP,21,59,232,8
+                    BS_AUTOCHECKBOX | WS_TABSTOP,21,77,232,8
     CONTROL         "Draw smileys on first line",
                     IDC_DRAW_SMILEYS_ON_FIRST_LINE,"Button",BS_AUTOCHECKBOX | 
-                    WS_TABSTOP,7,84,246,8
+                    WS_TABSTOP,7,102,246,8
     CONTROL         "Ignore size for row height calcs",IDC_IGNORE_SIZE,
-                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,33,246,8
+                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,51,246,8
     CONTROL         "Resize smileys",IDC_RESIZE_SMILEYS,"Button",
-                    BS_AUTOCHECKBOX | WS_TABSTOP,21,72,232,8
+                    BS_AUTOCHECKBOX | WS_TABSTOP,21,90,232,8
     CONTROL         "Align to right",IDC_ALIGN_RIGHT,"Button",
-                    BS_AUTOCHECKBOX | WS_TABSTOP,7,20,246,8
-    COMBOBOX        IDC_ALIGNGROUPCOMBO,7,98,140,45,CBS_DROPDOWN | 
-                    WS_VSCROLL | WS_TABSTOP
+                    BS_AUTOCHECKBOX | WS_TABSTOP,7,38,246,8
+    COMBOBOX        IDC_ALIGNGROUPCOMBO,6,7,140,45,CBS_DROPDOWN | WS_VSCROLL | 
+                    WS_TABSTOP
 END
 
-IDD_OPT_ITEM_SECOND_LINE DIALOGEX 0, 0, 256, 196
+IDD_OPT_ITEM_SECOND_LINE DIALOGEX 0, 0, 256, 206
 STYLE DS_SETFONT | DS_FIXEDSYS | WS_CHILD
 EXSTYLE WS_EX_CONTROLPARENT
 FONT 8, "MS Shell Dlg", 400, 0, 0x1
@@ -1401,33 +1400,35 @@ BEGIN
                     UDS_ALIGNRIGHT | UDS_ARROWKEYS | UDS_NOTHOUSANDS | 
                     UDS_HOTTRACK,84,26,11,12
     CONTROL         "Draw smileys on second line",IDC_DRAW_SMILEYS,"Button",
-                    BS_AUTOCHECKBOX | WS_TABSTOP,7,43,115,8
+                    BS_AUTOCHECKBOX | WS_TABSTOP,7,43,242,8
     CONTROL         "Status",IDC_STATUS,"Button",BS_AUTORADIOBUTTON,18,70,
                     118,8
     CONTROL         "Nickname",IDC_NICKNAME,"Button",BS_AUTORADIOBUTTON,18,
                     81,118,8
     CONTROL         "Away Message",IDC_STATUS_MESSAGE,"Button",
                     BS_AUTORADIOBUTTON,18,92,118,8
-    CONTROL         "Text:",IDC_TEXT,"Button",BS_AUTORADIOBUTTON,18,103,118,
+    CONTROL         "Contact time",IDC_CONTACT_TIME,"Button",
+                    BS_AUTORADIOBUTTON,18,103,118,8
+    CONTROL         "Text:",IDC_TEXT,"Button",BS_AUTORADIOBUTTON,18,113,118,
                     8
-    EDITTEXT        IDC_VARIABLE_TEXT,32,116,217,73,ES_MULTILINE | 
+    EDITTEXT        IDC_VARIABLE_TEXT,32,126,217,73,ES_MULTILINE | 
                     ES_AUTOVSCROLL | ES_WANTRETURN | WS_VSCROLL
     CONTROL         "Show second line",IDC_SHOW,"Button",BS_AUTOCHECKBOX | 
                     WS_TABSTOP,7,7,115,8
     LTEXT           "Text:",IDC_STATIC_TEXT,7,58,83,9
     CONTROL         "XStatus has priority",IDC_XSTATUS_HAS_PRIORITY,"Button",
-                    BS_AUTOCHECKBOX | WS_TABSTOP,150,78,99,12
-    RTEXT           "(Variables will be replaced)",IDC_VARIABLES_L,141,103,
+                    BS_AUTOCHECKBOX | WS_TABSTOP,150,91,99,12
+    RTEXT           "(Variables will be replaced)",IDC_VARIABLES_L,141,116,
                     108,8
     CONTROL         "Use 'XStatus: XMessage'",IDC_USE_NAME_AND_MESSAGE,
-                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,150,89,99,12
+                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,150,102,99,12
     CONTROL         "Show status if there isn't away message",
                     IDC_SHOW_STATUS_IF_NOAWAY,"Button",BS_AUTOCHECKBOX | 
-                    BS_LEFT | BS_TOP | BS_MULTILINE | WS_TABSTOP,150,62,99,
+                    BS_LEFT | BS_TOP | BS_MULTILINE | WS_TABSTOP,150,73,99,
                     18
 END
 
-IDD_OPT_ITEM_THIRD_LINE DIALOGEX 0, 0, 256, 196
+IDD_OPT_ITEM_THIRD_LINE DIALOGEX 0, 0, 256, 206
 STYLE DS_SETFONT | DS_FIXEDSYS | WS_CHILD
 EXSTYLE WS_EX_CONTROLPARENT
 FONT 8, "MS Shell Dlg", 400, 0, 0x1
@@ -1438,30 +1439,32 @@ BEGIN
     CONTROL         "",IDC_TOP_SPACE_SPIN,"msctls_updown32",UDS_SETBUDDYINT | 
                     UDS_ALIGNRIGHT | UDS_ARROWKEYS | UDS_NOTHOUSANDS | 
                     UDS_HOTTRACK,84,26,11,12
-    CONTROL         "Draw smileys on third line",IDC_DRAW_SMILEYS,"Button",
-                    BS_AUTOCHECKBOX | WS_TABSTOP,7,43,115,8
+    CONTROL         "Draw smileys on second line",IDC_DRAW_SMILEYS,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,7,43,242,8
     CONTROL         "Status",IDC_STATUS,"Button",BS_AUTORADIOBUTTON,18,70,
                     118,8
     CONTROL         "Nickname",IDC_NICKNAME,"Button",BS_AUTORADIOBUTTON,18,
                     81,118,8
     CONTROL         "Away Message",IDC_STATUS_MESSAGE,"Button",
                     BS_AUTORADIOBUTTON,18,92,118,8
-    CONTROL         "Text:",IDC_TEXT,"Button",BS_AUTORADIOBUTTON,18,103,118,
+    CONTROL         "Contact time",IDC_CONTACT_TIME,"Button",
+                    BS_AUTORADIOBUTTON,18,103,118,8
+    CONTROL         "Text:",IDC_TEXT,"Button",BS_AUTORADIOBUTTON,18,113,118,
                     8
-    EDITTEXT        IDC_VARIABLE_TEXT,32,116,217,73,ES_MULTILINE | 
+    EDITTEXT        IDC_VARIABLE_TEXT,32,126,217,73,ES_MULTILINE | 
                     ES_AUTOVSCROLL | ES_WANTRETURN | WS_VSCROLL
     CONTROL         "Show third line",IDC_SHOW,"Button",BS_AUTOCHECKBOX | 
-                    WS_TABSTOP,7,7,115,8
+                    WS_TABSTOP,7,7,242,8
     LTEXT           "Text:",IDC_STATIC_TEXT,7,58,83,9
     CONTROL         "XStatus has priority",IDC_XSTATUS_HAS_PRIORITY,"Button",
-                    BS_AUTOCHECKBOX | WS_TABSTOP,150,79,99,12
-    RTEXT           "(Variables will be replaced)",IDC_VARIABLES_L,141,103,
+                    BS_AUTOCHECKBOX | WS_TABSTOP,150,91,99,12
+    RTEXT           "(Variables will be replaced)",IDC_VARIABLES_L,141,113,
                     108,8
     CONTROL         "Use 'XStatus: XMessage'",IDC_USE_NAME_AND_MESSAGE,
-                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,150,90,99,12
+                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,150,102,99,12
     CONTROL         "Show status if there isn't away message",
                     IDC_SHOW_STATUS_IF_NOAWAY,"Button",BS_AUTOCHECKBOX | 
-                    BS_LEFT | BS_TOP | BS_MULTILINE | WS_TABSTOP,150,61,99,
+                    BS_LEFT | BS_TOP | BS_MULTILINE | WS_TABSTOP,150,74,99,
                     18
 END
 
@@ -1531,7 +1534,7 @@ BEGIN
         LEFTMARGIN, 7
         RIGHTMARGIN, 249
         TOPMARGIN, 7
-        BOTTOMMARGIN, 189
+        BOTTOMMARGIN, 199
     END
 
     IDD_OPT_ITEM_THIRD_LINE, DIALOG
@@ -1539,7 +1542,7 @@ BEGIN
         LEFTMARGIN, 7
         RIGHTMARGIN, 249
         TOPMARGIN, 7
-        BOTTOMMARGIN, 189
+        BOTTOMMARGIN, 199
     END
 END
 #endif    // APSTUDIO_INVOKED

@@ -597,21 +597,10 @@ static BOOL CALLBACK DlgProcItemContactTimeOpts(HWND hwndDlg, UINT msg, WPARAM w
 			CheckDlgButton(hwndDlg, IDC_SHOW, DBGetContactSettingByte(NULL,"CList","ContactTimeShow",0) == 1 ? BST_CHECKED : BST_UNCHECKED );
 			CheckDlgButton(hwndDlg, IDC_SHOW_ONLY_IF_DIFFERENT, DBGetContactSettingByte(NULL,"CList","ContactTimeShowOnlyIfDifferent",1) == 1 ? BST_CHECKED : BST_UNCHECKED );
 
-			if (!IsDlgButtonChecked(hwndDlg,IDC_SHOW))
-			{
-				EnableWindow(GetDlgItem(hwndDlg,IDC_SHOW_ONLY_IF_DIFFERENT),FALSE);
-			}
-
 			break;
 		}
 	case WM_COMMAND:
 		{
-			if (LOWORD(wParam)==IDC_SHOW)
-			{
-				BOOL enabled = IsDlgButtonChecked(hwndDlg,IDC_SHOW);
-				EnableWindow(GetDlgItem(hwndDlg,IDC_SHOW_ONLY_IF_DIFFERENT),enabled);
-			}
-
 			SendMessage(GetParent(GetParent(hwndDlg)), PSM_CHANGED, 0, 0);
 			break;
 		}
@@ -667,6 +656,7 @@ static BOOL CALLBACK DlgProcItemTextOpts(HWND hwndDlg, UINT msg, WPARAM wParam, 
 
 			ShowWindow(GetDlgItem(hwndDlg,IDC_REPLACE_SMILEYS), ServiceExists(MS_SMILEYADD_PARSE) ? SW_SHOW : SW_HIDE);
 			ShowWindow(GetDlgItem(hwndDlg,IDC_USE_PROTOCOL_SMILEYS), ServiceExists(MS_SMILEYADD_PARSE) ? SW_SHOW : SW_HIDE);
+			ShowWindow(GetDlgItem(hwndDlg,IDC_RESIZE_SMILEYS), ServiceExists(MS_SMILEYADD_PARSE) ? SW_SHOW : SW_HIDE);
 			ShowWindow(GetDlgItem(hwndDlg,IDC_DRAW_SMILEYS_ON_FIRST_LINE), ServiceExists(MS_SMILEYADD_PARSE) ? SW_SHOW : SW_HIDE);
 
 			if (!IsDlgButtonChecked(hwndDlg,IDC_REPLACE_SMILEYS))
@@ -755,6 +745,7 @@ static BOOL CALLBACK DlgProcItemSecondLineOpts(HWND hwndDlg, UINT msg, WPARAM wP
 			CheckDlgButton(hwndDlg, IDC_STATUS, radio == TEXT_STATUS ? BST_CHECKED : BST_UNCHECKED );
 			CheckDlgButton(hwndDlg, IDC_NICKNAME, radio == TEXT_NICKNAME ? BST_CHECKED : BST_UNCHECKED );
 			CheckDlgButton(hwndDlg, IDC_STATUS_MESSAGE, radio == TEXT_STATUS_MESSAGE ? BST_CHECKED : BST_UNCHECKED );
+			CheckDlgButton(hwndDlg, IDC_CONTACT_TIME, radio == TEXT_CONTACT_TIME ? BST_CHECKED : BST_UNCHECKED );
 			CheckDlgButton(hwndDlg, IDC_TEXT, radio == TEXT_TEXT ? BST_CHECKED : BST_UNCHECKED );
 
 			CheckDlgButton(hwndDlg, IDC_XSTATUS_HAS_PRIORITY, DBGetContactSettingByte(NULL,"CList","SecondLineXStatusHasPriority",1) == 1 ? BST_CHECKED : BST_UNCHECKED);
@@ -770,6 +761,7 @@ static BOOL CALLBACK DlgProcItemSecondLineOpts(HWND hwndDlg, UINT msg, WPARAM wP
 				EnableWindow(GetDlgItem(hwndDlg,IDC_STATUS),FALSE);
 				EnableWindow(GetDlgItem(hwndDlg,IDC_NICKNAME),FALSE);
 				EnableWindow(GetDlgItem(hwndDlg,IDC_STATUS_MESSAGE),FALSE);
+				EnableWindow(GetDlgItem(hwndDlg,IDC_CONTACT_TIME),FALSE);
 				EnableWindow(GetDlgItem(hwndDlg,IDC_TEXT),FALSE);
 				EnableWindow(GetDlgItem(hwndDlg,IDC_VARIABLE_TEXT),FALSE);
 				EnableWindow(GetDlgItem(hwndDlg,IDC_STATIC_TOP),FALSE);
@@ -803,7 +795,8 @@ static BOOL CALLBACK DlgProcItemSecondLineOpts(HWND hwndDlg, UINT msg, WPARAM wP
 		}
 	case WM_COMMAND:
 		{
-			if (LOWORD(wParam)==IDC_TEXT || LOWORD(wParam)==IDC_STATUS || LOWORD(wParam)==IDC_NICKNAME || LOWORD(wParam)==IDC_STATUS_MESSAGE)
+			if (LOWORD(wParam)==IDC_TEXT || LOWORD(wParam)==IDC_STATUS || LOWORD(wParam)==IDC_NICKNAME || LOWORD(wParam)==IDC_STATUS_MESSAGE
+				 || LOWORD(wParam)==IDC_CONTACT_TIME)
 			{
 				EnableWindow(GetDlgItem(hwndDlg,IDC_VARIABLE_TEXT), IsDlgButtonChecked(hwndDlg,IDC_TEXT) 
 					&& IsDlgButtonChecked(hwndDlg,IDC_SHOW));
@@ -827,6 +820,7 @@ static BOOL CALLBACK DlgProcItemSecondLineOpts(HWND hwndDlg, UINT msg, WPARAM wP
 				EnableWindow(GetDlgItem(hwndDlg,IDC_DRAW_SMILEYS),enabled);
 				EnableWindow(GetDlgItem(hwndDlg,IDC_STATUS),enabled);
 				EnableWindow(GetDlgItem(hwndDlg,IDC_NICKNAME),enabled);
+				EnableWindow(GetDlgItem(hwndDlg,IDC_CONTACT_TIME),enabled);
 				EnableWindow(GetDlgItem(hwndDlg,IDC_STATUS_MESSAGE),enabled);
 				EnableWindow(GetDlgItem(hwndDlg,IDC_TEXT),enabled);
 				EnableWindow(GetDlgItem(hwndDlg,IDC_VARIABLE_TEXT),enabled && IsDlgButtonChecked(hwndDlg,IDC_TEXT));
@@ -870,6 +864,8 @@ static BOOL CALLBACK DlgProcItemSecondLineOpts(HWND hwndDlg, UINT msg, WPARAM wP
 								radio = TEXT_NICKNAME;
 							else if (IsDlgButtonChecked(hwndDlg,IDC_TEXT))
 								radio = TEXT_TEXT;
+							else if (IsDlgButtonChecked(hwndDlg,IDC_CONTACT_TIME))
+								radio = TEXT_CONTACT_TIME;
 							else
 								radio = TEXT_STATUS_MESSAGE;
 							DBWriteContactSettingWord(NULL,"CList","SecondLineType", (WORD)radio);
@@ -932,6 +928,7 @@ static BOOL CALLBACK DlgProcItemThirdLineOpts(HWND hwndDlg, UINT msg, WPARAM wPa
 			CheckDlgButton(hwndDlg, IDC_STATUS, radio == TEXT_STATUS ? BST_CHECKED : BST_UNCHECKED );
 			CheckDlgButton(hwndDlg, IDC_NICKNAME, radio == TEXT_NICKNAME ? BST_CHECKED : BST_UNCHECKED );
 			CheckDlgButton(hwndDlg, IDC_STATUS_MESSAGE, radio == TEXT_STATUS_MESSAGE ? BST_CHECKED : BST_UNCHECKED );
+			CheckDlgButton(hwndDlg, IDC_CONTACT_TIME, radio == TEXT_CONTACT_TIME ? BST_CHECKED : BST_UNCHECKED );
 			CheckDlgButton(hwndDlg, IDC_TEXT, radio == TEXT_TEXT ? BST_CHECKED : BST_UNCHECKED );
 
 			CheckDlgButton(hwndDlg, IDC_XSTATUS_HAS_PRIORITY, DBGetContactSettingByte(NULL,"CList","ThirdLineXStatusHasPriority",1) == 1 ? BST_CHECKED : BST_UNCHECKED);
@@ -948,6 +945,7 @@ static BOOL CALLBACK DlgProcItemThirdLineOpts(HWND hwndDlg, UINT msg, WPARAM wPa
 				EnableWindow(GetDlgItem(hwndDlg,IDC_STATUS),FALSE);
 				EnableWindow(GetDlgItem(hwndDlg,IDC_NICKNAME),FALSE);
 				EnableWindow(GetDlgItem(hwndDlg,IDC_STATUS_MESSAGE),FALSE);
+				EnableWindow(GetDlgItem(hwndDlg,IDC_CONTACT_TIME),FALSE);
 				EnableWindow(GetDlgItem(hwndDlg,IDC_TEXT),FALSE);
 				EnableWindow(GetDlgItem(hwndDlg,IDC_VARIABLE_TEXT),FALSE);
 				EnableWindow(GetDlgItem(hwndDlg,IDC_STATIC_TOP),FALSE);
@@ -981,7 +979,8 @@ static BOOL CALLBACK DlgProcItemThirdLineOpts(HWND hwndDlg, UINT msg, WPARAM wPa
 		}
 	case WM_COMMAND:
 		{
-			if (LOWORD(wParam)==IDC_TEXT || LOWORD(wParam)==IDC_STATUS || LOWORD(wParam)==IDC_NICKNAME || LOWORD(wParam)==IDC_STATUS_MESSAGE)
+			if (LOWORD(wParam)==IDC_TEXT || LOWORD(wParam)==IDC_STATUS || LOWORD(wParam)==IDC_NICKNAME || LOWORD(wParam)==IDC_STATUS_MESSAGE
+				 || LOWORD(wParam)==IDC_CONTACT_TIME)
 			{
 				EnableWindow(GetDlgItem(hwndDlg,IDC_VARIABLE_TEXT), IsDlgButtonChecked(hwndDlg,IDC_TEXT) 
 					&& IsDlgButtonChecked(hwndDlg,IDC_SHOW));
@@ -1003,6 +1002,7 @@ static BOOL CALLBACK DlgProcItemThirdLineOpts(HWND hwndDlg, UINT msg, WPARAM wPa
 				EnableWindow(GetDlgItem(hwndDlg,IDC_STATUS),enabled);
 				EnableWindow(GetDlgItem(hwndDlg,IDC_NICKNAME),enabled);
 				EnableWindow(GetDlgItem(hwndDlg,IDC_STATUS_MESSAGE),enabled);
+				EnableWindow(GetDlgItem(hwndDlg,IDC_CONTACT_TIME),enabled);
 				EnableWindow(GetDlgItem(hwndDlg,IDC_TEXT),enabled);
 				EnableWindow(GetDlgItem(hwndDlg,IDC_VARIABLE_TEXT),enabled && IsDlgButtonChecked(hwndDlg,IDC_TEXT));
 				EnableWindow(GetDlgItem(hwndDlg,IDC_STATIC_TOP),enabled);
@@ -1045,6 +1045,8 @@ static BOOL CALLBACK DlgProcItemThirdLineOpts(HWND hwndDlg, UINT msg, WPARAM wPa
 								radio = TEXT_NICKNAME;
 							else if (IsDlgButtonChecked(hwndDlg,IDC_TEXT))
 								radio = TEXT_TEXT;
+							else if (IsDlgButtonChecked(hwndDlg,IDC_CONTACT_TIME))
+								radio = TEXT_CONTACT_TIME;
 							else
 								radio = TEXT_STATUS_MESSAGE;
 							DBWriteContactSettingWord(NULL,"CList","ThirdLineType", (WORD)radio);
@@ -1123,16 +1125,21 @@ static void ChangeTab(HWND hwndDlg, WndItemsData *data, int sel)
 	HWND hwndTab;
 	RECT rc_tab;
 	RECT rc_item;
+	int top;
 
 	hwndTab = GetDlgItem(hwndDlg, IDC_TAB);
 
 	// Get avaible space
 	GetWindowRect(hwndTab, &rc_tab);
+	ScreenToClientRect(hwndDlg, &rc_tab);
+	top = rc_tab.top;
+
+	GetWindowRect(hwndTab, &rc_tab);
 	ScreenToClientRect(hwndTab, &rc_tab);
 	TabCtrl_AdjustRect(hwndTab, FALSE, &rc_tab); 
 
 	// Get item size
-	GetWindowRect(data->items[sel].hwnd, &rc_item);
+	GetClientRect(data->items[sel].hwnd, &rc_item);
 
 	// Fix rc_item
 	rc_item.right -= rc_item.left;	// width
@@ -1146,9 +1153,9 @@ static void ChangeTab(HWND hwndDlg, WndItemsData *data, int sel)
 		rc_item.left = rc_tab.left;
 
 	if (rc_item.bottom < rc_tab.bottom - rc_tab.top)
-		rc_item.top = rc_tab.top + (rc_tab.bottom - rc_tab.top - rc_item.bottom) / 2;
+		rc_item.top = top + rc_tab.top + (rc_tab.bottom - rc_tab.top - rc_item.bottom) / 2;
 	else
-		rc_item.top = rc_tab.top;
+		rc_item.top = top + rc_tab.top;
 
 	// Set pos
 	SetWindowPos(data->items[sel].hwnd, HWND_TOP, rc_item.left, rc_item.top, rc_item.right,

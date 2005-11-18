@@ -824,6 +824,8 @@
 #define IDC_VARIABLE_TEXT               1833
 #define IDC_DRAW_SMILEYS2               1834
 #define IDC_SHOW                        1834
+#define IDC_STATUS_MESSAGE2             1835
+#define IDC_CONTACT_TIME                1835
 #define IDC_STATIC_PIXELS               1837
 #define IDC_STATIC_TEXT                 1838
 #define IDC_AVATAR_BORDER_COLOR_L       1839

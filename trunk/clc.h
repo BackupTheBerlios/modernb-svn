@@ -185,6 +185,7 @@ typedef struct {
 #define TEXT_NICKNAME 1
 #define TEXT_STATUS_MESSAGE 2
 #define TEXT_TEXT 3
+#define TEXT_CONTACT_TIME 4
 
 #define TEXT_TEXT_MAX_LENGTH 1024
 
@@ -254,7 +255,8 @@ struct ClcData {
 	int second_line_type;
 	char second_line_text[TEXT_TEXT_MAX_LENGTH];
 	BOOL second_line_xstatus_has_priority;
-  BOOL second_line_show_status_if_no_away;
+    BOOL second_line_show_status_if_no_away;
+    BOOL second_line_use_name_and_message_for_xstatus;
 
 	// Third line
 	BOOL third_line_show;
@@ -263,13 +265,14 @@ struct ClcData {
 	int third_line_type;
 	char third_line_text[TEXT_TEXT_MAX_LENGTH];
 	BOOL third_line_xstatus_has_priority;
-  BOOL third_line_show_status_if_no_away;
+    BOOL third_line_show_status_if_no_away;
+    BOOL third_line_use_name_and_message_for_xstatus;
 
 
 	int yScroll;
 	int selection;
 	struct ClcFontInfo fontInfo[FONTID_MAX+1];
-  BOOL force_in_dialog;
+    BOOL force_in_dialog;
 	int scrollTime;
 	HIMAGELIST himlHighlight;
 	int groupIndent;
@@ -313,6 +316,7 @@ struct ClcData {
     BYTE expandMeta;
     BYTE IsMetaContactsEnabled;
     CRITICAL_SECTION lockitemCS;
+	time_t last_tick_time;
 
 };
 

@@ -191,7 +191,7 @@ BOOL ExecuteOnAllContactsOfGroup(struct ClcGroup *group, ExecuteOnAllContactsFun
 
 
 
-// Get all lines of text
+// Get timezone for contact
 void Cache_GetTimezone(struct ClcData *dat, struct ClcContact *contact)
 {
 	contact->timezone = (DWORD)DBGetContactSettingByte(contact->hContact,"UserInfo","Timezone", 
@@ -312,7 +312,7 @@ void Cache_ReplaceSmileys(struct ClcData *dat, struct ClcContact *contact, TCHAR
 		// Add text
 		if (sp.startChar-last_pos > 0)
 		{
-			ClcContactTextPiece *piece = (ClcContactTextPiece *) malloc(sizeof(ClcContactTextPiece));
+			ClcContactTextPiece *piece = (ClcContactTextPiece *) mir_alloc(sizeof(ClcContactTextPiece));
 
 			piece->type = TEXT_PIECE_TYPE_TEXT;
 			piece->start_pos = last_pos ;//sp.str - text;
@@ -324,7 +324,7 @@ void Cache_ReplaceSmileys(struct ClcData *dat, struct ClcContact *contact, TCHAR
 		{
 			BITMAP bm;
 			ICONINFO icon;
-			ClcContactTextPiece *piece = (ClcContactTextPiece *) malloc(sizeof(ClcContactTextPiece));
+			ClcContactTextPiece *piece = (ClcContactTextPiece *) mir_alloc(sizeof(ClcContactTextPiece));
 
 			piece->type = TEXT_PIECE_TYPE_SMILEY;
 			piece->len = sp.size;
@@ -368,7 +368,7 @@ void Cache_ReplaceSmileys(struct ClcData *dat, struct ClcContact *contact, TCHAR
 	// Add rest of text
 	if (last_pos < text_size)
 	{
-		ClcContactTextPiece *piece = (ClcContactTextPiece *) malloc(sizeof(ClcContactTextPiece));
+		ClcContactTextPiece *piece = (ClcContactTextPiece *) mir_alloc(sizeof(ClcContactTextPiece));
 
 		piece->type = TEXT_PIECE_TYPE_TEXT;
 		piece->start_pos = last_pos;
@@ -378,9 +378,127 @@ void Cache_ReplaceSmileys(struct ClcData *dat, struct ClcContact *contact, TCHAR
 	}
 }
 
-// Get the text based on the settings for a especific line
-void Cache_GetLineText(struct ClcContact *contact, int type, LPSTR text, int text_size, char *variable_text, BOOL xstatus_has_priority, BOOL show_status_if_no_away)
+// -1 for XStatus, 1 for Status
+int GetStatusName(char *text, int text_size, struct ClcContact *contact, BOOL xstatus_has_priority) 
 {
+	//DBVARIANT dbv;
+	BOOL noAwayMsg=FALSE;
+	BOOL noXstatus=FALSE;
+	// Hide status text if Offline  /// no offline		
+	if (contact->status==0)
+	{
+		contact->status=GetContactCachedStatus(contact->hContact);
+	}
+	if ((contact->status==ID_STATUS_OFFLINE || contact->status==0) && DBGetContactSettingByte(NULL,"ModernData","RemoveAwayMessageForOffline",0)) noAwayMsg=TRUE;
+	if (contact->status==ID_STATUS_OFFLINE || contact->status==0) noXstatus=TRUE;
+	text[0] = '\0';
+	// Get XStatusName
+	if (!noAwayMsg&& !noXstatus&& xstatus_has_priority && contact->hContact && contact->proto)
+	{
+		DBVARIANT dbv;
+		if (!DBGetContactSetting(contact->hContact, contact->proto, "XStatusName", &dbv)) 
+		{
+			//lstrcpyn(text, dbv.pszVal, text_size);
+			CopySkipUnPrintableChars(text, dbv.pszVal, text_size-1);
+			DBFreeVariant(&dbv);
+
+			if (text[0] != '\0')
+				return -1;
+		}
+	}
+
+	// Get Status name
+	{
+		char *tmp = (char *)CallService(MS_CLIST_GETSTATUSMODEDESCRIPTION, (WPARAM)contact->status, 0);
+		lstrcpyn(text, tmp, text_size);
+		//CopySkipUnPrintableChars(text, dbv.pszVal, text_size-1);
+		if (text[0] != '\0')
+			return 1;
+	}
+
+	// Get XStatusName
+	if (!noAwayMsg && !noXstatus && !xstatus_has_priority && contact->hContact && contact->proto)
+	{
+		DBVARIANT dbv;
+		if (!DBGetContactSetting(contact->hContact, contact->proto, "XStatusName", &dbv)) 
+		{
+			//lstrcpyn(text, dbv.pszVal, text_size);
+			CopySkipUnPrintableChars(text, dbv.pszVal, text_size-1);
+			DBFreeVariant(&dbv);
+
+			if (text[0] != '\0')
+				return -1;
+		}
+	}
+
+	return 1;
+}
+
+// -1 for XStatus, 1 for Status
+int GetStatusMessage(char *text, int text_size, struct ClcContact *contact, BOOL xstatus_has_priority) 
+{
+	DBVARIANT dbv;
+	BOOL noAwayMsg=FALSE;
+	text[0] = '\0';
+	if (contact->status==0)
+	{
+		contact->status=GetContactCachedStatus(contact->hContact);
+	}
+	// Hide status text if Offline  /// no offline
+	if (contact->status==ID_STATUS_OFFLINE || contact->status==0) noAwayMsg=TRUE;
+	// Get XStatusMsg
+	if (!noAwayMsg &&xstatus_has_priority && contact->hContact && contact->proto)
+	{
+		// Try to get XStatusMsg
+		if (!DBGetContactSetting(contact->hContact, contact->proto, "XStatusMsg", &dbv)) 
+		{
+			//lstrcpyn(text, dbv.pszVal, text_size);
+			CopySkipUnPrintableChars(text, dbv.pszVal, text_size-1);
+			DBFreeVariant(&dbv);
+
+			if (text[0] != '\0')
+				return -1;
+		}
+	}
+
+	// Get StatusMsg
+	if (contact->hContact && text[0] == '\0')
+	{
+		if (!DBGetContactSetting(contact->hContact, "CList", "StatusMsg", &dbv)) 
+		{
+			//lstrcpyn(text, dbv.pszVal, text_size);
+			CopySkipUnPrintableChars(text, dbv.pszVal, text_size-1);
+			DBFreeVariant(&dbv);
+
+			if (text[0] != '\0')
+				return 1;
+		}
+	}
+
+	// Get XStatusMsg
+	if (!noAwayMsg && !xstatus_has_priority && contact->hContact && contact->proto && text[0] == '\0')
+	{
+		// Try to get XStatusMsg
+		if (!DBGetContactSetting(contact->hContact, contact->proto, "XStatusMsg", &dbv)) 
+		{
+			//lstrcpyn(text, dbv.pszVal, text_size);
+			CopySkipUnPrintableChars(text, dbv.pszVal, text_size-1);
+			DBFreeVariant(&dbv);
+
+			if (text[0] != '\0')
+				return -1;
+		}
+	}
+
+	return 1;
+}
+
+
+
+// Get the text based on the settings for a especific line
+void Cache_GetLineText(struct ClcContact *contact, int type, LPSTR text, int text_size, char *variable_text, BOOL xstatus_has_priority, BOOL show_status_if_no_away, BOOL use_name_and_message_for_xstatus, BOOL contact_time_show_only_if_different)
+{
+	/** removed during merge
 	text[0] = '\0';
 
 	switch(type)
@@ -485,7 +603,7 @@ void Cache_GetLineText(struct ClcContact *contact, int type, LPSTR text, int tex
       if (show_status_if_no_away && contact->hContact && text[0] == '\0')
       {
         //get text of status if no away
-        Cache_GetLineText(contact, TEXT_STATUS, text, text_size, variable_text, xstatus_has_priority, show_status_if_no_away);
+        Cache_GetLineText(contact, TEXT_STATUS, text, text_size, variable_text, xstatus_has_priority, show_status_if_no_away,second_line_use_name_and_message_for_xstatus, contact_time_show_only_if_different);
       }
 
 			break;
@@ -504,7 +622,125 @@ void Cache_GetLineText(struct ClcContact *contact, int type, LPSTR text, int tex
 			}
 			break;
 		}
+		case TEXT_CONTACT_TIME:
+		{
+				if (contact->timezone != -1 && (!contact_time_show_only_if_different || contact->timediff != 0))
+				{
+					// Get contact time
+					DBTIMETOSTRING dbtts;
+					time_t contact_time;
+
+					contact_time = time(NULL) - contact->timediff;
+					text[0] = '\0';
+
+					dbtts.szDest = text;
+					dbtts.cbDest = 70;
+					dbtts.szFormat = "t";
+					CallService(MS_DB_TIME_TIMESTAMPTOSTRING, contact_time, (LPARAM) & dbtts);
+				}
+
+				break;
+			}	
 	}
+	*/
+	text[0] = '\0';
+	switch(type)
+	{
+	case TEXT_STATUS:
+		{
+			if (GetStatusName(text, text_size, contact, xstatus_has_priority) == -1 && use_name_and_message_for_xstatus)
+			{
+				DBVARIANT dbv;
+
+				// Try to get XStatusMsg
+				if (!DBGetContactSetting(contact->hContact, contact->proto, "XStatusMsg", &dbv)) 
+				{
+					if (dbv.pszVal != NULL && dbv.pszVal[0] != 0)
+					{
+						char *tmp = strdup(text);
+						mir_snprintf(text, text_size, "%s: %s", tmp, dbv.pszVal);
+						free(tmp);
+					}
+					DBFreeVariant(&dbv);
+				}
+			}
+
+			break;
+		}
+	case TEXT_NICKNAME:
+		{
+			if (contact->hContact && contact->proto)
+			{
+				DBVARIANT dbv;
+				if (!DBGetContactSetting(contact->hContact, contact->proto, "Nick", &dbv)) 
+				{
+					lstrcpyn(text, dbv.pszVal, text_size);
+					DBFreeVariant(&dbv);
+				}
+			}
+			break;
+		}
+	case TEXT_STATUS_MESSAGE:
+		{
+			if (GetStatusMessage(text, text_size, contact, xstatus_has_priority) == -1 && use_name_and_message_for_xstatus)
+			{
+				DBVARIANT dbv;
+
+				// Try to get XStatusName
+				if (!DBGetContactSetting(contact->hContact, contact->proto, "XStatusName", &dbv)) 
+				{
+					if (dbv.pszVal != NULL && dbv.pszVal[0] != 0)
+					{
+						char *tmp = strdup(text);
+						mir_snprintf(text, text_size, "%s: %s", dbv.pszVal, tmp);
+						free(tmp);
+					}
+					DBFreeVariant(&dbv);
+				}
+			}
+
+			break;
+		}
+	case TEXT_TEXT:
+		{
+			if (!ServiceExists(MS_VARS_FORMATSTRING))
+			{
+				lstrcpyn(text, variable_text, text_size);
+			}
+			else
+			{
+				char *tmp = variables_parse(variable_text, contact->szText, contact->hContact);
+				lstrcpyn(text, tmp, text_size);
+				variables_free(tmp);
+			}
+			break;
+		}
+	case TEXT_CONTACT_TIME:
+		{
+			if (contact->timezone != -1 && (!contact_time_show_only_if_different || contact->timediff != 0))
+			{
+				// Get contact time
+				DBTIMETOSTRING dbtts;
+				time_t contact_time;
+
+				contact_time = time(NULL) - contact->timediff;
+				text[0] = '\0';
+
+				dbtts.szDest = text;
+				dbtts.cbDest = 70;
+				dbtts.szFormat = "t";
+				CallService(MS_DB_TIME_TIMESTAMPTOSTRING, contact_time, (LPARAM) & dbtts);
+			}
+
+			break;
+		}
+	}
+	if (type==TEXT_STATUS_MESSAGE && show_status_if_no_away && text[0] == '\0')
+	{
+		//re-request status if no away
+		Cache_GetLineText(contact, TEXT_STATUS, text, text_size, variable_text, xstatus_has_priority,0, use_name_and_message_for_xstatus, contact_time_show_only_if_different);		
+	}
+
 }
 
 void Cache_GetFirstLineText(struct ClcData *dat, struct ClcContact *contact)
@@ -522,7 +758,8 @@ void Cache_GetSecondLineText(struct ClcData *dat, struct ClcContact *contact)
 {
   char Text[120-MAXEXTRACOLUMNS]={0};
 	Cache_GetLineText(contact, dat->second_line_type, (char*)Text, sizeof(Text), dat->second_line_text,
-    dat->second_line_xstatus_has_priority,dat->second_line_show_status_if_no_away);
+    dat->second_line_xstatus_has_priority,dat->second_line_show_status_if_no_away,
+	dat->second_line_use_name_and_message_for_xstatus, dat->contact_time_show_only_if_different);
   if (contact->szSecondLineText) mir_free(contact->szSecondLineText);
   if (Text[0]!='\0')
     contact->szSecondLineText=mir_strdupT((TCHAR*)Text);
@@ -538,7 +775,8 @@ void Cache_GetThirdLineText(struct ClcData *dat, struct ClcContact *contact)
 {
   TCHAR Text[120-MAXEXTRACOLUMNS]={0};
 	Cache_GetLineText(contact, dat->third_line_type,(char*)Text, sizeof(Text), dat->third_line_text,
-    dat->third_line_xstatus_has_priority,dat->third_line_show_status_if_no_away);
+		dat->third_line_xstatus_has_priority,dat->third_line_show_status_if_no_away,
+		dat->third_line_use_name_and_message_for_xstatus, dat->contact_time_show_only_if_different);
   if (contact->szThirdLineText) mir_free(contact->szThirdLineText);
   if (Text[0]!='\0')
     contact->szThirdLineText=mir_strdupT((TCHAR*)Text);

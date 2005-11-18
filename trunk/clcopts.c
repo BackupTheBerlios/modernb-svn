@@ -28,6 +28,17 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #define DBFONTF_ITALIC     2
 #define DBFONTF_UNDERLINE  4
 
+#define SAMEASF_FACE   1
+#define SAMEASF_SIZE   2
+#define SAMEASF_STYLE  4
+#define SAMEASF_COLOUR 8
+
+static WORD fontSameAsDefault[FONTID_MAX+1]={0x00FF,0x0B00,0x0F00,0x0700,0x0B00,0x0104,0x0D00,0x0B02,0x0300,0x0300,
+0x0F00,0x0F00,0x0F00,0x0F00,0x0F00,0x0F00,0x0F00,0x0F00,0x0F00};
+static char *fontSizes[]={"7","8","10","14","16","18","20","24","28"};
+static int fontListOrder[FONTID_MAX+1]={FONTID_CONTACTS,FONTID_INVIS,FONTID_OFFLINE,FONTID_OFFINVIS,FONTID_NOTONLIST,FONTID_GROUPS,FONTID_GROUPCOUNTS,FONTID_DIVIDERS,FONTID_SECONDLINE,FONTID_THIRDLINE,
+FONTID_AWAY,FONTID_DND,FONTID_NA,FONTID_OCCUPIED,FONTID_CHAT,FONTID_INVISIBLE,FONTID_PHONE,FONTID_LUNCH,FONTID_CONTACT_TIME};
+
 static BOOL CALLBACK DlgProcClcMainOpts(HWND hwndDlg, UINT msg, WPARAM wParam, LPARAM lParam);
 static BOOL CALLBACK DlgProcClcMetaOpts(HWND hwndDlg, UINT msg, WPARAM wParam, LPARAM lParam);
 static BOOL CALLBACK DlgProcClcBkgOpts(HWND hwndDlg, UINT msg, WPARAM wParam, LPARAM lParam);
@@ -80,6 +91,44 @@ static void GetDefaultFontSetting(int i,LOGFONTA *lf,COLORREF *colour)
       break;
   }
 }
+int SameAsAntiCycle=0;
+void CheckSameAs(int fontId,LOGFONTA *dest_lf,COLORREF *dest_colour)
+{
+  char idstr[32];
+  WORD sameAsComp;
+  BYTE sameAsFlags,sameAs;
+  if (SameAsAntiCycle>5)
+	  return;
+  SameAsAntiCycle++;
+  mir_snprintf(idstr,sizeof(idstr),"Font%dAs",fontId);
+  sameAsComp=DBGetContactSettingWord(NULL,"CLC",idstr,fontSameAsDefault[fontId]);
+  sameAsFlags=HIBYTE(sameAsComp);
+  sameAs=LOBYTE(sameAsComp);
+  if (sameAsFlags && sameAs!=255)
+  {
+	  LOGFONTA lf2={0};
+	  COLORREF color2=0;
+	  //Get font setting for SameAs font
+	  GetFontSetting(sameAs,&lf2,&color2);
+	  //copy same as data:
+	  if(sameAsFlags&SAMEASF_FACE)
+		strncpy(dest_lf->lfFaceName,lf2.lfFaceName,sizeof(dest_lf->lfFaceName));
+	  if(sameAsFlags&SAMEASF_SIZE)
+		dest_lf->lfHeight=lf2.lfHeight;
+	  if(sameAsFlags&SAMEASF_STYLE)
+	  {
+		dest_lf->lfWeight=lf2.lfWeight;
+		dest_lf->lfItalic=lf2.lfItalic;
+		dest_lf->lfUnderline=lf2.lfUnderline;
+	  }	
+	  if(sameAsFlags&SAMEASF_COLOUR)
+	  {
+		if (dest_colour)
+			*dest_colour=color2;
+	  }
+  }
+  SameAsAntiCycle--;
+}
 
 void GetFontSetting(int i,LOGFONTA *lf,COLORREF *colour)
 {
@@ -109,8 +158,10 @@ void GetFontSetting(int i,LOGFONTA *lf,COLORREF *colour)
   lf->lfOutPrecision=OUT_DEFAULT_PRECIS;
   lf->lfClipPrecision=CLIP_DEFAULT_PRECIS;
   lf->lfQuality=DEFAULT_QUALITY;
-  lf->lfPitchAndFamily=DEFAULT_PITCH|FF_DONTCARE;
+  lf->lfPitchAndFamily=DEFAULT_PITCH|FF_DONTCARE; 
+  CheckSameAs(i,lf,colour);
 }
+
 
 int BgMenuChange(WPARAM wParam,LPARAM lParam)
 {
@@ -804,10 +855,6 @@ struct CheckBoxValues_t {
 	"Contact time"
 	};
 
-#define SAMEASF_FACE   1
-#define SAMEASF_SIZE   2
-#define SAMEASF_STYLE  4
-#define SAMEASF_COLOUR 8
 #include <pshpack1.h>
       struct {
         BYTE sameAsFlags,sameAs;
@@ -818,11 +865,6 @@ struct CheckBoxValues_t {
         char szFace[LF_FACESIZE];
       } static fontSettings[FONTID_MAX+1];
 #include <poppack.h>
-static WORD fontSameAsDefault[FONTID_MAX+1]={0x00FF,0x0B00,0x0F00,0x0700,0x0B00,0x0104,0x0D00,0x0B02,0x0300,0x0300,
-											0x0F00,0x0F00,0x0F00,0x0F00,0x0F00,0x0F00,0x0F00,0x0F00,0x0F00};
-      static char *fontSizes[]={"7","8","10","14","16","18","20","24","28"};
-static int fontListOrder[FONTID_MAX+1]={FONTID_CONTACTS,FONTID_INVIS,FONTID_OFFLINE,FONTID_OFFINVIS,FONTID_NOTONLIST,FONTID_GROUPS,FONTID_GROUPCOUNTS,FONTID_DIVIDERS,FONTID_SECONDLINE,FONTID_THIRDLINE,
-										FONTID_AWAY,FONTID_DND,FONTID_NA,FONTID_OCCUPIED,FONTID_CHAT,FONTID_INVISIBLE,FONTID_PHONE,FONTID_LUNCH,FONTID_CONTACT_TIME};
 
 #define M_REBUILDFONTGROUP   (WM_USER+10)
 #define M_REMAKESAMPLE       (WM_USER+11)
@@ -902,8 +944,14 @@ static int fontListOrder[FONTID_MAX+1]={FONTID_CONTACTS,FONTID_INVIS,FONTID_OFFL
         {
         case WM_INITDIALOG:
           hFontSample=NULL;
-          SetDlgItemText(hwndDlg,IDC_SAMPLE,TEXT("Sample"));
+          
           TranslateDialogDefault(hwndDlg);
+		  {
+			  TCHAR sample[50];
+			  _sntprintf(sample,sizeof(sample)/sizeof(TCHAR),TEXT("01:23 Sample - %s"),TranslateT("Sample"));
+			  SetDlgItemText(hwndDlg,IDC_SAMPLE,sample);
+		  }
+
           //CheckDlgButton(hwndDlg,IDC_NOTCHECKFONTSIZE,DBGetContactSettingByte(NULL,"CLC","DoNotCheckFontSize",0)?BST_CHECKED:BST_UNCHECKED);			
 
           if(!SendMessage(GetParent(hwndDlg),PSM_ISEXPERT,0,0))

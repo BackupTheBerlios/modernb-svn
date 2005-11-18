@@ -84,8 +84,8 @@ void AddSubcontacts(struct ClcData *dat, struct ClcContact * cont)
 			cont->subcontacts[i].status=cacheEntry->status;
 
 			//lstrcpyn(cont->subcontacts[i].szText,cacheEntry->name,sizeof(cont->subcontacts[i].szText));
-			Cache_GetText(dat, &cont->subcontacts[i]);
 			Cache_GetTimezone(dat, &cont->subcontacts[i]);
+			Cache_GetText(dat, &cont->subcontacts[i]);
 
             {
                 int apparentMode;
@@ -409,8 +409,8 @@ static struct ClcContact * AddContactToGroup(struct ClcData *dat,struct ClcGroup
 			group->contact[i].timediff = (int)dat->local_gmt_diff_dst - contact_gmt_diff;
 	}
 
-	Cache_GetText(dat, &group->contact[i]);
 	Cache_GetTimezone(dat, &group->contact[i]);
+	Cache_GetText(dat, &group->contact[i]);
 
 	ClearRowByIndexCache();
 	return &(group->contact[i]);
