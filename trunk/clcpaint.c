@@ -26,7 +26,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #include "skinengine.h"
 #include "commonprototypes.h"
 
-#define HORIZONTAL_SPACE 6
+#define HORIZONTAL_SPACE 4
 #define EXTRA_CHECKBOX_SPACE 4
 #define EXTRA_SPACE 2
 #define SELECTION_BORDER 6
@@ -596,15 +596,15 @@ void InternalPaintRowItems(HWND hwnd, HDC hdcMem, struct ClcData *dat, struct Cl
 		else
 			item = NUM_ITEM_TYPE - (item_iterator - item_text);
 
-		switch(dat->row_items[item])
+    switch(dat->row_items[item])
+    {
+    case ITEM_AVATAR: ///////////////////////////////////////////////////////////////////////////////////////////////////
 		{
-		case ITEM_AVATAR: ///////////////////////////////////////////////////////////////////////////////////////////////////
-			{
-				RECT rc, real_rc;
-				int round_radius;
-				int max_width;
-				int width;
-				int height;
+        RECT rc, real_rc;
+        int round_radius;
+        int max_width;
+        int width;
+        int height;
 
 				if (!dat->avatars_show || Drawing->type != CLCIT_CONTACT)
 					break;
