@@ -577,7 +577,7 @@ void InternalPaintRowItems(HWND hwnd, HDC hdcMem, struct ClcData *dat, struct Cl
     switch(dat->row_items[item])
     {
     case ITEM_AVATAR: ///////////////////////////////////////////////////////////////////////////////////////////////////
-      {
+		{
         RECT rc, real_rc;
         int round_radius;
         int max_width;
