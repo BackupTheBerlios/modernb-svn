@@ -2452,6 +2452,14 @@ BOOL DrawIconExS(HDC hdcDst,int xLeft,int yTop,HICON hIcon,int cxWidth,int cyWid
   }
 
   GetObject(ici.hbmColor,sizeof(BITMAP),&imbt);
+  if (imbt.bmWidth*imbt.bmHeight==0)
+  {
+	  DeleteObject(ici.hbmColor);
+	  DeleteObject(ici.hbmMask);
+	  LeaveCriticalSection(&cs);
+	  DeleteCriticalSection(&cs);
+	  return 0;
+  }
   GetObject(ici.hbmMask,sizeof(BITMAP),&immaskbt);
   cy=imbt.bmHeight;
 
@@ -2492,6 +2500,7 @@ BOOL DrawIconExS(HDC hdcDst,int xLeft,int yTop,HICON hIcon,int cxWidth,int cyWid
   imDC=CreateCompatibleDC(hdcDst);
   imBmp=CreateBitmap32Point(cx,icy,&imbits);
   oldBmp=SelectObject(imDC,imBmp);
+  if (imbits!=NULL && imimagbits!=NULL && immaskbits!=NULL)
   {
     int x; int y;
     int bottom,right,top,h;
@@ -2532,7 +2541,9 @@ BOOL DrawIconExS(HDC hdcDst,int xLeft,int yTop,HICON hIcon,int cxWidth,int cyWid
         else
         {
           if (mask)
-            *dest=0;
+			  // TODO: ADD verification about validity
+            *dest=0;  
+
           else
           {
             //*dest=*src;
@@ -2548,6 +2559,7 @@ BOOL DrawIconExS(HDC hdcDst,int xLeft,int yTop,HICON hIcon,int cxWidth,int cyWid
       }
     }
   }
+
   LeaveCriticalSection(&cs);
   DeleteCriticalSection(&cs);
   {
