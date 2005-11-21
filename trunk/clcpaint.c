@@ -1228,7 +1228,7 @@ void InternalPaintRowItems(HWND hwnd, HDC hdcMem, struct ClcData *dat, struct Cl
 					text_rc.right = free_row_rc.left + text_width;
 
 				selection_text_rc = text_rc;
-
+				full_text_width=text_width;
 				ChangeToFont(hdcMem,dat,FONTID_GROUPS,NULL);
 			}
 			

@@ -1494,6 +1494,9 @@
 				RelativePath=".\res\away.ico">
 			</File>
 			<File
+				RelativePath=".\res\blank.ico">
+			</File>
+			<File
 				RelativePath=".\res\Center.ico">
 			</File>
 			<File

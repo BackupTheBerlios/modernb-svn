@@ -176,7 +176,6 @@
 #define IDI_AVATAR_OVERLAY_LUNCH        365
 #define IDI_ICON4                       366
 #define IDI_AVATAR_OVERLAY_CHAT         366
-
 #define IDI_ICQC1                       367
 #define IDI_ICQC2                       368
 #define IDI_ICQC3                       369
@@ -188,7 +187,6 @@
 #define IDI_ICQC9                       375
 #define IDI_ICQC10                      376
 #define IDI_ICQC11                      377
-
 #define IDD_OPT_ITEMS                   385
 #define IDD_OPT_ITEM_ROW                386
 #define IDD_OPT_ITEM_AVATAR             387
@@ -197,7 +195,7 @@
 #define IDD_OPT_ITEM_SECOND_LINE        390
 #define IDD_OPT_ITEM_THIRD_LINE         391
 #define IDD_OPT_SKIN_COMPOSER           392
-
+#define IDI_ICON2                       396
 #define IDC_RESETPROTOCOLDATA           1000
 #define IDC_SAVE                        1001
 #define IDC_DEFBKCOLOR                  1001
@@ -898,7 +896,7 @@
 // 
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
-#define _APS_NEXT_RESOURCE_VALUE        396
+#define _APS_NEXT_RESOURCE_VALUE        397
 #define _APS_NEXT_COMMAND_VALUE         40018
 #define _APS_NEXT_CONTROL_VALUE         1846
 #define _APS_NEXT_SYMED_VALUE           101

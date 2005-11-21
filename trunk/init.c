@@ -42,7 +42,11 @@ void UninitSkinHotKeys();
 
 PLUGININFO pluginInfo = {
 	sizeof(PLUGININFO),
+#ifndef _DEBUG
 	"Modern Contact List Layered",
+#else
+	"DEBUG of Modern Contact List Layered",
+#endif
 	0,                              //will initiate later in MirandaPluginInfo
 	"Display contacts, event notifications, protocol status with advantage visual modifications. Supported MW modifications, enchanced metacontact cooperation.",
 	"Artem Shpynov and Ricardo Pescuma Domenecci, based on clist_mw by Bethoven",

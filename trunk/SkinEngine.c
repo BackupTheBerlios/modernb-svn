@@ -2203,7 +2203,11 @@ BOOL ImageList_DrawEx_New( HIMAGELIST himl,int i,HDC hdcDst,int x,int y,int dx,i
     int mwb,mwb2,mwb3;
     mwb=immaskbt.bmWidthBytes;
     mwb2=imbt.bmWidthBytes;
-    mwb3=16*4;
+	{
+		BITMAP bmt={0};
+		GetObject(imBmp,sizeof(BITMAP),&bmt);
+		mwb3=bmt.bmWidthBytes;
+	}
     bottom=imi.rcImage.bottom;
     right=imi.rcImage.right;   
     top=imi.rcImage.top;

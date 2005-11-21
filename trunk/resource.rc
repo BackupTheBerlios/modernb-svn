@@ -289,8 +289,8 @@ LANGUAGE LANG_RUSSIAN, SUBLANG_DEFAULT
 //
 
 VS_VERSION_INFO VERSIONINFO
- FILEVERSION 0,3,2,2
- PRODUCTVERSION 0,3,2,2
+ FILEVERSION 0,3,2,5
+ PRODUCTVERSION 0,3,2,5
  FILEFLAGSMASK 0x3fL
 #ifdef _DEBUG
  FILEFLAGS 0x1L
@@ -308,12 +308,12 @@ BEGIN
             VALUE "Comments", "Licensed under the terms of the GNU General Public License"
             VALUE "CompanyName", " "
             VALUE "FileDescription", "Miranda IM Contact List. Display contacts, event notifications, protocol status with advantage visual modifications. Supported MW modifications, enchanced metacontact cooperation."
-            VALUE "FileVersion", "0, 3, 2, build 2"
+            VALUE "FileVersion", "0, 3, 2, build 5"
             VALUE "InternalName", "Modern Contact List"
             VALUE "LegalCopyright", "Copyright © 2000-2005 Artem Shpynov, Richard Hughes, Roland Rabien, Tristan Van de Vreede, Martin Oberg, Robert Rainwater, Sam Kothari and Lyon Lim"
             VALUE "OriginalFilename", "clist_modern.dll"
             VALUE "ProductName", "Miranda IM Contact List. Display contacts, event notifications, protocol status with advantage visual modifications. Supported MW modifications, enchanced metacontact cooperation."
-            VALUE "ProductVersion", "0, 3, 2, build 2"
+            VALUE "ProductVersion", "0, 3, 2, build 5"
         END
     END
     BLOCK "VarFileInfo"
@@ -322,6 +322,15 @@ BEGIN
     END
 END
 
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Icon
+//
+
+// Icon with lowest ID value placed first to ensure application icon
+// remains consistent on all systems.
+IDI_BLANK               ICON                    "res\\blank.ico"
 #endif    // Russian resources
 /////////////////////////////////////////////////////////////////////////////
 
