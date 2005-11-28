@@ -291,10 +291,10 @@ void ChangeWindowMode()
 		TCHAR titleText[255]={0};
 		DBVARIANT dbv;
 		if(DBGetContactSetting(NULL,"CList","TitleText",&dbv))
-			lstrcpyn(titleText,MIRANDANAME,sizeof(titleText));
+			lstrcpyn(titleText,TEXT(MIRANDANAME),sizeof(titleText));
 		else 
 		{
-			lstrcpyn(titleText,dbv.pszVal,sizeof(titleText));
+			lstrcpyn(titleText,dbv.ptszVal,sizeof(titleText));
 			DBFreeVariant(&dbv);
 		}
 		SetWindowText(hwndContactList,titleText);
@@ -1594,7 +1594,7 @@ static void DisconnectAll()
 
 int PreCreateCLC(HWND parent)
 {
-	hwndContactTree=CreateWindow(TEXT(CLISTCONTROL_CLASS),TEXT(""),
+	hwndContactTree=CreateWindow(CLISTCONTROL_CLASS,TEXT(""),
 		WS_CHILD|WS_CLIPCHILDREN|CLS_CONTACTLIST
 		|(DBGetContactSettingByte(NULL,"CList","UseGroups",SETTING_USEGROUPS_DEFAULT)?CLS_USEGROUPS:0)
 		//|CLS_HIDEOFFLINE
@@ -3098,9 +3098,9 @@ LRESULT CALLBACK ContactListWndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM l
 						if(nm->iColumn==e) {
 							//CallService(MS_USERINFO_SHOWDIALOG,(WPARAM)nm->hItem,0);
 							char *email,buf[4096];
-							email=DBGetString(nm->hItem,"UserInfo", "Mye-mail0");
+							email=DBGetStringA(nm->hItem,"UserInfo", "Mye-mail0");
 							if (!email)
-								email=DBGetString(nm->hItem, pdnce->szProto, "e-mail");																						
+								email=DBGetStringA(nm->hItem, pdnce->szProto, "e-mail");																						
 							if (email)
 							{
 								sprintf(buf,"mailto:%s",email);
@@ -3110,9 +3110,9 @@ LRESULT CALLBACK ContactListWndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM l
 						};	
 						if(nm->iColumn==w) {
 							char *homepage;
-							homepage=DBGetString(pdnce->hContact,"UserInfo", "Homepage");
+							homepage=DBGetStringA(pdnce->hContact,"UserInfo", "Homepage");
 							if (!homepage)
-								homepage=DBGetString(pdnce->hContact,pdnce->szProto, "Homepage");
+								homepage=DBGetStringA(pdnce->hContact,pdnce->szProto, "Homepage");
 							if (homepage!=NULL)
 							{											
 								ShellExecuteA(hwnd,"open",homepage,NULL,NULL,SW_SHOW);
@@ -3332,7 +3332,7 @@ LRESULT CALLBACK ContactListWndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM l
 							_snprintf(buf,sizeof(buf),"Main,ID=StatusMenu,Selected=%s,Hot=%s",(dis->itemState&ODS_SELECTED)?"True":"False",(dis->itemState&ODS_HOTLIGHT)?"True":"False");
 							SkinDrawGlyph(dis->hDC,&dis->rcItem,&dis->rcItem,buf);
 							SetTextColor(dis->hDC, (dis->itemState&ODS_SELECTED|dis->itemState&ODS_HOTLIGHT)?dat->MenuTextHiColor:dat->MenuTextColor);
-							DrawText(dis->hDC,Translate("Status"), MyStrLen(Translate("Status")),&rc, DT_CENTER|DT_VCENTER|DT_SINGLELINE);
+							DrawText(dis->hDC,TranslateT("Status"), lstrlen(TranslateT("Status")),&rc, DT_CENTER|DT_VCENTER|DT_SINGLELINE);
 							StatusMenuState=dis->itemState;
 						} else {
 							StatusMenuState=dis->itemState;
@@ -3429,7 +3429,7 @@ static int MenuItem_PreBuild(WPARAM wParam, LPARAM lParam)
 	mi.cbSize = sizeof(mi);
 	mi.flags = CMIM_FLAGS;
 	GetClassName(hwndClist,cls,sizeof(cls));
-	hwndClist = (!lstrcmp(TEXT(CLISTCONTROL_CLASS),cls))?hwndClist:hwndContactList;
+	hwndClist = (!lstrcmp(CLISTCONTROL_CLASS,cls))?hwndClist:hwndContactList;
 	hItem = (HANDLE)SendMessage(hwndClist,CLM_GETSELECTION,0,0);
 	if (!hItem) {
 		mi.flags = CMIM_FLAGS | CMIF_HIDDEN;
@@ -3490,7 +3490,7 @@ static int MenuItem_RenameContact(WPARAM wParam,LPARAM lParam)
 	HWND hwndClist = GetFocus();
 	GetClassName(hwndClist,cls,sizeof(cls));
 	// worst case scenario, the rename is sent to the main contact list
-	hwndClist = (!lstrcmp(TEXT(CLISTCONTROL_CLASS),cls))?hwndClist:hwndContactList;
+	hwndClist = (!lstrcmp(CLISTCONTROL_CLASS,cls))?hwndClist:hwndContactList;
 	hItem = (HANDLE)SendMessage(hwndClist,CLM_GETSELECTION,0,0);
 	if(hItem) {
 		SetFocus(hwndClist);

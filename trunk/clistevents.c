@@ -100,8 +100,8 @@ static int AddEvent(WPARAM wParam,LPARAM lParam)
 	event[i].cle=*cle;
 	event[i].imlIconIndex=GetImlIconIndex(event[i].cle.hIcon);
 	event[i].flashesDone=12;
-	event[i].cle.pszService=mir_strdup(event[i].cle.pszService);
-	event[i].cle.pszTooltip=mir_strdup(event[i].cle.pszTooltip);
+	event[i].cle.pszService=mir_strdup(event[i].cle.pszService);  
+	event[i].cle.pszTooltip=mir_strdupT(event[i].cle.pszTooltip);//TODO convert from utf to mb
 	eventCount++;
 	if(eventCount==1) {
 		char *szProto;

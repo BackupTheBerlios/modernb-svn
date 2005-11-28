@@ -160,7 +160,7 @@ struct ClcGroup *AddGroup(HWND hwnd,struct ClcData *dat,const TCHAR *szName,DWOR
         if (ServiceExists(MS_MC_GETDEFAULTCONTACT))                             //metacontacts dll is loaded  
             if (DBGetContactSettingByte(NULL,"MetaContacts","Enabled",1));      //and enabled
         {
-            HiddenGroup=DBGetString(NULL,"MetaContacts","HiddenGroupName");   //TODO: UNICODE + Hidden groupname
+            HiddenGroup=DBGetStringT(NULL,"MetaContacts","HiddenGroupName");   //TODO: UNICODE + Hidden groupname
            // if (!HiddenGroup) strdup("MetaContacts Hidden Group"); 
             if (szName && HiddenGroup)
             if (!lstrcmp(HiddenGroup,szName))                                    //group is metahidden
@@ -419,28 +419,35 @@ void * AddTempGroup(HWND hwnd,struct ClcData *dat,const TCHAR *szName,DWORD flag
 {
      int i=0;
      int f=0;
-     char * szGroupName;
+     TCHAR * szGroupName;
      DWORD groupFlags;
-	 if (WildCompare((char*)szName,"* Hidden Group",0))
+#ifdef UNICODE
+	 char *mbuf=u2a((TCHAR *)szName);
+#else
+	char *mbuf=mir_strdup((char *)szName);
+#endif
+	 if (WildCompare(mbuf,"* Hidden Group",0))
 	 {
+		 mir_free(mbuf);
 		 if(ServiceExists(MS_MC_ADDTOMETA)) return NULL;
 		 else return(&dat->list);
 	 } 
+	 mir_free(mbuf);
 	 for(i=1;;i++) 
      {
-	    szGroupName=(char*)CallService(MS_CLIST_GROUPGETNAME2,i,(LPARAM)&groupFlags);
+	    szGroupName=(TCHAR*)CallService(MS_CLIST_GROUPGETNAME2,i,(LPARAM)&groupFlags);
 	    if(szGroupName==NULL) break;
-        if (boolstrcmpi(szGroupName,szName)) f=1;
+        if (!MyStrCmpiT(szGroupName,szName)) f=1;
 	 }
      if (!f)
      {
         char buf[20];
-        char b2[255];
+        TCHAR b2[255];
         void * res=NULL;
 		_snprintf(buf,sizeof(buf),"%d",(i-1));
-        _snprintf(b2,sizeof(b2),"#%s",szName);
+        _sntprintf(b2,sizeof(b2),_T("#%s"),szName);
         b2[0]=1|GROUPF_EXPANDED;
-		DBWriteContactSettingString(NULL,"CListGroups",buf,b2);
+		DBWriteContactSettingTString(NULL,"CListGroups",buf,b2);
         CallService(MS_CLIST_GROUPGETNAME2,i,(LPARAM)&groupFlags);      
         res=AddGroup(hwnd,dat,szName,groupFlags,i,0);
         return res;

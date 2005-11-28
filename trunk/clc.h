@@ -253,7 +253,7 @@ struct ClcData {
 	int second_line_top_space;
 	BOOL second_line_draw_smileys;
 	int second_line_type;
-	char second_line_text[TEXT_TEXT_MAX_LENGTH];
+	TCHAR second_line_text[TEXT_TEXT_MAX_LENGTH];
 	BOOL second_line_xstatus_has_priority;
     BOOL second_line_show_status_if_no_away;
     BOOL second_line_use_name_and_message_for_xstatus;
@@ -263,7 +263,7 @@ struct ClcData {
 	int third_line_top_space;
 	BOOL third_line_draw_smileys;
 	int third_line_type;
-	char third_line_text[TEXT_TEXT_MAX_LENGTH];
+	TCHAR third_line_text[TEXT_TEXT_MAX_LENGTH];
 	BOOL third_line_xstatus_has_priority;
     BOOL third_line_show_status_if_no_away;
     BOOL third_line_use_name_and_message_for_xstatus;
@@ -356,7 +356,7 @@ int FindRowByText(HWND hwnd,struct ClcData *dat,const TCHAR *text,int prefixOk);
 void EndRename(HWND hwnd,struct ClcData *dat,int save);
 void DeleteFromContactList(HWND hwnd,struct ClcData *dat);
 void BeginRenameSelection(HWND hwnd,struct ClcData *dat);
-TCHAR *GetGroupCountsText(struct ClcData *dat,struct ClcContact *contact);
+char *GetGroupCountsText(struct ClcData *dat,struct ClcContact *contact);
 int HitTest(HWND hwnd,struct ClcData *dat,int testx,int testy,struct ClcContact **contact,struct ClcGroup **group,DWORD *flags);
 void ScrollTo(HWND hwnd,struct ClcData *dat,int desty,int noSmooth);
 #define DROPTARGET_OUTSIDE    0
@@ -387,12 +387,20 @@ int ClcOptInit(WPARAM wParam,LPARAM lParam);
 DWORD GetDefaultExStyle(void);
 void GetFontSetting(int i,LOGFONTA *lf,COLORREF *colour);
 
+//clistsettings.c
+TCHAR* GetContactDisplayNameW( HANDLE hContact, int mode );
+char* u2a( wchar_t* src );
+wchar_t* a2u( char* src );
+
 //clcfiledrop.c
 void InitFileDropping(void);
 void FreeFileDropping(void);
 void RegisterFileDropping(HWND hwnd);
 void UnregisterFileDropping(HWND hwnd);
 
+//groups.c
+TCHAR* GetGroupNameT( int idx, DWORD* pdwFlags );
+int RenameGroupT( int idx, TCHAR* tszNewName );
 
 int GetContactCachedStatus(HANDLE hContact);
 char *GetContactCachedProtocol(HANDLE hContact);

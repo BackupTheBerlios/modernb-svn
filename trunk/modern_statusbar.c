@@ -73,7 +73,7 @@ LOGFONTA LoadLogFontFromDB(char * section, char * id, DWORD * color)
   char * facename;
   char buf[255];
   LOGFONTA logfont;
-  facename=DBGetString(NULL,section,ApendSubSetting(buf,sizeof(buf),id,"Name"));
+  facename=DBGetStringA(NULL,section,ApendSubSetting(buf,sizeof(buf),id,"Name"));
   if (!facename) facename=mir_strdup("MS Shell Dlg");
   {   
    

@@ -1183,6 +1183,9 @@
 			<File
 				RelativePath="SkinEngine.c">
 			</File>
+			<File
+				RelativePath=".\utf.c">
+			</File>
 			<Filter
 				Name="CLUIFrames"
 				Filter="">

@@ -149,7 +149,7 @@ int GetProtoIndex(char * szName)
     for (i=0; i<pc; i++)
     {
         itoa(i,buf,10);
-        name=DBGetString(NULL,"Protocols",buf);
+        name=DBGetStringA(NULL,"Protocols",buf);
         if (name)
         {
             if (!MyStrCmp(name,szName))
@@ -166,7 +166,7 @@ int GetProtoIndex(char * szName)
 int CompareContacts2(WPARAM wParam,LPARAM lParam, int by)
 {
 	HANDLE a=(HANDLE)wParam,b=(HANDLE)lParam;
-	char *namea, *nameb;
+	TCHAR *namea, *nameb;
 	int statusa,statusb;
 	char *szProto1,*szProto2;
 	
@@ -187,7 +187,7 @@ int CompareContacts2(WPARAM wParam,LPARAM lParam, int by)
 	}
 
 	if (by==0) { //name
-		return MyStrCmpi(namea,nameb);
+		return MyStrCmpiT(namea,nameb);
 	} else if (by==2) { //last message
 		DWORD ta=CompareContacts2_getLMTime(a);
 		DWORD tb=CompareContacts2_getLMTime(b);

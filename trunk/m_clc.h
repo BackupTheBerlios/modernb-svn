@@ -20,11 +20,13 @@ You should have received a copy of the GNU General Public License
 along with this program; if not, write to the Free Software
 Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
-#ifndef _M_CLC_
-#define _M_CLC_
+
+#ifndef M_CLC_H__
+#define M_CLC_H__ 1
+
 //This module is new in 0.1.2.1
 
-#define CLISTCONTROL_CLASS  "CListControl"
+#define CLISTCONTROL_CLASS  _T("CListControl")
 
 //styles
 #define CLS_MANUALUPDATE    0x0001	 //todo
@@ -160,7 +162,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #define CLM_SETLEFTMARGIN     (CLM_FIRST+47)   //wParam=pixels
 typedef struct {
 	int cbSize;
-	const char *pszText;
+	const TCHAR *pszText;
 	HANDLE hParentGroup;
 	DWORD flags;
 	HICON hIcon;     //todo
@@ -169,7 +171,15 @@ typedef struct {
 #define CLCIIF_BELOWCONTACTS  2     //put it at the bottom
 #define CLCIIF_CHECKBOX       0x40  //give this item a check box
 #define CLCIIF_GROUPFONT      0x80  //draw the item using FONTID_GROUPS
-#define CLM_ADDINFOITEM    (CLM_FIRST+48)   //lParam=&cii, returns hItem
+
+#define CLM_ADDINFOITEMA    (CLM_FIRST+48)   //lParam=&cii, returns hItem
+#define CLM_ADDINFOITEMW    (CLM_FIRST+53)   //lParam=&cii, returns hItem
+#if defined( _UNICODE )
+	#define CLM_ADDINFOITEM CLM_ADDINFOITEMW
+#else
+	#define CLM_ADDINFOITEM CLM_ADDINFOITEMA
+#endif
+
 	//the order of info items is never changed, so make sure you add them in the
 	//  order you want them to remain
 #define CLCIT_INVALID    -1

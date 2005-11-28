@@ -705,7 +705,7 @@ int GetProtoIndexByPos(PROTOCOLDESCRIPTOR ** proto, int protoCnt, int Pos)
   p=DBGetContactSettingDword(0,"Protocols",buf,-1);
   */
   itoa(Pos,buf,10);
-  b2=DBGetString(NULL,"Protocols",buf);
+  b2=DBGetStringA(NULL,"Protocols",buf);
   //TRACE("GetProtoIndexByPos \r\n");
 
   if (b2)
@@ -965,7 +965,8 @@ int MenuModulesLoaded(WPARAM wParam,LPARAM lParam)
           tmi.root=-1;
           tmi.hotKey=MAKELPARAM(MOD_CONTROL,'0'+j);
           tmi.pszName=(char*)CallService(MS_CLIST_GETSTATUSMODEDESCRIPTION,statusModeList[j],0);
-          sprintf((LPTSTR)buf,"%s\tCtrl+%c",tmi.pszName,'0'+j);
+          
+		  sprintf((char*)buf,"%s\tCtrl+%c",tmi.pszName,'0'+j);
           tmi.pszName=(char *)buf;
           {
             //owner data
@@ -1180,8 +1181,8 @@ int InitCustomMenus(void)
 
   hAckHook=(HANDLE)HookEvent(ME_PROTO_ACK,MenuProtoAck);
 
-  hMainMenu=GetSubMenu(LoadMenu(GetModuleHandle(NULL),MAKEINTRESOURCEA(IDR_CLISTMENU)),0);
-  hStatusMenu=GetSubMenu(LoadMenu(GetModuleHandle(NULL),MAKEINTRESOURCEA(IDR_CLISTMENU)),1);
+  hMainMenu=GetSubMenu(LoadMenu(GetModuleHandle(NULL),MAKEINTRESOURCE(IDR_CLISTMENU)),0);
+  hStatusMenu=GetSubMenu(LoadMenu(GetModuleHandle(NULL),MAKEINTRESOURCE(IDR_CLISTMENU)),1);
   CallService(MS_LANGPACK_TRANSLATEMENU,(WPARAM)hMainMenu,0);
   CallService(MS_LANGPACK_TRANSLATEMENU,(WPARAM)hStatusMenu,0);
 
@@ -1288,7 +1289,7 @@ static int AddStatusMenuItem(WPARAM wParam,LPARAM lParam)
   
   int i; 
   char buf[MAX_PATH+64];
-  BOOL val=(wParam!=0 && !IsBadStringPtr(mi->pszContactOwner,130)); //proto name should be less than 128
+  BOOL val=(wParam!=0 && !IsBadStringPtrA(mi->pszContactOwner,130)); //proto name should be less than 128
   if (mi->cbSize!=sizeof(CLISTMENUITEM)) return 0;
   
   {

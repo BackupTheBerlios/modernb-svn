@@ -409,9 +409,9 @@ pdisplayNameCacheEntry pdnce;
 			if (szProto != NULL)
             {
 				char *homepage;
-				homepage=DBGetString(pdnce->hContact,"UserInfo", "Homepage");
+				homepage=DBGetStringA(pdnce->hContact,"UserInfo", "Homepage");
                 if (!homepage)
-                    homepage=DBGetString(pdnce->hContact,pdnce->szProto, "Homepage");
+                    homepage=DBGetStringA(pdnce->hContact,pdnce->szProto, "Homepage");
 				if (homepage!=NULL)
 				{											
                     showweb=TRUE;				

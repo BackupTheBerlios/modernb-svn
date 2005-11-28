@@ -133,7 +133,7 @@ static STDMETHODIMP_(HRESULT) CDropTarget_DragEnter(struct CDropTarget *lpThis,I
 	shortPt.x=pt.x; shortPt.y=pt.y;
 	hwnd=WindowFromPoint(shortPt);
 	GetClassName(hwnd,szWindowClass,sizeof(szWindowClass));
-	if(!lstrcmp(szWindowClass,TEXT(CLISTCONTROL_CLASS))) {
+	if(!lstrcmp(szWindowClass,CLISTCONTROL_CLASS)) {
 		struct ClcData *dat;
 		hwndCurrentDrag=hwnd;
 		dat=(struct ClcData*)GetWindowLong(hwndCurrentDrag,0);

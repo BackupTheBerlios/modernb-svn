@@ -156,8 +156,8 @@ int EnumSkinObjectsInBase(const char *szSetting,LPARAM lParam)
 		char *descKey;
 		descKey=mir_strdup(szSetting);
 		descKey[0]='%';
-		value=DBGetString(NULL,SKIN,szSetting);
-		desc=DBGetString(NULL,SKIN,descKey);
+		value=DBGetStringA(NULL,SKIN,szSetting);
+		desc=DBGetStringA(NULL,SKIN,descKey);
 		AddObjectToList(szSetting,desc,value);
 		if (desc) mir_free(desc);
 		mir_free(descKey);
@@ -965,7 +965,7 @@ int FillAvailableSkinList(HWND hwndDlg)
 	{
 		char * skinfile;
 		char skinfull[MAX_PATH];
-		skinfile=DBGetString(NULL,SKIN,"SkinFile");
+		skinfile=DBGetStringA(NULL,SKIN,"SkinFile");
 		if (skinfile)
 		{
 			CallService(MS_UTILS_PATHTOABSOLUTE, (WPARAM)skinfile, (LPARAM)skinfull);

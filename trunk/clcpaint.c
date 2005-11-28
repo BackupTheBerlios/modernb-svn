@@ -553,7 +553,12 @@ _inline char * GetCLCContactRowBackObject(struct ClcGroup * group, struct ClcCon
 			if (b2[i]==TEXT(',')) b2[i]=TEXT('.');
 		//TODO b2 to UTF8
 		AppendChar(buf,BUFSIZE,",Name=");
-		AppendChar(buf,BUFSIZE,b2);			
+#ifdef UNICODE
+		AppendChar(buf,BUFSIZE,Utf8EncodeUcs2(b2));
+#else
+		AppendChar(buf,BUFSIZE,b2);
+#endif
+		
 		mir_free(b2);
 	}
 	if (group->parent)
@@ -564,8 +569,12 @@ _inline char * GetCLCContactRowBackObject(struct ClcGroup * group, struct ClcCon
 		for (i=0; i<m;i++)
 			if (b2[i]==TEXT(',')) b2[i]=TEXT('.');
 		//TODO b2 to UTF8
-		AppendChar(buf,BUFSIZE,",Group=");
-		AppendChar(buf,BUFSIZE,b2);		
+		AppendChar(buf,BUFSIZE,",Group=");		
+#ifdef UNICODE
+		AppendChar(buf,BUFSIZE,Utf8EncodeUcs2(b2));
+#else
+		AppendChar(buf,BUFSIZE,b2);
+#endif
 		mir_free(b2);
 	}
 	return mir_strdup(buf);  
@@ -1007,17 +1016,17 @@ void InternalPaintRowItems(HWND hwnd, HDC hdcMem, struct ClcData *dat, struct Cl
 				if (Drawing->type == CLCIT_CONTACT && dat->contact_time_show && Drawing->timezone != -1 && 
 					(!dat->contact_time_show_only_if_different || Drawing->timediff != 0))
 				{
-					DBTIMETOSTRING dbtts;
+					DBTIMETOSTRINGT dbtts;
 					time_t contact_time;
-					char szResult[80];
+					TCHAR szResult[80];
 
 					contact_time = time(NULL) - Drawing->timediff;
 					szResult[0] = '\0';
 
 					dbtts.szDest = szResult;
 					dbtts.cbDest = 70;
-					dbtts.szFormat = "t";
-					CallService(MS_DB_TIME_TIMESTAMPTOSTRING, contact_time, (LPARAM) & dbtts);
+					dbtts.szFormat = _T("t");
+					CallService(MS_DB_TIME_TIMESTAMPTOSTRINGT, contact_time, (LPARAM) & dbtts);
 
 					if (szResult[0] != '\0')
 					{
@@ -1151,7 +1160,7 @@ void InternalPaintRowItems(HWND hwnd, HDC hdcMem, struct ClcData *dat, struct Cl
 		SIZE third_line_text_size = {0};
 		SIZE space_size = {0};
 		SIZE counts_size = {0};
-		TCHAR *szCounts = NULL;//mir_strdupT(TEXT(""));
+		char *szCounts = NULL;//mir_strdupT(TEXT(""));
 		int free_width;
 		int free_height;
 		int max_bottom_selection_border = SELECTION_BORDER;
@@ -1199,12 +1208,12 @@ void InternalPaintRowItems(HWND hwnd, HDC hdcMem, struct ClcData *dat, struct Cl
 				free_height = free_row_rc.bottom - free_row_rc.top;
 
 				// Get widths
-				DrawTextS(hdcMem," ",1,&space_rc,DT_CALCRECT | DT_NOPREFIX);
+				DrawTextS(hdcMem,_T(" "),1,&space_rc,DT_CALCRECT | DT_NOPREFIX);
 				space_size.cx = space_rc.right - space_rc.left;
 				space_size.cy = min(space_rc.bottom - space_rc.top, free_height);
 
 				ChangeToFont(hdcMem,dat,FONTID_GROUPCOUNTS,NULL);
-				DrawTextS(hdcMem,szCounts,lstrlen(szCounts),&counts_rc,DT_CALCRECT | uTextFormat);
+				DrawTextSA(hdcMem,szCounts,lstrlenA(szCounts),&counts_rc,DT_CALCRECT | uTextFormat);
 
 				counts_size.cx = counts_rc.right - counts_rc.left;
 				counts_size.cy = min(counts_rc.bottom - counts_rc.top, free_height);
@@ -1266,7 +1275,7 @@ void InternalPaintRowItems(HWND hwnd, HDC hdcMem, struct ClcData *dat, struct Cl
 						(!dat->contact_time_show_only_if_different || Drawing->timediff != 0))
 			{
 				// Get contact time
-				DBTIMETOSTRING dbtts;
+				DBTIMETOSTRINGT dbtts;
 				time_t contact_time;
 
 				contact_time = time(NULL) - Drawing->timediff;
@@ -1274,8 +1283,8 @@ void InternalPaintRowItems(HWND hwnd, HDC hdcMem, struct ClcData *dat, struct Cl
 
 				dbtts.szDest = Drawing->szSecondLineText;
 				dbtts.cbDest = 70;
-				dbtts.szFormat = "t";
-				CallService(MS_DB_TIME_TIMESTAMPTOSTRING, contact_time, (LPARAM) & dbtts);
+				dbtts.szFormat = _T("t");
+				CallService(MS_DB_TIME_TIMESTAMPTOSTRINGT, contact_time, (LPARAM) & dbtts);
 			}
 
 			if (dat->second_line_show && Drawing->szSecondLineText 
@@ -1310,16 +1319,16 @@ void InternalPaintRowItems(HWND hwnd, HDC hdcMem, struct ClcData *dat, struct Cl
 						(!dat->contact_time_show_only_if_different || Drawing->timediff != 0))
 			{
 				// Get contact time
-				DBTIMETOSTRING dbtts;
+				DBTIMETOSTRINGT dbtts;
 				time_t contact_time;
 
 				contact_time = time(NULL) - Drawing->timediff;
-				Drawing->szThirdLineText[0] = '\0';
+				Drawing->szThirdLineText[0] = TEXT('\0');
 
 				dbtts.szDest = Drawing->szThirdLineText;
 				dbtts.cbDest = 70;
-				dbtts.szFormat = "t";
-				CallService(MS_DB_TIME_TIMESTAMPTOSTRING, contact_time, (LPARAM) & dbtts);
+				dbtts.szFormat = _T("t");
+				CallService(MS_DB_TIME_TIMESTAMPTOSTRINGT, contact_time, (LPARAM) & dbtts);
 			}
 			if (dat->third_line_show && Drawing->szThirdLineText!= NULL 
 				&& free_height > dat->third_line_top_space)
@@ -1466,7 +1475,7 @@ void InternalPaintRowItems(HWND hwnd, HDC hdcMem, struct ClcData *dat, struct Cl
 						SetHotTrackColour(hdcMem,dat);
 
 					// Draw counts
-					DrawTextS(hdcMem,szCounts,lstrlen(szCounts),&counts_rc,uTextFormat);
+					DrawTextSA(hdcMem,szCounts,lstrlenA(szCounts),&counts_rc,uTextFormat);
 					if (szCounts) mir_free(szCounts);
 				}
 
@@ -1540,7 +1549,7 @@ void InternalPaintRowItems(HWND hwnd, HDC hdcMem, struct ClcData *dat, struct Cl
 						}
 
 						ChangeToFont(hdcMem,dat,FONTID_SECONDLINE,NULL);
-						DrawTextSSmiley(hdcMem, rc, second_line_text_size, Drawing->szSecondLineText, MyStrLen(Drawing->szSecondLineText), 
+						DrawTextSSmiley(hdcMem, rc, second_line_text_size, Drawing->szSecondLineText, lstrlen(Drawing->szSecondLineText), 
 							Drawing->plSecondLineText, uTextFormat);
 
 						free_rc.top = rc.bottom;

@@ -1344,14 +1344,14 @@ int EnumGetProc (const char *szSetting,LPARAM lParam)
   if (WildCompare((char *)szSetting,"$*",0))
   {
     char * value;
-    value=DBGetString(NULL,SKIN,szSetting);
+    value=DBGetStringA(NULL,SKIN,szSetting);
     RegisterObjectByParce((char *)szSetting,value);
     mir_free(value);
   }
   else if (WildCompare((char *)szSetting,"#*",0))
   {
     char * value;
-    value=DBGetString(NULL,SKIN,szSetting);
+    value=DBGetStringA(NULL,SKIN,szSetting);
     RegisterButtonByParce((char *)szSetting,value);
     mir_free(value);
   }
@@ -1365,7 +1365,7 @@ int GetSkinFromDB(char * szSection, SKINOBJECTSLIST * Skin)
   UnloadSkin(Skin);
   Skin->MaskList=mir_alloc(sizeof(ModernMaskList));
   memset(Skin->MaskList,0,sizeof(ModernMaskList));
-  Skin->SkinPlace=DBGetString(NULL,SKIN,"SkinFolder");
+  Skin->SkinPlace=DBGetStringA(NULL,SKIN,"SkinFolder");
   if (!Skin->SkinPlace) 
   {
     char buf[255];
@@ -1405,7 +1405,7 @@ int GetSkinFromDB(char * szSection, SKINOBJECTSLIST * Skin)
       char * Mask=NULL;
       char * value=NULL;
       _snprintf(buf,sizeof(buf),"@%d",n);
-      if (value=DBGetString(NULL,SKIN,buf))
+      if (value=DBGetStringA(NULL,SKIN,buf))
       {
         int i=0;
         for (i=0; i<MyStrLen(value); i++)
@@ -2059,9 +2059,8 @@ int AlphaTextOut (HDC hDC, LPCTSTR lpString, int nCount, RECT * lpRect, UINT for
 BOOL DrawTextSA(HDC hdc, char * lpString, int nCount, RECT * lpRect, UINT format)
 {
 #ifdef UNICODE
-	TCHAR *buf=mir_alloc((2+nCount)*sizeof(TCHAR));
+	TCHAR *buf=a2u(lpString);
 	BOOL res;
-	MultiByteToWideChar(CP_ACP, 0, lpString, -1, buf, (2+nCount)*sizeof(TCHAR)); 
 	res=DrawTextS(hdc,buf,nCount,lpRect,format);
 	mir_free(buf);
 	return res;

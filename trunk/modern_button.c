@@ -42,7 +42,7 @@ typedef struct _ModernButtonCtrl
   BYTE    hover;
   BYTE    IsSwitcher;
   BYTE	  Imm;
-  TCHAR   * ID;
+  char    * ID;
   char    * CommandService;
   char    * StateService;
   char    * HandleService;
@@ -149,7 +149,7 @@ int PaintWorker(HWND hwnd, HDC whdc)
         {
         case 's':
           {
-            Value=DBGetString(NULL,section,key);
+            Value=DBGetStringA(NULL,section,key);
             if (!Value)
               Value=mir_strdup(bct->ValueTypeDef+1);
             break;
@@ -242,7 +242,7 @@ static int ToggleDBValue(char * ValueDBSection,char *ValueTypeDef)
         {
         case 's':
           {
-            Value=DBGetString(NULL,section,key);
+            Value=DBGetStringA(NULL,section,key);
             if (!Value ||(Value && boolstrcmpi(Value,val2)))
               Value=mir_strdup(val);
             else 
@@ -501,7 +501,7 @@ int AddButton(HWND parent,
               int Right, 
               int Bottom, 
               DWORD AlignedTo,
-              char * Hint,
+              TCHAR * Hint,
               char * DBkey,
               char * TypeDef,
               int MinWidth, int MinHeight)
@@ -533,7 +533,7 @@ int AddButton(HWND parent,
     if (DBkey && &DBkey!='\0') bct->ValueDBSection=mir_strdup(DBkey); else bct->ValueDBSection=NULL;
     if (TypeDef && &TypeDef!='\0') bct->ValueTypeDef=mir_strdup(TypeDef); else bct->ValueTypeDef=mir_strdup("sDefault");
     bct->ID=mir_strdup(ID);
-    bct->Hint=mir_strdup(Hint);
+    bct->Hint=mir_strdupT(Hint);
     Buttons[ButtonsCount].bct=bct;
     Buttons[ButtonsCount].hwnd=NULL;
     Buttons[ButtonsCount].OrL=Left;
@@ -579,7 +579,7 @@ HWND CreateButtonWindow(ModernButtonCtrl * bct, HWND parent)
 {
   HWND hwnd;
   if (bct==NULL) return FALSE;
-  hwnd=CreateWindow(TEXT(MODERNBUTTONCLASS),bct->ID,WS_VISIBLE|WS_CHILD,bct->Left,bct->Top,bct->Right-bct->Left,bct->Bottom-bct->Top,parent,NULL,g_hInst,NULL);       
+  hwnd=CreateWindowA(MODERNBUTTONCLASS,bct->ID,WS_VISIBLE|WS_CHILD,bct->Left,bct->Top,bct->Right-bct->Left,bct->Bottom-bct->Top,parent,NULL,g_hInst,NULL);       
   bct->hwnd = hwnd;	
   bct->focus = 0;
   SetWindowLong(hwnd, 0, (LONG)bct);

@@ -125,38 +125,52 @@ static int GetStatusMode(WPARAM wParam,LPARAM lParam)
 	return currentDesiredStatusMode;
 }
 
-static int GetStatusModeDescription(WPARAM wParam,LPARAM lParam)
+static int GetStatusModeDescriptionW(WPARAM wParam,LPARAM lParam)
 {
-	static char szMode[64];
-	char *descr;
+	static TCHAR szMode[64];
+	TCHAR *descr;
 	int noPrefixReqd=0;
 	switch(wParam) {
-case ID_STATUS_OFFLINE:	descr=Translate("Offline"); noPrefixReqd=1; break;
-case ID_STATUS_CONNECTING: descr=Translate("Connecting"); noPrefixReqd=1; break;
-case ID_STATUS_ONLINE: descr=Translate("Online"); noPrefixReqd=1; break;
-case ID_STATUS_AWAY: descr=Translate("Away"); break;
-case ID_STATUS_DND:	descr=Translate("DND"); break;
-case ID_STATUS_NA: descr=Translate("NA"); break;
-case ID_STATUS_OCCUPIED: descr=Translate("Occupied"); break;
-case ID_STATUS_FREECHAT: descr=Translate("Free for chat"); break;
-case ID_STATUS_INVISIBLE: descr=Translate("Invisible"); break;
-case ID_STATUS_OUTTOLUNCH: descr=Translate("Out to lunch"); break;
-case ID_STATUS_ONTHEPHONE: descr=Translate("On the phone"); break;
-case ID_STATUS_IDLE: descr=Translate("Idle"); break;
+case ID_STATUS_OFFLINE:	descr=TranslateT("Offline"); noPrefixReqd=1; break;
+case ID_STATUS_CONNECTING: descr=TranslateT("Connecting"); noPrefixReqd=1; break;
+case ID_STATUS_ONLINE: descr=TranslateT("Online"); noPrefixReqd=1; break;
+case ID_STATUS_AWAY: descr=TranslateT("Away"); break;
+case ID_STATUS_DND:	descr=TranslateT("DND"); break;
+case ID_STATUS_NA: descr=TranslateT("NA"); break;
+case ID_STATUS_OCCUPIED: descr=TranslateT("Occupied"); break;
+case ID_STATUS_FREECHAT: descr=TranslateT("Free for chat"); break;
+case ID_STATUS_INVISIBLE: descr=TranslateT("Invisible"); break;
+case ID_STATUS_OUTTOLUNCH: descr=TranslateT("Out to lunch"); break;
+case ID_STATUS_ONTHEPHONE: descr=TranslateT("On the phone"); break;
+case ID_STATUS_IDLE: descr=TranslateT("Idle"); break;
 default:
 	if(wParam>ID_STATUS_CONNECTING && wParam<ID_STATUS_CONNECTING+MAX_CONNECT_RETRIES) {
-		sprintf(szMode,TranslateT("Connecting (attempt %d)"),wParam-ID_STATUS_CONNECTING+1);
+		_sntprintf(szMode,sizeof(szMode),TranslateT("Connecting (attempt %d)"),wParam-ID_STATUS_CONNECTING+1);
 		return (int)szMode;
 	}
-	return (int)(char*)NULL;
+	return (int)(TCHAR*)NULL;
 	}
 	if(noPrefixReqd || !(lParam&GSMDF_PREFIXONLINE)) return (int)descr;
-	lstrcpyA(szMode,Translate("Online"));
-	lstrcatA(szMode,": ");
-	lstrcatA(szMode,descr);
+	lstrcpy(szMode,TranslateT("Online"));
+	lstrcat(szMode,TEXT(": "));
+	lstrcat(szMode,descr);
 	return (int)szMode;
 }
-
+static int GetStatusModeDescription(WPARAM wParam,LPARAM lParam)
+{
+#ifdef UNICODE
+	if (!(lParam&CNF_UNICODE))
+	{
+		
+		TCHAR *buf1=(TCHAR*)GetStatusModeDescriptionW(wParam,lParam);
+		char *buf2=u2a(buf1);
+		mir_free(buf1);
+		return (int)buf2;
+	}
+	else
+#endif
+	return GetStatusModeDescriptionW(wParam,lParam);
+}
 static int ProtocolAck(WPARAM wParam,LPARAM lParam)
 {
 	ACKDATA *ack=(ACKDATA*)lParam;
@@ -312,7 +326,7 @@ static BOOL CALLBACK AskForConfirmationDlgProc(HWND hWnd, UINT msg, WPARAM wPara
 				hFont = (HFONT)SendDlgItemMessage(hWnd, IDYES, WM_GETFONT, 0, 0);
 				GetObject(hFont, sizeof(lf), &lf);
 				lf.lfWeight = FW_BOLD;
-				SendDlgItemMessage(hWnd, IDC_TOPLINE, WM_SETFONT, (WPARAM)CreateFontIndirect(&lf), 0);
+				SendDlgItemMessage(hWnd, IDC_TOPLINE, WM_SETFONT, (WPARAM)CreateFontIndirectA(&lf), 0);
 			}
 			{
 				TCHAR szFormat[256];
@@ -485,7 +499,7 @@ int LoadContactListModule(void)
 	CreateServiceFunction(MS_CLIST_DOCKINGISDOCKED,Docking_IsDocked);
 	CreateServiceFunction(MS_CLIST_HOTKEYSPROCESSMESSAGE,HotkeysProcessMessage);
 	CreateServiceFunction(MS_CLIST_GETCONTACTICON,GetContactIcon);
-	MySetProcessWorkingSetSize=(BOOL (WINAPI*)(HANDLE,SIZE_T,SIZE_T))GetProcAddress(GetModuleHandle(TEXT("kernel32")),TEXT("SetProcessWorkingSetSize"));
+	MySetProcessWorkingSetSize=(BOOL (WINAPI*)(HANDLE,SIZE_T,SIZE_T))GetProcAddress(GetModuleHandle(TEXT("kernel32")),"SetProcessWorkingSetSize");
 	hCListImages = ImageList_Create(16, 16, ILC_MASK|ILC_COLOR32, 32, 0);
 
 	InitDisplayNameCache(&lContactsCache);

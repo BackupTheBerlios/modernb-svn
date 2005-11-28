@@ -60,6 +60,12 @@ int __cdecl MyStrCmpi(const char *a, const char *b)
     return _stricmp(a,b);
 }
 
+int __cdecl MyStrCmpiT(const TCHAR *a, const TCHAR *b)
+{
+	if (a==NULL && b==NULL) return 0;
+	if (a==NULL || b==NULL) return _tcsicmp(a?a:TEXT(""),b?b:TEXT(""));
+	return _tcsicmp(a,b);
+}
 BOOL __cdecl boolstrcmpi(const char *a, const char *b)
 {
 	if (a==NULL && b==NULL) return 1;
@@ -70,7 +76,7 @@ BOOL __cdecl boolstrcmpi(const char *a, const char *b)
 BOOL __cdecl boolstrcmpiT(const TCHAR *a, const TCHAR *b)
 {
 	if (a==NULL && b==NULL) return 1;
-	if (a==NULL || b==NULL) return _tcsicmp(a?a:"",b?b:"")==0;
+	if (a==NULL || b==NULL) return _tcsicmp(a?a:TEXT(""),b?b:TEXT(""))==0;
 	return _tcsicmp(a,b)==0;
 }
 
@@ -118,28 +124,40 @@ __inline void *mir_calloc( size_t num, size_t size )
     return p;
 };
 
-__inline TCHAR * mir_strdupT(const TCHAR * src)
+extern __inline wchar_t * mir_strdupW(const wchar_t * src)
 {
-	TCHAR * p;
+	wchar_t * p;
 	if (src==NULL) return NULL;
-    p= mir_alloc((lstrlen(src)+1)*sizeof(TCHAR));
-    if (!p) return 0;
-	lstrcpy(p, src);
+	p= mir_alloc((lstrlenW(src)+1)*sizeof(wchar_t));
+	if (!p) return 0;
+	lstrcpyW(p, src);
 	return p;
 }
 
+//__inline TCHAR * mir_strdupT(const TCHAR * src)
+//{
+//	TCHAR * p;
+//	if (src==NULL) return NULL;
+//    p= mir_alloc((lstrlen(src)+1)*sizeof(TCHAR));
+//    if (!p) return 0;
+//	lstrcpy(p, src);
+//	return p;
+//}
+//
 
 __inline char * mir_strdup(const char * src)
 {
 	char * p;
 	if (src==NULL) return NULL;
-    p= mir_alloc( MyStrLen(src)+1 );
+    p= mir_alloc( strlen(src)+1 );
     if (!p) return 0;
 	strcpy(p, src);
 	return p;
 }
 
-char *DBGetString(HANDLE hContact,const char *szModule,const char *szSetting)
+
+
+char *DBGetStringA(HANDLE hContact,const char *szModule,const char *szSetting)
 {
 	char *str=NULL;
     DBVARIANT dbv={0};
@@ -152,6 +170,22 @@ char *DBGetString(HANDLE hContact,const char *szModule,const char *szSetting)
     DBFreeVariant(&dbv);
 	return str;
 }
+wchar_t *DBGetStringW(HANDLE hContact,const char *szModule,const char *szSetting)
+{
+	wchar_t *str=NULL;
+	DBVARIANT dbv={0};
+	DBGetContactSetting(hContact,szModule,szSetting,&dbv);
+	if(dbv.type==DBVT_WCHAR)
+	{
+		str=mir_strdupW(dbv.pwszVal);
+		mir_free(dbv.pwszVal);
+	}
+	//else  TODO if no unicode string (only ansi)
+	//
+	DBFreeVariant(&dbv);
+	return str;
+}
+
 DWORD exceptFunction(LPEXCEPTION_POINTERS EP) 
 { 
     //printf("1 ");                     // printed first 

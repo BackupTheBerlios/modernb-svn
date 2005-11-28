@@ -76,6 +76,6 @@ extern int ReposButtons(HWND parent, BOOL draw, RECT * r);
 
 extern HWND hwndContactTree,hwndContactList,hwndStatus;
 extern HANDLE hClcWindowList;
-extern char *DBGetString(HANDLE hContact,const char *szModule,const char *szSetting);
+extern char *DBGetStringA(HANDLE hContact,const char *szModule,const char *szSetting);
 extern int CreateTimerForConnectingIcon(WPARAM,LPARAM);
 extern BOOL ImageList_DrawEx_New( HIMAGELIST himl,int i,HDC hdcDst,int x,int y,int dx,int dy,COLORREF rgbBk,COLORREF rgbFg,UINT fStyle);

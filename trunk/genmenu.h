@@ -34,9 +34,9 @@ char *CheckService;//analog to check_proc
 //WPARAM wParam;//menuitemhandle
 char *FreeService;//callback service used to free ownerdata for menuitems
 
-//LPARAM lParam;//MENUITEMINFO filled with all needed data 
+//LPARAM lParam;//MENUITEMINFOA filled with all needed data 
 //WPARAM wParam;//menuitemhandle
-char *onAddService;//called just before add MENUITEMINFO to hMenu
+char *onAddService;//called just before add MENUITEMINFOA to hMenu
 
 PMO_IntMenuItem MenuItems;
 int MenuItemsCount;

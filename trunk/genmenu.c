@@ -725,7 +725,7 @@ int MO_AddOldNewMenuItem(WPARAM wParam,LPARAM lParam)
 
 };
 
-static int WhereToPlace(HMENU hMenu,PMO_MenuItem mi,MENUITEMINFO *mii,ListParam *param)
+static int WhereToPlace(HMENU hMenu,PMO_MenuItem mi,MENUITEMINFOA *mii,ListParam *param)
 {
   int i=0;			
   PMO_IntMenuItem pimi;	
@@ -733,7 +733,7 @@ static int WhereToPlace(HMENU hMenu,PMO_MenuItem mi,MENUITEMINFO *mii,ListParam 
 
   mii->fMask=MIIM_SUBMENU|MIIM_DATA;
   for(i=GetMenuItemCount(hMenu)-1;i>=0;i--) {
-    GetMenuItemInfo(hMenu,i,TRUE,mii);
+    GetMenuItemInfoA(hMenu,i,TRUE,mii);
     if(mii->fType==MFT_SEPARATOR) continue;
     //if(mii->hSubMenu==NULL /*&& (mii->dwItemData&param->cntFlag)==0*/) continue;
 
@@ -747,10 +747,10 @@ static int WhereToPlace(HMENU hMenu,PMO_MenuItem mi,MENUITEMINFO *mii,ListParam 
 }
 
 
-static void InsertMenuItemWithSeparators(HMENU hMenu,int uItem,BOOL fByPosition,MENUITEMINFO *lpmii,ListParam *param)
+static void InsertMenuItemWithSeparators(HMENU hMenu,int uItem,BOOL fByPosition,MENUITEMINFOA *lpmii,ListParam *param)
 {
   int thisItemPosition,needSeparator,itemidx;
-  MENUITEMINFO mii;
+  MENUITEMINFOA mii;
   PMO_IntMenuItem MenuItems=NULL;
   PMO_IntMenuItem pimi=NULL;	
 
@@ -774,7 +774,7 @@ static void InsertMenuItemWithSeparators(HMENU hMenu,int uItem,BOOL fByPosition,
   //check for separator before
   if(uItem) {
     mii.fMask=MIIM_SUBMENU|MIIM_DATA|MIIM_TYPE;
-    GetMenuItemInfo(hMenu,uItem-1,TRUE,&mii);
+    GetMenuItemInfoA(hMenu,uItem-1,TRUE,&mii);
     pimi=MO_GetIntMenuItem(mii.dwItemData);
     if (pimi!=NULL)
       if(mii.fType==MFT_SEPARATOR) needSeparator=0;
@@ -784,12 +784,12 @@ static void InsertMenuItemWithSeparators(HMENU hMenu,int uItem,BOOL fByPosition,
         mii.fType=0;
         if(uItem<GetMenuItemCount(hMenu)) {
           mii.fMask=MIIM_SUBMENU|MIIM_DATA|MIIM_TYPE;
-          GetMenuItemInfo(hMenu,uItem,TRUE,&mii);
+          GetMenuItemInfoA(hMenu,uItem,TRUE,&mii);
         }
         if(mii.fType!=MFT_SEPARATOR) {
           mii.fMask=MIIM_TYPE;
           mii.fType=MFT_SEPARATOR;
-          InsertMenuItem(hMenu,uItem,TRUE,&mii);
+          InsertMenuItemA(hMenu,uItem,TRUE,&mii);
         }
         uItem++;
       }
@@ -798,7 +798,7 @@ static void InsertMenuItemWithSeparators(HMENU hMenu,int uItem,BOOL fByPosition,
   if(uItem<GetMenuItemCount(hMenu)) {
     mii.fMask=MIIM_SUBMENU|MIIM_DATA|MIIM_TYPE;
     mii.cch=0;
-    GetMenuItemInfo(hMenu,uItem,TRUE,&mii);
+    GetMenuItemInfoA(hMenu,uItem,TRUE,&mii);
     pimi=MO_GetIntMenuItem(mii.dwItemData);
     if (pimi!=NULL)
       if(mii.fType==MFT_SEPARATOR) needSeparator=0;
@@ -806,7 +806,7 @@ static void InsertMenuItemWithSeparators(HMENU hMenu,int uItem,BOOL fByPosition,
       if(needSeparator) {
         mii.fMask=MIIM_TYPE;
         mii.fType=MFT_SEPARATOR;
-        InsertMenuItem(hMenu,uItem,TRUE,&mii);
+        InsertMenuItemA(hMenu,uItem,TRUE,&mii);
       }
   }
   if(uItem==GetMenuItemCount(hMenu)-1) {
@@ -814,7 +814,7 @@ static void InsertMenuItemWithSeparators(HMENU hMenu,int uItem,BOOL fByPosition,
     mii.fMask=MIIM_SUBMENU|MIIM_DATA|MIIM_TYPE;
     mii.dwTypeData=str;
     mii.cch=sizeof(str);
-    GetMenuItemInfo(hMenu,uItem,TRUE,&mii);
+    GetMenuItemInfoA(hMenu,uItem,TRUE,&mii);
     /*if (param->cntFlag==MENU_CUSTOMITEMMAIN) {
     if(mii.fType==MFT_STRING && !MyStrCmp(mii.dwTypeData,Translate("E&xit"))) {
     //make sure we keep the separator before the exit menu item
@@ -826,7 +826,7 @@ static void InsertMenuItemWithSeparators(HMENU hMenu,int uItem,BOOL fByPosition,
     }
     */
   }
-  InsertMenuItem(hMenu,uItem,TRUE,lpmii);
+  InsertMenuItemA(hMenu,uItem,TRUE,lpmii);
 }
 //wparam started hMenu
 //lparam ListParam*
@@ -893,7 +893,7 @@ DBFreeVariant(&dbv);
 HMENU BuildRecursiveMenu(HMENU hMenu,ListParam *param)
 {
   int i,j;
-  MENUITEMINFO mii;
+  MENUITEMINFOA mii;
   PMO_MenuItem mi;
   HMENU hSubMenu;
   ListParam localparam;

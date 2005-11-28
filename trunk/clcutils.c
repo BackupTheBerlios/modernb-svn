@@ -31,9 +31,9 @@ extern HANDLE hHideInfoTipEvent;
 extern BOOL ON_SIZING_CYCLE;
 extern void InvalidateDisplayNameCacheEntry(HANDLE hContact);
 
-TCHAR *GetGroupCountsText(struct ClcData *dat,struct ClcContact *contact)
+char *GetGroupCountsText(struct ClcData *dat,struct ClcContact *contact)
 {
-	static TCHAR szName[32];
+	static char szName[32];
 	int onlineCount,totalCount;
 	struct ClcGroup *group,*topgroup;
   if (IsBadCodePtr((FARPROC)contact) || IsBadCodePtr((FARPROC)dat)) return NULL;
@@ -60,8 +60,8 @@ TCHAR *GetGroupCountsText(struct ClcData *dat,struct ClcContact *contact)
 		group->scanIndex++;
 	}
 	if(onlineCount==0 && dat->exStyle&CLS_EX_HIDECOUNTSWHENEMPTY) return NULL;
-	_sntprintf(szName,sizeof(szName),TEXT("(%u/%u)"),onlineCount,totalCount);
-	return mir_strdupT(szName);
+	_snprintf(szName,sizeof(szName),"(%u/%u)",onlineCount,totalCount);
+	return mir_strdup(szName);
 }
 
 BOOL RectHitTest(RECT *rc, int testx, int testy)
@@ -675,7 +675,7 @@ void LoadClcOptions(HWND hwnd,struct ClcData *dat)
 				lf.lfHeight=-MulDiv(lf.lfHeight, GetDeviceCaps(hdc, LOGPIXELSY), 72);
 				ReleaseDC(NULL,hdc);				
                 
-				dat->fontInfo[i].hFont=CreateFontIndirect(&lf);
+				dat->fontInfo[i].hFont=CreateFontIndirectA(&lf);
             
             lf.lfHeight=height;
 			}
@@ -806,7 +806,7 @@ void LoadClcOptions(HWND hwnd,struct ClcData *dat)
 		
 		if (!DBGetContactSetting(NULL, "CList","SecondLineText", &dbv))
 		{
-			lstrcpynA(dat->second_line_text, dbv.pszVal, sizeof(dat->second_line_text)-1);
+			lstrcpyn(dat->second_line_text, dbv.ptszVal, sizeof(dat->second_line_text)-1);
 			dat->second_line_text[sizeof(dat->second_line_text)-1] = '\0';
 			DBFreeVariant(&dbv);
 		}
@@ -843,7 +843,7 @@ void LoadClcOptions(HWND hwnd,struct ClcData *dat)
 		
 		if (!DBGetContactSetting(NULL, "CList","ThirdLineText", &dbv))
 		{
-			lstrcpynA(dat->third_line_text, dbv.pszVal, sizeof(dat->third_line_text)-1);
+			lstrcpyn(dat->third_line_text, dbv.ptszVal, sizeof(dat->third_line_text)-1);
 			dat->third_line_text[sizeof(dat->third_line_text)-1] = '\0';
 			DBFreeVariant(&dbv);
 		}

@@ -30,7 +30,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #include "m_skin_eng.h"
 extern HWND hwndContactList;
 extern LPSKINOBJECTDESCRIPTOR FindObjectByName(const char * szName, BYTE objType, SKINOBJECTSLIST* Skin);
-extern int AddButton(HWND parent,char * ID,char * CommandService,char * StateDefService,char * HandeService,             int Left, int Top, int Right, int Bottom, DWORD AlignedTo,char * Hint,char * DBkey,char * TypeDef,int MinWidth, int MinHeight);
+extern int AddButton(HWND parent,char * ID,char * CommandService,char * StateDefService,char * HandeService,             int Left, int Top, int Right, int Bottom, DWORD AlignedTo,TCHAR * Hint,char * DBkey,char * TypeDef,int MinWidth, int MinHeight);
 struct ModernMaskList * MainModernMaskList=NULL;
 
 /// IMPLEMENTATIONS
@@ -411,7 +411,7 @@ int RegisterButtonByParce(char * ObjectName, char * Params)
         int Left, Top,Right,Bottom;
         int MinWidth, MinHeight;
         char TL[9]={0};         
-        char Hint[250]={0};
+        TCHAR Hint[250]={0};
         char Section[250]={0};
         char Type[250]={0};
 
@@ -428,7 +428,7 @@ int RegisterButtonByParce(char * ObjectName, char * Params)
 
         MinWidth=atoi(GetParamN(Params,buf2, sizeof(buf2),a+7,',',0));
         MinHeight=atoi(GetParamN(Params,buf2, sizeof(buf2),a+8,',',0));
-        GetParamN(Params,Hint, sizeof(Hint),a+9,',',0);
+        GetParamNT(Params,Hint, sizeof(Hint),a+9,',',0);
         if (a)
         {
           GetParamN(Params,Section, sizeof(Section),2,',',0);

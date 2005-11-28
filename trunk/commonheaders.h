@@ -39,6 +39,12 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
   #define TRACE(str) 
 #endif
 
+#if defined (_DEBUG)
+#define TRACET(str) OutputDebugString(str)
+#else
+#define TRACET(str) 
+#endif
+
 //   OutputDebugString(str)
 
 #define _WIN32_WINNT 0x0501
@@ -133,10 +139,19 @@ extern BOOL __cdecl boolstrcmpi(const char *a, const char *b);
 extern int __cdecl MyStrCmp (const char *a, const char *b);
 extern int __cdecl MyStrLen (const char *a);
 extern int __cdecl MyStrCmpi(const char *a, const char *b);
+extern int __cdecl MyStrCmpiT(const TCHAR *a, const TCHAR *b);
 extern __inline void *mir_calloc( size_t num, size_t size );
 extern __inline char * mir_strdup(const char * src);
-extern __inline TCHAR * mir_strdupT(const TCHAR * src);
-extern char *DBGetString(HANDLE hContact,const char *szModule,const char *szSetting);
+extern __inline wchar_t * mir_strdupW(const wchar_t * src);
+#ifdef UNICODE
+	#define mir_strdupT(a) mir_strdupW(a)
+#else
+	#define mir_strdupT(a) mir_strdup(a)
+#endif
+
+
+extern char *DBGetStringA(HANDLE hContact,const char *szModule,const char *szSetting);
+extern wchar_t *DBGetStringW(HANDLE hContact,const char *szModule,const char *szSetting);
 extern DWORD exceptFunction(LPEXCEPTION_POINTERS EP);
 
 #undef HookEvent
@@ -177,4 +192,12 @@ HBITMAP CreateBitmap32(int cx, int cy);
 void FreeDisplayNameCache(SortedList *list);
 extern int ShowWindowNew(HWND hwnd, int cmd);
 
+#ifdef UNICODE
+	#define DBGetStringT(a,b,c) DBGetStringW(a,b,c)
+#else
+	#define DBGetStringT(a,b,c) DBGetStringA(a,b,c)
+#endif
+
+extern char* Utf8EncodeUcs2( const wchar_t* src );
+extern void Utf8Decode( char* str, wchar_t** ucs2 );
 #endif

@@ -415,9 +415,9 @@ static BOOL CALLBACK DlgProcCluiOpts(HWND hwndDlg, UINT msg, WPARAM wParam, LPAR
         DBWriteContactSettingByte(NULL,"CList","ThinBorder",(BYTE)IsDlgButtonChecked(hwndDlg,IDC_BORDER));
         DBWriteContactSettingByte(NULL,"CList","NoBorder",(BYTE)IsDlgButtonChecked(hwndDlg,IDC_NOBORDERWND));
         {	
-          char title[256];
+          TCHAR title[256];
           GetDlgItemText(hwndDlg,IDC_TITLETEXT,title,sizeof(title));
-          DBWriteContactSettingString(NULL,"CList","TitleText",title);
+          DBWriteContactSettingTString(NULL,"CList","TitleText",title);
           //			SetWindowText(hwndContactList,title);
         }
 		DBWriteContactSettingByte(NULL,"CList","Min2Tray",(BYTE)IsDlgButtonChecked(hwndDlg,IDC_MIN2TRAY));

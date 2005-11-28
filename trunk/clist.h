@@ -27,10 +27,10 @@ void LoadContactTree(void);
 int IconFromStatusMode(const char *szProto,int status);
 int ExtIconFromStatusMode(HANDLE hContact, const char *szProto,int status);
 HTREEITEM GetTreeItemByHContact(HANDLE hContact);
-void TrayIconUpdateWithImageList(int iImage,const char *szNewTip,char *szPreferredProto);
+void TrayIconUpdateWithImageList(int iImage,const TCHAR *szNewTip,char *szPreferredProto);
 void SortContacts(HWND hwnd);
 void ChangeContactIcon(HANDLE hContact,int iIcon,int add);
-int GetContactInfosForSort(HANDLE hContact,char **Proto,char **Name,int *Status);
+int GetContactInfosForSort(HANDLE hContact,char **Proto,TCHAR **Name,int *Status);
 
 typedef struct  {
 int idxClientIcon;

@@ -6,7 +6,7 @@
 extern int DefaultImageListColorDepth;
 
 extern HINSTANCE g_hInst;
-extern char *DBGetString(HANDLE hContact,const char *szModule,const char *szSetting);
+extern char *DBGetStringA(HANDLE hContact,const char *szModule,const char *szSetting);
 extern int CluiProtocolStatusChanged(WPARAM wParam,LPARAM lParam);
 extern int MenuModulesLoaded(WPARAM wParam,LPARAM lParam);
 extern int TrayIconIconsChanged();
@@ -103,7 +103,7 @@ int CheckProtocolOrder()
 	{
 			for(i=0;i<StoredProtoCount;i++) {
 				itoa(i,buf,10);
-				curproto=DBGetString(NULL,"Protocols",buf);
+				curproto=DBGetStringA(NULL,"Protocols",buf);
 				if (curproto==NULL){protochanged=TRUE;break;};
 				if (CallService(MS_PROTO_ISPROTOCOLLOADED,0,(LPARAM)curproto)==0)
         {
@@ -176,7 +176,7 @@ int FillTree(HWND hwnd)
 			for(i=0;i<count;i++) {
 				//if(protos[i]->type!=PROTOTYPE_PROTOCOL || CallProtoService(protos[i]->szName,PS_GETCAPS,PFLAGNUM_2,0)==0) continue;
 				itoa(i,	(char *)&buf,10);
-				szSTName=DBGetString(0,"Protocols",(char *)&buf);
+				szSTName=DBGetStringA(0,"Protocols",(char *)&buf);
 				if (szSTName==NULL){continue;};
 				
 				CallProtoService(szSTName,PS_GETNAME,sizeof(szName),(LPARAM)szName);

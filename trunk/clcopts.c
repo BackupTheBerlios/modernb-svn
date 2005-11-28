@@ -139,7 +139,7 @@ void GetFontSetting(int i,LOGFONTA *lf,COLORREF *colour)
   GetDefaultFontSetting(i,lf,colour);
 	mir_snprintf(idstr,sizeof(idstr),"Font%dName",i);
   if(!DBGetContactSetting(NULL,"CLC",idstr,&dbv)) {
-		lstrcpy(lf->lfFaceName,dbv.pszVal);
+		strcpy(lf->lfFaceName,dbv.pszVal);
     mir_free(dbv.pszVal);
   }
 	mir_snprintf(idstr,sizeof(idstr),"Font%dCol",i);

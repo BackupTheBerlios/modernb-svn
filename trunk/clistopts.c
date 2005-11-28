@@ -1430,7 +1430,7 @@ static BOOL CALLBACK DlgProcGenOpts(HWND hwndDlg, UINT msg, WPARAM wParam, LPARA
 			CallProtoService(protos[i]->szName,PS_GETNAME,sizeof(szName),(LPARAM)szName);
 			item=SendDlgItemMessage(hwndDlg,IDC_PRIMARYSTATUS,CB_ADDSTRING,0,(LPARAM)szName);
 			SendDlgItemMessage(hwndDlg,IDC_PRIMARYSTATUS,CB_SETITEMDATA,item,(LPARAM)protos[i]);
-			if((dbv.type==DBVT_ASCIIZ || dbv.type==DBVT_UTF8)&& !lstrcmp(dbv.pszVal,protos[i]->szName))
+			if((dbv.type==DBVT_ASCIIZ || dbv.type==DBVT_UTF8)&& !strcmp(dbv.pszVal,protos[i]->szName))
 				SendDlgItemMessage(hwndDlg,IDC_PRIMARYSTATUS,CB_SETCURSEL,item,0);
 		}
 		DBFreeVariant(&dbv);

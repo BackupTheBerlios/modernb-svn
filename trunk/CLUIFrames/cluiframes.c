@@ -783,7 +783,7 @@ int LocateStorePosition(int Frameid,int maxstored)
   storpos=-1;
   for(i=0;i<maxstored;i++) {
 		mir_snprintf(settingname,sizeof(settingname),"%s%d","Name",i);
-    frmname=DBGetString(0,CLUIFrameModule,settingname);
+    frmname=DBGetStringA(0,CLUIFrameModule,settingname);
     if(frmname==NULL) continue;
     if(strcmpi(frmname,Frames[Frameid].name)==0) {
       storpos=i;
@@ -1950,7 +1950,7 @@ int CLUIFramesAddFrame(WPARAM wParam,LPARAM lParam)
   memset(&Frames[nFramescount],0,sizeof(wndFrame));
   if (clfrm->name)
   {
-    CustomName=DBGetString(NULL,"CUSTOM_CLUI_FRAMES",AS(buff,"CustomName_",clfrm->name));
+    CustomName=DBGetStringA(NULL,"CUSTOM_CLUI_FRAMES",AS(buff,"CustomName_",clfrm->name));
     Frames[nFramescount].TitleBar.BackColour=(COLORREF)DBGetContactSettingDword(NULL,"CUSTOM_CLUI_FRAMES",AS(buff,"CustomBackColor_",clfrm->name),GetSysColor(COLOR_3DFACE));
     Frames[nFramescount].TitleBar.TextColour=(COLORREF)DBGetContactSettingDword(NULL,"CUSTOM_CLUI_FRAMES",AS(buff,"CustomTextColor_",clfrm->name),GetSysColor(COLOR_WINDOWTEXT));
     if (CustomName)

@@ -45,7 +45,7 @@ typedef BOOL WINAPI MyGetMonitorInfo(HMONITOR,LPMONITORINFO);
 
 static void Docking_GetMonitorRectFromPoint(POINT pt,RECT *rc)
 {
-	HMODULE hUserInstance = GetModuleHandle("user32");
+	HMODULE hUserInstance = GetModuleHandle(TEXT("user32"));
 
 	MyMonitorFromPoint *LPMyMonitorFromPoint = (MyMonitorFromPoint*)GetProcAddress(hUserInstance,"MonitorFromPoint");
 	if (LPMyMonitorFromPoint)

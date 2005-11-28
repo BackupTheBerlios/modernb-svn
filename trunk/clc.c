@@ -487,7 +487,7 @@ int LoadCLCModule(void)
 	wndclass.hCursor       = LoadCursor (NULL, IDC_ARROW);
 	wndclass.hbrBackground = NULL;
 	wndclass.lpszMenuName  = NULL;
-	wndclass.lpszClassName = TEXT(CLISTCONTROL_CLASS);
+	wndclass.lpszClassName = CLISTCONTROL_CLASS;
 	RegisterClass(&wndclass);
 
 	InitFileDropping();
@@ -881,40 +881,40 @@ static LRESULT CALLBACK ContactListControlWndProc(HWND hwnd, UINT msg, WPARAM wP
 					}
 				}
 
-			if(!shouldShow && !(style&CLS_NOHIDEOFFLINE) && (style&CLS_HIDEOFFLINE || group->hideOffline)) 
-			{
-				HANDLE hSelItem;
-				struct ClcContact *selcontact;
-				struct ClcGroup *selgroup;
-				if(GetRowByIndex(dat,dat->selection,&selcontact,NULL)==-1) hSelItem=NULL;
-				else hSelItem=ContactToHItem(selcontact);
-				RemoveItemFromGroup(hwnd,group,contact,0);
-				contact=NULL;
-				if(hSelItem)
-					if(FindItem(hwnd,dat,hSelItem,&selcontact,&selgroup,NULL,FALSE))
-						dat->selection=GetRowsPriorTo(&dat->list,selgroup,selcontact-selgroup->contact);
-				recalcScrollBar=1;
-				dat->NeedResort=1;
-				NeedResort=1;
-
-			}
-			else 
-			{
-				int oldflags;
-				contact->iImage=(WORD)lParam;
-
-				oldflags=contact->flags;
-				if(!IsHiddenMode(dat,status)||cacheEntry->noHiddenOffline) contact->flags|=CONTACTF_ONLINE;
-				else contact->flags&=~CONTACTF_ONLINE;
-
-				if (oldflags!=contact->flags)
+				if(!shouldShow && !(style&CLS_NOHIDEOFFLINE) && (style&CLS_HIDEOFFLINE || group->hideOffline)) 
 				{
+					HANDLE hSelItem;
+					struct ClcContact *selcontact;
+					struct ClcGroup *selgroup;
+					if(GetRowByIndex(dat,dat->selection,&selcontact,NULL)==-1) hSelItem=NULL;
+					else hSelItem=ContactToHItem(selcontact);
+					RemoveItemFromGroup(hwnd,group,contact,0);
+					contact=NULL;
+					if(hSelItem)
+						if(FindItem(hwnd,dat,hSelItem,&selcontact,&selgroup,NULL,FALSE))
+							dat->selection=GetRowsPriorTo(&dat->list,selgroup,selcontact-selgroup->contact);
+					recalcScrollBar=1;
 					dat->NeedResort=1;
 					NeedResort=1;
-					moveToGroup=2;
-				}
 
-				//Propagate icon to parent
+				}
+				else 
+				{
+					int oldflags;
+					contact->iImage=(WORD)lParam;
+
+					oldflags=contact->flags;
+					if(!IsHiddenMode(dat,status)||cacheEntry->noHiddenOffline) contact->flags|=CONTACTF_ONLINE;
+					else contact->flags&=~CONTACTF_ONLINE;
+
+					if (oldflags!=contact->flags)
+					{
+						dat->NeedResort=1;
+						NeedResort=1;
+						moveToGroup=2;
+					}
+
+					//Propagate icon to parent
 					if (contact->isSubcontact)
 					{
 						if (image_is_special)
@@ -929,9 +929,9 @@ static LRESULT CALLBACK ContactListControlWndProc(HWND hwnd, UINT msg, WPARAM wP
 						}
 					}
 				}
-		}
+			}
 
-		if (contact != NULL)
+			if (contact != NULL)
 			{
 				if (!IsBadWritePtr(contact, sizeof(struct ClcContact)))
 				{
@@ -1941,7 +1941,7 @@ static LRESULT CALLBACK ContactListControlWndProc(HWND hwnd, UINT msg, WPARAM wP
 			else if((dat->dragStage&DRAGSTAGEM_STAGE)==DRAGSTAGE_ACTIVE) {
 				POINT pt;
 				int target;         
-				char Wording[500];
+				TCHAR Wording[500];
 				int res=0;
 				pt.x=(short)LOWORD(lParam); pt.y=(short)HIWORD(lParam);
 				target=GetDropTargetInformation(hwnd,dat,pt);
@@ -1966,8 +1966,8 @@ static LRESULT CALLBACK ContactListControlWndProc(HWND hwnd, UINT msg, WPARAM wP
 					if (!contSour->isSubcontact)
 					{
 						HANDLE hDest=contDest->hContact;
-						mir_snprintf(Wording,sizeof(Wording),Translate("Do You want contact '%s' to be converted to MetaContact and '%s' be added to it?"),contDest->szText, contSour->szText);
-						res=MessageBox(hwnd,Wording,Translate("Converting to MetaContact"),MB_OKCANCEL|MB_ICONQUESTION);
+						_sntprintf(Wording,sizeof(Wording),TranslateT("Do You want contact '%s' to be converted to MetaContact and '%s' be added to it?"),contDest->szText, contSour->szText);
+						res=MessageBox(hwnd,Wording,TranslateT("Converting to MetaContact"),MB_OKCANCEL|MB_ICONQUESTION);
 						if (res==1)
 						{
 							handle=(HANDLE)CallService(MS_MC_CONVERTTOMETA,(WPARAM)hDest,0);
@@ -1981,8 +1981,8 @@ static LRESULT CALLBACK ContactListControlWndProc(HWND hwnd, UINT msg, WPARAM wP
 						hcontact=contSour->hContact;
 						hfrom=contSour->subcontacts->hContact;
 						hdest=contDest->hContact;
-						mir_snprintf(Wording,sizeof(Wording),Translate("Do You want contact '%s' to be converted to MetaContact and '%s' be added to it (remove it from '%s')?"), contDest->szText,contSour->szText,contSour->subcontacts->szText);
-						res=MessageBox(hwnd,Wording,Translate("Converting to MetaContact (Moving)"),MB_OKCANCEL|MB_ICONQUESTION);
+						_sntprintf(Wording,sizeof(Wording),TranslateT("Do You want contact '%s' to be converted to MetaContact and '%s' be added to it (remove it from '%s')?"), contDest->szText,contSour->szText,contSour->subcontacts->szText);
+						res=MessageBox(hwnd,Wording,TranslateT("Converting to MetaContact (Moving)"),MB_OKCANCEL|MB_ICONQUESTION);
 						if (res==1)
 						{
 
@@ -2014,8 +2014,8 @@ static LRESULT CALLBACK ContactListControlWndProc(HWND hwnd, UINT msg, WPARAM wP
 						HANDLE handle,hcontact;
 						hcontact=contSour->hContact;
 						handle=contDest->hContact;
-						mir_snprintf(Wording,sizeof(Wording),Translate(Translate("Do you want to contact '%s' be added to metacontact '%s'?")),contSour->szText, contDest->szText);
-						res=MessageBox(hwnd,Wording,Translate("Adding contact to MetaContact"),MB_OKCANCEL|MB_ICONQUESTION);
+						_sntprintf(Wording,sizeof(Wording),TranslateT("Do you want to contact '%s' be added to metacontact '%s'?"),contSour->szText, contDest->szText);
+						res=MessageBox(hwnd,Wording,TranslateT("Adding contact to MetaContact"),MB_OKCANCEL|MB_ICONQUESTION);
 						if (res==1)
 						{
 
@@ -2029,8 +2029,8 @@ static LRESULT CALLBACK ContactListControlWndProc(HWND hwnd, UINT msg, WPARAM wP
 						{   
 							HANDLE hsour;
 							hsour=contSour->hContact;
-							mir_snprintf(Wording,sizeof(Wording),Translate("Do You want contact '%s' to be default ?"),contSour->szText);
-							res=MessageBox(hwnd,Wording,Translate("Set default contact"),MB_OKCANCEL|MB_ICONQUESTION);
+							_sntprintf(Wording,sizeof(Wording),TranslateT("Do You want contact '%s' to be default ?"),contSour->szText);
+							res=MessageBox(hwnd,Wording,TranslateT("Set default contact"),MB_OKCANCEL|MB_ICONQUESTION);
 
 							if (res==1)
 							{
@@ -2043,8 +2043,8 @@ static LRESULT CALLBACK ContactListControlWndProc(HWND hwnd, UINT msg, WPARAM wP
 							hcontact=contSour->hContact;
 							hfrom=contSour->subcontacts->hContact;
 							handle=contDest->hContact;
-							mir_snprintf(Wording,sizeof(Wording),Translate("Do You want contact '%s' to be removed from MetaContact '%s' and added to '%s'?"), contSour->szText,contSour->subcontacts->szText,contDest->szText);
-							res=MessageBox(hwnd,Wording,Translate("Changing MetaContacts (Moving)"),MB_OKCANCEL|MB_ICONQUESTION);
+							_sntprintf(Wording,sizeof(Wording),TranslateT("Do You want contact '%s' to be removed from MetaContact '%s' and added to '%s'?"), contSour->szText,contSour->subcontacts->szText,contDest->szText);
+							res=MessageBox(hwnd,Wording,TranslateT("Changing MetaContacts (Moving)"),MB_OKCANCEL|MB_ICONQUESTION);
 							if (res==1)
 							{
 
@@ -2087,8 +2087,8 @@ static LRESULT CALLBACK ContactListControlWndProc(HWND hwnd, UINT msg, WPARAM wP
 						HANDLE handle,hcontact;
 						hcontact=contSour->hContact;
 						handle=contDest->subcontacts->hContact;
-						mir_snprintf(Wording,sizeof(Wording),Translate("Do You want contact '%s' to be added to MetaContact '%s'?"), contSour->szText,contDest->subcontacts->szText);
-						res=MessageBox(hwnd,Wording,Translate("Changing MetaContacts (Moving)"),MB_OKCANCEL|MB_ICONQUESTION);
+						_sntprintf(Wording,sizeof(Wording),TranslateT("Do You want contact '%s' to be added to MetaContact '%s'?"), contSour->szText,contDest->subcontacts->szText);
+						res=MessageBox(hwnd,Wording,TranslateT("Changing MetaContacts (Moving)"),MB_OKCANCEL|MB_ICONQUESTION);
 						if (res==1)
 						{
 
@@ -2104,8 +2104,8 @@ static LRESULT CALLBACK ContactListControlWndProc(HWND hwnd, UINT msg, WPARAM wP
 							hcontact=contSour->hContact;
 							hfrom=contSour->subcontacts->hContact;
 							handle=contDest->subcontacts->hContact;                                     
-							mir_snprintf(Wording,sizeof(Wording),Translate("Do You want contact '%s' to be removed from MetaContact '%s' and added to '%s'?"), contSour->szText,contSour->subcontacts->szText,contDest->subcontacts->szText);
-							res=MessageBox(hwnd,Wording,Translate("Changing MetaContacts (Moving)"),MB_OKCANCEL|MB_ICONQUESTION);
+							_sntprintf(Wording,sizeof(Wording),TranslateT("Do You want contact '%s' to be removed from MetaContact '%s' and added to '%s'?"), contSour->szText,contSour->subcontacts->szText,contDest->subcontacts->szText);
+							res=MessageBox(hwnd,Wording,TranslateT("Changing MetaContacts (Moving)"),MB_OKCANCEL|MB_ICONQUESTION);
 							if (res==1)
 							{
 
@@ -2158,8 +2158,8 @@ static LRESULT CALLBACK ContactListControlWndProc(HWND hwnd, UINT msg, WPARAM wP
 				HANDLE hcontact,hfrom;
 				hcontact=contact->hContact;
 				hfrom=contact->subcontacts->hContact;
-				mir_snprintf(Wording,sizeof(Wording),Translate("Do You want contact '%s' to be removed from MetaContact '%s' to group '%s'?"), contact->szText,contact->subcontacts->szText,szGroup);
-				res=MessageBox(hwnd,Wording,Translate("Changing MetaContact (Removing)"),MB_OKCANCEL|MB_ICONQUESTION);
+				_sntprintf(Wording,sizeof(Wording),TranslateT("Do You want contact '%s' to be removed from MetaContact '%s' to group '%s'?"), contact->szText,contact->subcontacts->szText,szGroup);
+				res=MessageBox(hwnd,Wording,TranslateT("Changing MetaContact (Removing)"),MB_OKCANCEL|MB_ICONQUESTION);
 				if (res==1)
 				{
 
@@ -2220,8 +2220,8 @@ static LRESULT CALLBACK ContactListControlWndProc(HWND hwnd, UINT msg, WPARAM wP
 					HANDLE hcontact,hfrom;
 					hcontact=contact->hContact;
 					hfrom=contact->subcontacts->hContact;
-					mir_snprintf(Wording,sizeof(Wording),Translate("Do You want contact '%s' to be removed from MetaContact '%s'?"), contact->szText,contact->subcontacts->szText);
-					res=MessageBox(hwnd,Wording,Translate("Changing MetaContact (Removing)"),MB_OKCANCEL|MB_ICONQUESTION);
+					_sntprintf(Wording,sizeof(Wording),TranslateT("Do You want contact '%s' to be removed from MetaContact '%s'?"), contact->szText,contact->subcontacts->szText);
+					res=MessageBox(hwnd,Wording,TranslateT("Changing MetaContact (Removing)"),MB_OKCANCEL|MB_ICONQUESTION);
 					if (res==1)
 					{
 
