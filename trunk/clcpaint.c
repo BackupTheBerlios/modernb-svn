@@ -1024,7 +1024,7 @@ void InternalPaintRowItems(HWND hwnd, HDC hdcMem, struct ClcData *dat, struct Cl
 					szResult[0] = '\0';
 
 					dbtts.szDest = szResult;
-					dbtts.cbDest = 70;
+					dbtts.cbDest = sizeof(szResult);
 					dbtts.szFormat = _T("t");
 					CallService(MS_DB_TIME_TIMESTAMPTOSTRINGT, contact_time, (LPARAM) & dbtts);
 
@@ -1252,7 +1252,10 @@ void InternalPaintRowItems(HWND hwnd, HDC hdcMem, struct ClcData *dat, struct Cl
 			if (dat->row_align_group_mode==1) //center
 			{
 			int x;
-			x=free_row_rc.left+((free_row_rc.right-free_row_rc.left-full_text_width)>>1);
+			//x=free_row_rc.left+((free_row_rc.right-free_row_rc.left-full_text_width)>>1);
+			int l=dat->leftMargin;
+			int r=dat->rightMargin;
+			x=l+row_rc.left+((row_rc.right-row_rc.left-full_text_width-l-r)>>1);
 			text_rc.left=x;
 			text_rc.right=x+full_text_width;
 			}
@@ -1277,14 +1280,17 @@ void InternalPaintRowItems(HWND hwnd, HDC hdcMem, struct ClcData *dat, struct Cl
 				// Get contact time
 				DBTIMETOSTRINGT dbtts;
 				time_t contact_time;
-
+				TCHAR buf[70]={0};
 				contact_time = time(NULL) - Drawing->timediff;
-				Drawing->szSecondLineText[0] = '\0';
+				if (Drawing->szSecondLineText) mir_free(Drawing->szSecondLineText);
+				Drawing->szSecondLineText=NULL;
 
-				dbtts.szDest = Drawing->szSecondLineText;
-				dbtts.cbDest = 70;
+				dbtts.szDest = buf;
+				dbtts.cbDest = sizeof(buf);
+
 				dbtts.szFormat = _T("t");
 				CallService(MS_DB_TIME_TIMESTAMPTOSTRINGT, contact_time, (LPARAM) & dbtts);
+				Drawing->szSecondLineText=mir_strdupT(buf);
 			}
 
 			if (dat->second_line_show && Drawing->szSecondLineText 
@@ -1321,14 +1327,16 @@ void InternalPaintRowItems(HWND hwnd, HDC hdcMem, struct ClcData *dat, struct Cl
 				// Get contact time
 				DBTIMETOSTRINGT dbtts;
 				time_t contact_time;
-
+				TCHAR buf[70]={0};
 				contact_time = time(NULL) - Drawing->timediff;
-				Drawing->szThirdLineText[0] = TEXT('\0');
+				if (Drawing->szThirdLineText) mir_free(Drawing->szThirdLineText);
+				Drawing->szThirdLineText= NULL;
 
-				dbtts.szDest = Drawing->szThirdLineText;
-				dbtts.cbDest = 70;
+				dbtts.szDest = buf;
+				dbtts.cbDest = sizeof(buf);
 				dbtts.szFormat = _T("t");
 				CallService(MS_DB_TIME_TIMESTAMPTOSTRINGT, contact_time, (LPARAM) & dbtts);
+				Drawing->szThirdLineText=mir_strdupT(buf);
 			}
 			if (dat->third_line_show && Drawing->szThirdLineText!= NULL 
 				&& free_height > dat->third_line_top_space)

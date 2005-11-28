@@ -185,6 +185,7 @@
 				StringPooling="TRUE"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="1"
+				DefaultCharIsUnsigned="TRUE"
 				UsePrecompiledHeader="2"
 				PrecompiledHeaderThrough="commonheaders.c"
 				PrecompiledHeaderFile=".\Debug/mwclist.pch"
