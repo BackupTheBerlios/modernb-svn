@@ -1,14 +1,14 @@
 #include "commonheaders.h"
 #include "clist.h"
 #include "CLUIFRAMES\cluiframes.h"
-
+extern int BltBackImage (HWND destHWND, HDC destDC, RECT * BltClientRect);
 extern BOOL InvalidateRectZ(HWND hWnd, CONST RECT* lpRect,BOOL bErase );
 extern int GetProtocolVisibility(char * ProtoName);
 extern int GetConnectingIconService(WPARAM wParam,LPARAM lParam);
 extern BOOL TextOutS(HDC hdc, int x, int y, LPCTSTR lpString, int nCount);
 extern BOOL TextOutSA(HDC hdc, int x, int y, char * lpString, int nCount);
 extern BOOL DrawTextSA(HDC hdc, char * lpString, int nCount, RECT * lpRect, UINT format);
-extern BOOL DrawTextS(HDC hdc, LPCTSTR * lpString, int nCount, RECT * lpRect, UINT format);
+extern BOOL DrawTextS(HDC hdc, LPCTSTR lpString, int nCount, RECT * lpRect, UINT format);
 extern int InvalidateFrameImage(WPARAM wParam, LPARAM lParam);       // Post request for updating
 extern int UpdateTimer(BYTE BringIn);
 extern int TestCursorOnBorders();
@@ -20,6 +20,7 @@ extern void InitGdiPlus(void);
 extern void ShutdownGdiPlus(void);
 extern BYTE gdiPlusFail; 
 extern BOOL _inline WildCompare(char * name, char * mask, BYTE option);
+extern void ApplyTransluency();
 
 extern int DeleteAllSettingInSection(char * SectionName);
 extern int ImageList_ReplaceIcon_FixAlpha(HIMAGELIST himl, int i, HICON hicon);
@@ -64,7 +65,7 @@ extern int  QueueAllFramesUpdating (BYTE);
 extern int  SetAlpha(BYTE);
 extern int  DeleteButtons();
 extern int RegisterButtonByParce(char * ObjectName, char * Params);
-extern int RedrawButtons();
+extern int RedrawButtons(HDC hdc);
 extern int SizeFramesByWindowRect(RECT *r, HDWP * PosBatch, int mode);
 extern int PrepeareImageButDontUpdateIt(RECT * r);
 extern int UpdateWindowImageRect(RECT * r);

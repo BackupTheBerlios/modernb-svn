@@ -37,6 +37,8 @@ static BOOL CALLBACK DlgProcItemsOpts(HWND hwndDlg, UINT msg, WPARAM wParam, LPA
 static BOOL CALLBACK DlgProcGenOpts(HWND hwndDlg, UINT msg, WPARAM wParam, LPARAM lParam);
 static BOOL CALLBACK DlgProcHotkeyOpts(HWND hwndDlg, UINT msg, WPARAM wParam, LPARAM lParam);
 extern BOOL CALLBACK DlgProcHotKeyOpts2(HWND hwndDlg, UINT msg, WPARAM wParam, LPARAM lParam);
+extern BOOL CALLBACK DlgProcItemNewRowOpts(HWND hwndDlg, UINT msg, WPARAM wParam, LPARAM lParam);
+extern BOOL CALLBACK DlgProcExtraIconsOpts(HWND hwndDlg, UINT msg, WPARAM wParam, LPARAM lParam);
 
 static UINT expertOnlyControls[]={IDC_ALWAYSSTATUS};
 int CListOptInit(WPARAM wParam,LPARAM lParam)
@@ -654,10 +656,10 @@ static BOOL CALLBACK DlgProcItemTextOpts(HWND hwndDlg, UINT msg, WPARAM wParam, 
 
 			CheckDlgButton(hwndDlg, IDC_DRAW_SMILEYS_ON_FIRST_LINE, DBGetContactSettingByte(NULL,"CList","FirstLineDrawSmileys",1) == 1 ? BST_CHECKED : BST_UNCHECKED );
 
-			ShowWindow(GetDlgItem(hwndDlg,IDC_REPLACE_SMILEYS), ServiceExists(MS_SMILEYADD_PARSE) ? SW_SHOW : SW_HIDE);
-			ShowWindow(GetDlgItem(hwndDlg,IDC_USE_PROTOCOL_SMILEYS), ServiceExists(MS_SMILEYADD_PARSE) ? SW_SHOW : SW_HIDE);
-			ShowWindow(GetDlgItem(hwndDlg,IDC_RESIZE_SMILEYS), ServiceExists(MS_SMILEYADD_PARSE) ? SW_SHOW : SW_HIDE);
-			ShowWindow(GetDlgItem(hwndDlg,IDC_DRAW_SMILEYS_ON_FIRST_LINE), ServiceExists(MS_SMILEYADD_PARSE) ? SW_SHOW : SW_HIDE);
+			ShowWindowNew(GetDlgItem(hwndDlg,IDC_REPLACE_SMILEYS), ServiceExists(MS_SMILEYADD_PARSE) ? SW_SHOW : SW_HIDE);
+			ShowWindowNew(GetDlgItem(hwndDlg,IDC_USE_PROTOCOL_SMILEYS), ServiceExists(MS_SMILEYADD_PARSE) ? SW_SHOW : SW_HIDE);
+			ShowWindowNew(GetDlgItem(hwndDlg,IDC_RESIZE_SMILEYS), ServiceExists(MS_SMILEYADD_PARSE) ? SW_SHOW : SW_HIDE);
+			ShowWindowNew(GetDlgItem(hwndDlg,IDC_DRAW_SMILEYS_ON_FIRST_LINE), ServiceExists(MS_SMILEYADD_PARSE) ? SW_SHOW : SW_HIDE);
 
 			if (!IsDlgButtonChecked(hwndDlg,IDC_REPLACE_SMILEYS))
 			{
@@ -788,8 +790,8 @@ static BOOL CALLBACK DlgProcItemSecondLineOpts(HWND hwndDlg, UINT msg, WPARAM wP
 					EnableWindow(GetDlgItem(hwndDlg,IDC_SHOW_STATUS_IF_NOAWAY),FALSE);
 			}
 
-			ShowWindow(GetDlgItem(hwndDlg,IDC_DRAW_SMILEYS), ServiceExists(MS_SMILEYADD_PARSE) ? SW_SHOW : SW_HIDE);
-			ShowWindow(GetDlgItem(hwndDlg,IDC_VARIABLES_L), ServiceExists(MS_VARS_FORMATSTRING) ? SW_SHOW : SW_HIDE);
+			ShowWindowNew(GetDlgItem(hwndDlg,IDC_DRAW_SMILEYS), ServiceExists(MS_SMILEYADD_PARSE) ? SW_SHOW : SW_HIDE);
+			ShowWindowNew(GetDlgItem(hwndDlg,IDC_VARIABLES_L), ServiceExists(MS_VARS_FORMATSTRING) ? SW_SHOW : SW_HIDE);
 
 			break;
 		}
@@ -972,8 +974,8 @@ static BOOL CALLBACK DlgProcItemThirdLineOpts(HWND hwndDlg, UINT msg, WPARAM wPa
 					EnableWindow(GetDlgItem(hwndDlg,IDC_SHOW_STATUS_IF_NOAWAY),FALSE);
 			}
 
-			ShowWindow(GetDlgItem(hwndDlg,IDC_DRAW_SMILEYS), ServiceExists(MS_SMILEYADD_PARSE) ? SW_SHOW : SW_HIDE);
-			ShowWindow(GetDlgItem(hwndDlg,IDC_VARIABLES_L), ServiceExists(MS_VARS_FORMATSTRING) ? SW_SHOW : SW_HIDE);
+			ShowWindowNew(GetDlgItem(hwndDlg,IDC_DRAW_SMILEYS), ServiceExists(MS_SMILEYADD_PARSE) ? SW_SHOW : SW_HIDE);
+			ShowWindowNew(GetDlgItem(hwndDlg,IDC_VARIABLES_L), ServiceExists(MS_VARS_FORMATSTRING) ? SW_SHOW : SW_HIDE);
 
 			break;
 		}
@@ -1078,7 +1080,7 @@ static BOOL CALLBACK DlgProcItemThirdLineOpts(HWND hwndDlg, UINT msg, WPARAM wPa
 }
 
 
-#define NUM_ITEM_OPTION_PAGES 7
+#define NUM_ITEM_OPTION_PAGES 8
 
 typedef struct _ItemOptionConf 
 { 
@@ -1101,12 +1103,17 @@ typedef struct _WndItemsData
 } WndItemsData; 
 
 ItemOptionConf opt_items[] = { { "Row", IDD_OPT_ITEM_ROW, DlgProcItemRowOpts },
+//{ "Row design", IDD_OPT_ITEM_NEWROW, DlgProcItemNewRowOpts },
 { "Avatar", IDD_OPT_ITEM_AVATAR, DlgProcItemAvatarOpts },
 { "Icon", IDD_OPT_ITEM_ICON, DlgProcItemIconOpts },
 { "Contact time", IDD_OPT_ITEM_CONTACT_TIME, DlgProcItemContactTimeOpts },
 { "Text", IDD_OPT_ITEM_TEXT, DlgProcItemTextOpts },
 { "Second Line", IDD_OPT_ITEM_SECOND_LINE, DlgProcItemSecondLineOpts },
-{ "Third Line", IDD_OPT_ITEM_THIRD_LINE, DlgProcItemThirdLineOpts } };
+{ "Third Line", IDD_OPT_ITEM_THIRD_LINE, DlgProcItemThirdLineOpts },
+{ "Extra Icons", IDD_OPT_ITEM_EXTRAICONS, DlgProcExtraIconsOpts}
+};
+
+
 
 
 // DoLockDlgRes - loads and locks a dialog template resource. 
@@ -1138,6 +1145,9 @@ static void ChangeTab(HWND hwndDlg, WndItemsData *data, int sel)
 	ScreenToClientRect(hwndTab, &rc_tab);
 	TabCtrl_AdjustRect(hwndTab, FALSE, &rc_tab); 
 
+
+
+
 	// Get item size
 	GetClientRect(data->items[sel].hwnd, &rc_item);
 
@@ -1146,6 +1156,8 @@ static void ChangeTab(HWND hwndDlg, WndItemsData *data, int sel)
 	rc_item.left = 0;
 	rc_item.bottom -= rc_item.top;	// height
 	rc_item.top = 0;
+
+	//OffsetRect(&rc_item,30,0);
 
 	if (rc_item.right < rc_tab.right - rc_tab.left)
 		rc_item.left = rc_tab.left + (rc_tab.right - rc_tab.left - rc_item.right) / 2;
@@ -1197,7 +1209,7 @@ static BOOL CALLBACK DlgProcItemsOpts(HWND hwndDlg, UINT msg, WPARAM wParam, LPA
 				data->items[i].hwnd = CreateDialogIndirect(g_hInst, templ, hwndDlg, 
 					data->items[i].conf->wnd_proc); 
 				TranslateDialogDefault(data->items[i].hwnd);
-				ShowWindow(data->items[i].hwnd, SW_HIDE);
+				ShowWindowNew(data->items[i].hwnd, SW_HIDE);
 
 				tie.pszText = Translate(data->items[i].conf->name); 
 				TabCtrl_InsertItem(hwndTab, i, &tie);
@@ -1207,7 +1219,8 @@ static BOOL CALLBACK DlgProcItemsOpts(HWND hwndDlg, UINT msg, WPARAM wParam, LPA
 			GetWindowRect(hwndTab, &rc_tab);
 			ScreenToClientRect(hwndTab, &rc_tab);
 			TabCtrl_AdjustRect(hwndTab, FALSE, &rc_tab); 
-
+			rc_tab.left+=3;
+			rc_tab.right-=3;
 			// Create big display
 			data->hwndDisplay = CreateWindow(TEXT("STATIC"), TEXT(""), WS_CHILD|WS_VISIBLE, 
 				rc_tab.left, rc_tab.top, 
@@ -1227,7 +1240,7 @@ static BOOL CALLBACK DlgProcItemsOpts(HWND hwndDlg, UINT msg, WPARAM wParam, LPA
 			case TCN_SELCHANGING:
 				{
 					WndItemsData *data = (WndItemsData *) GetWindowLong(hwndDlg, GWL_USERDATA);
-					ShowWindow(data->items[data->selected_item].hwnd, SW_HIDE);
+					ShowWindowNew(data->items[data->selected_item].hwnd, SW_HIDE);
 					break;
 				}
 			case TCN_SELCHANGE: 
@@ -1334,14 +1347,14 @@ static BOOL CALLBACK DlgProcGenOpts(HWND hwndDlg, UINT msg, WPARAM wParam, LPARA
 		EnableWindow(GetDlgItem(hwndDlg,IDC_HIDETIME),IsDlgButtonChecked(hwndDlg,IDC_AUTOHIDE));
 		EnableWindow(GetDlgItem(hwndDlg,IDC_HIDETIMESPIN),IsDlgButtonChecked(hwndDlg,IDC_AUTOHIDE));
 		{	DWORD caps=CallService(MS_CLUI_GETCAPS,CLUICAPS_FLAGS1,0);
-		if(!(caps&CLUIF_HIDEEMPTYGROUPS)) ShowWindow(GetDlgItem(hwndDlg,IDC_HIDEEMPTYGROUPS),SW_HIDE);
-		if(!(caps&CLUIF_DISABLEGROUPS)) ShowWindow(GetDlgItem(hwndDlg,IDC_DISABLEGROUPS),SW_HIDE);
-		if(caps&CLUIF_HASONTOPOPTION) ShowWindow(GetDlgItem(hwndDlg,IDC_ONTOP),SW_HIDE);
+		if(!(caps&CLUIF_HIDEEMPTYGROUPS)) ShowWindowNew(GetDlgItem(hwndDlg,IDC_HIDEEMPTYGROUPS),SW_HIDE);
+		if(!(caps&CLUIF_DISABLEGROUPS)) ShowWindowNew(GetDlgItem(hwndDlg,IDC_DISABLEGROUPS),SW_HIDE);
+		if(caps&CLUIF_HASONTOPOPTION) ShowWindowNew(GetDlgItem(hwndDlg,IDC_ONTOP),SW_HIDE);
 		if(caps&CLUIF_HASAUTOHIDEOPTION) {
-			ShowWindow(GetDlgItem(hwndDlg,IDC_AUTOHIDE),SW_HIDE);
-			ShowWindow(GetDlgItem(hwndDlg,IDC_HIDETIME),SW_HIDE);
-			ShowWindow(GetDlgItem(hwndDlg,IDC_HIDETIMESPIN),SW_HIDE);
-			ShowWindow(GetDlgItem(hwndDlg,IDC_STAUTOHIDESECS),SW_HIDE);
+			ShowWindowNew(GetDlgItem(hwndDlg,IDC_AUTOHIDE),SW_HIDE);
+			ShowWindowNew(GetDlgItem(hwndDlg,IDC_HIDETIME),SW_HIDE);
+			ShowWindowNew(GetDlgItem(hwndDlg,IDC_HIDETIMESPIN),SW_HIDE);
+			ShowWindowNew(GetDlgItem(hwndDlg,IDC_STAUTOHIDESECS),SW_HIDE);
 		}
 		}
 		SendDlgItemMessage(hwndDlg,IDC_HIDETIMESPIN,UDM_SETRANGE,0,MAKELONG(900,1));

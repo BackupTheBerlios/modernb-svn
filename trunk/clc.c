@@ -1198,10 +1198,10 @@ static LRESULT CALLBACK ContactListControlWndProc(HWND hwnd, UINT msg, WPARAM wP
 		{
 			HWND h;
 			h=GetParent(hwnd);  
-			if (h!=hwndContactList)
+			if (h!=hwndContactList || !LayeredFlag)
 			{       
 				hdc=BeginPaint(hwnd,&ps);
-				PaintClc(hwnd,dat,hdc,&ps.rcPaint);
+				PaintClc(hwnd,dat,ps.hdc,&ps.rcPaint);
 				EndPaint(hwnd,&ps);
 			}
 			else InvalidateFrameImage((WPARAM)hwnd,0);

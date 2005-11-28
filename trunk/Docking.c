@@ -162,7 +162,7 @@ int Docking_ProcessWindowMessage(WPARAM wParam,LPARAM lParam)
 			SHAppBarMessage(ABM_ACTIVATE,&abd);
 			return 0;
    case WM_SIZE:
-      ReposButtons(msg->hwnd,0,NULL);
+      ReposButtons(msg->hwnd,1,NULL);
       return 0;
 
 		case WM_WINDOWPOSCHANGED:
@@ -263,7 +263,7 @@ int Docking_ProcessWindowMessage(WPARAM wParam,LPARAM lParam)
        
 				return 1;
 			}
-      ReposButtons(msg->hwnd,0,NULL);
+      ReposButtons(msg->hwnd,2,NULL);
 			return 0;
 		}
 		case WM_SIZING:
@@ -360,7 +360,7 @@ int Docking_ProcessWindowMessage(WPARAM wParam,LPARAM lParam)
 		case WM_DOCKCALLBACK:
 			switch(msg->wParam) {
 				case ABN_WINDOWARRANGE:
-					ShowWindow(msg->hwnd,msg->lParam?SW_HIDE:SW_SHOW);
+					ShowWindowNew(msg->hwnd,msg->lParam?SW_HIDE:SW_SHOW);
                     {
 
 						RECT rc, rcMonitor;

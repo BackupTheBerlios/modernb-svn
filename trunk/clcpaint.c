@@ -686,20 +686,28 @@ void InternalPaintRowItems(HWND hwnd, HDC hdcMem, struct ClcData *dat, struct Cl
 				// Has to draw!
 
 				// Get size
-				if (dat->use_avatar_service)
+        if (dat->use_avatar_service)         
 				{
-					// Make bounds -> keep aspect radio
-					// Clipping width and height
-					width = dat->avatars_size;
-					height = dat->avatars_size;       
-					if (height * Drawing->avatar_data->bmWidth / Drawing->avatar_data->bmHeight <= width)
+          if (Drawing->avatar_data && Drawing->avatar_data->bmHeight && Drawing->avatar_data->bmWidth)
+          {
+					  // Make bounds -> keep aspect radio
+					  // Clipping width and height
+					  width = dat->avatars_size;
+					  height = dat->avatars_size;       
+  					if (height * Drawing->avatar_data->bmWidth / Drawing->avatar_data->bmHeight <= width)
 					{
 						width = height * Drawing->avatar_data->bmWidth / Drawing->avatar_data->bmHeight;
 					}
-					else
+ 					  else
 					{
 						height = width * Drawing->avatar_data->bmHeight / Drawing->avatar_data->bmWidth;					
 					}
+          }
+          else
+          {
+            width = 0;//dat->avatars_size;
+					  height =0;// dat->avatars_size;  
+          }
 				}
 				else
 				{
@@ -1583,14 +1591,16 @@ void InternalPaintRowItems(HWND hwnd, HDC hdcMem, struct ClcData *dat, struct Cl
 
 void InternalPaintClc(HWND hwnd,struct ClcData *dat,HDC hdc,RECT *rcPaint)
 {
-	HDC hdcMem;
-	HBITMAP oldbmp;
+	HDC hdcMem=NULL;
+	HDC hdcMem2=NULL;
+	HBITMAP oldbmp,oldbmp2;
 	RECT clRect;
 	HFONT hdcMemOldFont;
 	int y,indent,subident, subindex, line_num;
 	struct ClcContact *Drawing;
 	struct ClcGroup *group;
-	HBITMAP hBmpOsb;
+	HBITMAP hBmpOsb=NULL;
+	HBITMAP hBmpOsb2=NULL;
 	DWORD style=GetWindowLong(hwnd,GWL_STYLE);
 	int status=GetGeneralisedStatus();
 	int grey=0; //,groupCountsFontTopShift;
@@ -1615,12 +1625,18 @@ void InternalPaintClc(HWND hwnd,struct ClcData *dat,HDC hdc,RECT *rcPaint)
 	if(rcPaint==NULL) rcPaint=&clRect;
 	if(IsRectEmpty(rcPaint)) return;
 	y=-dat->yScroll;
-	if (!(NotInMain || dat->force_in_dialog))
+	if (grey && (!LayeredFlag))
+	{
+		hdcMem2=CreateCompatibleDC(hdc);
+		hBmpOsb2=CreateBitmap32(clRect.right,clRect.bottom);//,1,GetDeviceCaps(hdc,BITSPIXEL),NULL);
+		oldbmp2=(HBITMAP)  SelectObject(hdcMem2,hBmpOsb2);
+	}
+	if (!(NotInMain || dat->force_in_dialog || !LayeredFlag ||grey))
 		hdcMem=hdc;
 	else
 		hdcMem=CreateCompatibleDC(hdc);
 	hdcMemOldFont=GetCurrentObject(hdcMem,OBJ_FONT);
-	if (NotInMain || dat->force_in_dialog)
+	if (NotInMain || dat->force_in_dialog || !LayeredFlag || grey)
 	{
 		hBmpOsb=CreateBitmap32(clRect.right,clRect.bottom);//,1,GetDeviceCaps(hdc,BITSPIXEL),NULL);
 		oldbmp=(HBITMAP)  SelectObject(hdcMem,hBmpOsb);
@@ -1657,7 +1673,13 @@ void InternalPaintClc(HWND hwnd,struct ClcData *dat,HDC hdc,RECT *rcPaint)
 		FillRect255Alpha(hdcMem,rcPaint);
 	}
 	else
+	{
+		if (!LayeredFlag)
+		{
+			BltBackImage(hwnd,grey?hdcMem2:hdcMem,rcPaint);
+		}
 		SkinDrawGlyph(hdcMem,&clRect,rcPaint,"CL,ID=Background");
+	}
 
 	// Draw lines
 	group=&dat->list;
@@ -1665,16 +1687,23 @@ void InternalPaintClc(HWND hwnd,struct ClcData *dat,HDC hdc,RECT *rcPaint)
 	indent=0;
 	subindex=-1;
 	line_num = -1;
-	if (!dat->row_heights ) 
+	//---
+	if (dat->row_heights ) 
 	{
-		if (NotInMain || dat->force_in_dialog)
-		{
-			SelectObject(hdcMem,oldbmp);
-			DeleteObject(hBmpOsb);
-			DeleteDC(hdcMem);
-		}
-		return;
-	}
+	//	if (NotInMain || dat->force_in_dialog|| !LayeredFlag ||grey)
+	//	{
+	//		SelectObject(hdcMem,oldbmp);
+	//		DeleteObject(hBmpOsb);
+	//		DeleteDC(hdcMem);
+	//	}
+	//	if (grey && (!LayeredFlag))
+	//	{
+	//		SelectObject(hdcMem2,oldbmp2);
+	//		DeleteObject(hBmpOsb2);
+	//		DeleteDC(hdcMem2);
+	//	}
+	//	return;
+	//}
 	//EnterCriticalSection(&(dat->lockitemCS));
 	while(y < rcPaint->bottom)
 	{
@@ -1726,23 +1755,16 @@ void InternalPaintClc(HWND hwnd,struct ClcData *dat,HDC hdc,RECT *rcPaint)
 			if (request) mir_free(request);
 
 			// Something to draw?
-			if (!Drawing)    
+			if (!(!Drawing || IsBadCodePtr((FARPROC)Drawing)))
 			{
 
-				SelectObject(hdcMem,oldbmp);
+		/*		SelectObject(hdcMem,oldbmp);
 				DeleteObject(hBmpOsb);
 				DeleteDC(hdcMem);
 				//LeaveCriticalSection(&(dat->lockitemCS));
 				return;
-			};
-			if (IsBadCodePtr((FARPROC)Drawing))    
-			{
-				SelectObject(hdcMem,oldbmp);
-				DeleteObject(hBmpOsb);
-				DeleteDC(hdcMem);
-				//LeaveCriticalSection(&(dat->lockitemCS));
-				return;
-			};
+				*/
+			
 			// Calc row height
 			RowHeights_GetRowHeight(dat, hwnd, Drawing, line_num);
 			/*-        {
@@ -1892,6 +1914,7 @@ void InternalPaintClc(HWND hwnd,struct ClcData *dat,HDC hdc,RECT *rcPaint)
 				request=NULL;
 			}
 		}
+		}
 
 
 		// if (y > rcPaint->top - dat->row_heights[line_num] && y < rcPaint->bottom) 
@@ -1927,6 +1950,8 @@ void InternalPaintClc(HWND hwnd,struct ClcData *dat,HDC hdc,RECT *rcPaint)
 		}
 	}
 
+	//---
+	}
 	//LeaveCriticalSection(&(dat->lockitemCS));
 	SelectClipRgn(hdcMem, NULL);
 	if(dat->iInsertionMark!=-1) {	//insertion mark
@@ -1951,18 +1976,28 @@ void InternalPaintClc(HWND hwnd,struct ClcData *dat,HDC hdc,RECT *rcPaint)
 	}
 	if(!grey)
 	{
-		if (NotInMain || dat->force_in_dialog)
+		if (NotInMain || dat->force_in_dialog || !LayeredFlag)
 		{
 			BitBlt(hdc,rcPaint->left,rcPaint->top,rcPaint->right-rcPaint->left,rcPaint->bottom-rcPaint->top,hdcMem,rcPaint->left,rcPaint->top,SRCCOPY);
 		}
 	}
 	if(hBrushAlternateGrey) DeleteObject(hBrushAlternateGrey);
-	if(grey) {
+	if(grey && hdc && hdc!=hdcMem)
+	{
+		BLENDFUNCTION bf={AC_SRC_OVER, 0, 80, AC_SRC_ALPHA }; 
+		BOOL a=(grey && (!LayeredFlag));
+		MyAlphaBlend(a?hdcMem2:hdc,rcPaint->left,rcPaint->top,rcPaint->right-rcPaint->left,rcPaint->bottom-rcPaint->top,hdcMem,rcPaint->left,rcPaint->top,rcPaint->right-rcPaint->left,rcPaint->bottom-rcPaint->top,bf);
+		if (a)
+			BitBlt(hdc,rcPaint->left,rcPaint->top,rcPaint->right-rcPaint->left,rcPaint->bottom-rcPaint->top,hdcMem2,rcPaint->left,rcPaint->top,SRCCOPY);
+	}
+		/* {
 		PBYTE bits;
 		BITMAPINFOHEADER bmih={0};
 		int i;
 		int greyRed,greyGreen,greyBlue;
 		COLORREF greyColour;
+		if (!hBmpOsb) 
+			hBmpOsb=GetCurrentObject(hdc,OBJ_BITMAP);
 		bmih.biBitCount=32;
 		bmih.biSize=sizeof(bmih);
 		bmih.biCompression=BI_RGB;
@@ -1985,7 +2020,7 @@ void InternalPaintClc(HWND hwnd,struct ClcData *dat,HDC hdc,RECT *rcPaint)
 		}
 		SetDIBitsToDevice(hdc,0,0,clRect.right,clRect.bottom,0,0,0,clRect.bottom,bits,(BITMAPINFO*)&bmih,DIB_RGB_COLORS);
 		mir_free(bits);
-	}
+	}*/
 
 	// Restore some draw states
 	if (old_bk_mode != TRANSPARENT)
@@ -1994,11 +2029,17 @@ void InternalPaintClc(HWND hwnd,struct ClcData *dat,HDC hdc,RECT *rcPaint)
 	if (old_stretch_mode != HALFTONE)
 		SetStretchBltMode(hdcMem, old_stretch_mode);
 	SelectObject(hdcMem,hdcMemOldFont);
-	if (NotInMain || dat->force_in_dialog)
+	if (NotInMain || dat->force_in_dialog || !LayeredFlag ||grey)
 	{
 		SelectObject(hdcMem,oldbmp);
 		DeleteObject(hBmpOsb);
 		DeleteDC(hdcMem);
+	}
+	if (grey && (!LayeredFlag))
+	{
+		SelectObject(hdcMem2,oldbmp2);
+		DeleteObject(hBmpOsb2);
+		DeleteDC(hdcMem2);
 	}
 
 

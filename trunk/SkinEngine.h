@@ -87,5 +87,22 @@ pfnImgGetHandle ImgGetHandle;
 int GetSkinFromDB(char * szSection, SKINOBJECTSLIST * Skin);
 int PutSkinToDB(char * szSection, SKINOBJECTSLIST * Skin);
 extern int UpdateWindowImageProc(BOOL WholeImage);
+typedef struct _sCurrentWindowImageData
+{
+	HDC hImageDC;
+	HDC hBackDC;
+	HDC hScreenDC;
+	HBITMAP hImageDIB, hImageOld;
+	HBITMAP hBackDIB, hBackOld;
+	BYTE * hImageDIBByte;
+	BYTE * hBackDIBByte;
+
+	int Width,Height;
+
+}sCurrentWindowImageData;
+
+extern int ReCreateBackImage(BOOL Erase,RECT *w);
 
 #endif
+
+

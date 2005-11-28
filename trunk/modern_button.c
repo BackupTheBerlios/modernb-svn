@@ -25,6 +25,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 This file contains code related to new modern free positioned skinned buttons
 */
 #include "commonheaders.h" 
+#include "SkinEngine.h"
 
 #define MODERNBUTTONCLASS "MirandaModernButtonClass"
 
@@ -109,8 +110,9 @@ int PaintWorker(HWND hwnd, HDC whdc)
   ModernButtonCtrl* bct =  (ModernButtonCtrl *)GetWindowLong(hwnd, 0);
   if (!bct) return 0;
   if (!IsWindowVisible(hwnd)) return 0;
+  if (!whdc && !LayeredFlag) InvalidateRect(hwnd,NULL,FALSE);
 
-  if (whdc) hdc=whdc;
+  if (whdc && LayeredFlag) hdc=whdc;
   else 
   {
     //sdc=GetWindowDC(GetParent(hwnd));
@@ -119,6 +121,8 @@ int PaintWorker(HWND hwnd, HDC whdc)
   GetClientRect(hwnd,&rc);
   bmp=CreateBitmap32(rc.right,rc.bottom);
   oldbmp=SelectObject(hdc,bmp);
+  if (!LayeredFlag)
+	BltBackImage(bct->hwnd,hdc,NULL);
   {
     char Request[250];
     //   int res;
@@ -179,16 +183,22 @@ int PaintWorker(HWND hwnd, HDC whdc)
     // DeleteObject(br);
   }
 
-  if (!whdc) 
+  if (!whdc && LayeredFlag) 
   {
     RECT r;
     SetRect(&r,bct->Left,bct->Top,bct->Right,bct->Bottom);
     SkinDrawImageAt(hdc,&r);
     //CallingService to immeadeately update window with new image.
   }
+  if (whdc && !LayeredFlag)
+  {
+	  RECT r={0};
+	  GetClientRect(bct->hwnd,&r);
+	  BitBlt(whdc,0,0,r.right,r.bottom,hdc,0,0,SRCCOPY);
+  }
   SelectObject(hdc,oldbmp);
   DeleteObject(bmp);
-  if (!whdc) DeleteDC(hdc);
+  if (!whdc || !LayeredFlag) DeleteDC(hdc);
 //  if (sdc) 
 //    ReleaseDC(GetParent(hwnd),sdc);
   return 0;
@@ -344,6 +354,17 @@ static LRESULT CALLBACK ModernButtonWndProc(HWND hwndDlg, UINT msg,  WPARAM wPar
             PaintWorker(hwndDlg,(HDC)wParam);
           break;
         }
+	  case WM_PAINT:
+		  {
+			  if (IsWindowVisible(hwndDlg) && !LayeredFlag)
+			  {
+				  PAINTSTRUCT ps={0};
+				  BeginPaint(hwndDlg,&ps);
+				  PaintWorker(hwndDlg,(HDC)ps.hdc);
+				  EndPaint(hwndDlg,&ps);
+			  }
+			  return DefWindowProc(hwndDlg, msg, wParam, lParam); 
+		  }
       case WM_CAPTURECHANGED:
         {                
           bct->hover=0;
@@ -523,7 +544,33 @@ int AddButton(HWND parent,
     Buttons[ButtonsCount].minH=MinHeight;
     Buttons[ButtonsCount].minW=MinWidth;
     ButtonsCount++;
-    //  ShowWindow(hwnd,SW_SHOW);
+    //  ShowWindowNew(hwnd,SW_SHOW);
+  }
+  return 0;
+}
+
+extern sCurrentWindowImageData * cachedWindow;
+int EraseButton(int l,int t,int r, int b)
+{
+  DWORD i;
+  if (!LayeredFlag) return 0;
+  if (!cachedWindow) return 0;
+  if (!cachedWindow->hImageDC ||!cachedWindow->hBackDC) return 0;
+  if (!(l||r||t||b))
+  {
+    for(i=0; i<ButtonsCount; i++)
+    {
+      if (hwndContactList && Buttons[i].hwnd!=NULL)      
+      {
+        //TODO: Erase button
+        BitBlt(cachedWindow->hImageDC,Buttons[i].bct->Left,Buttons[i].bct->Top,Buttons[i].bct->Right-Buttons[i].bct->Left,Buttons[i].bct->Bottom-Buttons[i].bct->Top,
+              cachedWindow->hBackDC,Buttons[i].bct->Left,Buttons[i].bct->Top,SRCCOPY);
+      }
+    }
+  }
+  else
+  {
+    BitBlt(cachedWindow->hImageDC,l,t,r-l,b-t, cachedWindow->hBackDC,l,t,SRCCOPY);
   }
   return 0;
 }
@@ -538,7 +585,9 @@ HWND CreateButtonWindow(ModernButtonCtrl * bct, HWND parent)
   SetWindowLong(hwnd, 0, (LONG)bct);
   return hwnd;
 }
-int RedrawButtons()
+
+
+int RedrawButtons(HDC hdc)
 {
   DWORD i;
   for(i=0; i<ButtonsCount; i++)
@@ -559,37 +608,72 @@ int DeleteButtons()
   return 0;
 }
 
+SIZE oldWndSize={0};
 
 int ReposButtons(HWND parent, BOOL draw, RECT * r)
 {
   DWORD i;
   RECT rc;
-  //GetClientRect(parent,&rc);
+  RECT clr;
+  RECT rd;
+  BOOL altDraw=FALSE;
+  GetWindowRect(parent,&rd);
+  GetClientRect(parent,&clr);
   if (!r)
-  GetWindowRect(parent,&rc);
+    GetWindowRect(parent,&rc);  
   else
 	  rc=*r;
+  if (LayeredFlag && draw&2)
+  {
+    int sx,sy;
+    sx=rd.right-rd.left;
+    sy=rd.bottom-rd.top;
+    if (sx!=oldWndSize.cx || sy!=oldWndSize.cy)
+      altDraw=TRUE;//EraseButtons();
+    oldWndSize.cx=sx;
+    oldWndSize.cy=sy;
+  }
+
+
   OffsetRect(&rc,-rc.left,-rc.top);
+  rc.right=rc.left+(clr.right-clr.left);
+  rc.bottom=rc.top+(clr.bottom-clr.top);
   for(i=0; i<ButtonsCount; i++)
   {
     int l,r,b,t;
+    RECT oldRect={0};
     int AlignedTo=Buttons[i].ConstrainPositionFrom;
     if (parent && Buttons[i].hwnd==NULL)
+    {
       Buttons[i].hwnd=CreateButtonWindow(Buttons[i].bct,parent);
+      altDraw=FALSE;
+    }
     l=(AlignedTo&1)?rc.right+Buttons[i].OrL:((AlignedTo&2)?((rc.left+rc.right)>>1)+Buttons[i].OrL:rc.left+Buttons[i].OrL);
     t=(AlignedTo&4)?rc.bottom+Buttons[i].OrT:((AlignedTo&8)?((rc.top+rc.bottom)>>1)+Buttons[i].OrT:rc.top+Buttons[i].OrT);
     r=(AlignedTo&16)?rc.right+Buttons[i].OrR:((AlignedTo&32)?((rc.left+rc.right)>>1)+Buttons[i].OrR:rc.left+Buttons[i].OrR);
     b=(AlignedTo&64)?rc.bottom+Buttons[i].OrB:((AlignedTo&128)?((rc.top+rc.bottom)>>1)+Buttons[i].OrB:rc.top+Buttons[i].OrB);
     SetWindowPos(Buttons[i].hwnd,HWND_TOP,l,t,r-l,b-t,0);
     if (rc.right-rc.left<Buttons[i].minW || rc.bottom-rc.top<Buttons[i].minH)
-      ShowWindow(Buttons[i].hwnd,SW_HIDE);
+      ShowWindowNew(Buttons[i].hwnd,SW_HIDE);
     else 
-      ShowWindow(Buttons[i].hwnd,SW_SHOW);
+      ShowWindowNew(Buttons[i].hwnd,SW_SHOW);
+    if (altDraw&&
+        (Buttons[i].bct->Left!=l ||
+          Buttons[i].bct->Top!=t  ||
+          Buttons[i].bct->Right!=r||
+          Buttons[i].bct->Bottom!=b))
+    {
+      //Need to erase in old location
+      EraseButton(Buttons[i].bct->Left,Buttons[i].bct->Top,Buttons[i].bct->Right,Buttons[i].bct->Bottom);
+    }
+
     Buttons[i].bct->Left=l;
     Buttons[i].bct->Top=t;
     Buttons[i].bct->Right=r;
     Buttons[i].bct->Bottom=b;
+
+
   }
-  if (draw) RedrawButtons();
+  if (draw &1) RedrawButtons(0);
   return 0;
 }

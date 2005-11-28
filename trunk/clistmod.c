@@ -98,17 +98,17 @@ static HANDLE hSettingChanged;
 ////////// By FYR/////////////
 int ExtIconFromStatusMode(HANDLE hContact, const char *szProto,int status)
 {
-    if (DBGetContactSettingByte(NULL,"CLC","Meta",0)==1)
-        return IconFromStatusMode(szProto,status);
-    if (szProto!=NULL)
-        if (MyStrCmp(szProto,"MetaContacts")==0)      {
-            hContact=(HANDLE)CallService(MS_MC_GETMOSTONLINECONTACT,(UINT)hContact,0);
-            if (hContact!=0)            {
-                szProto=(char*)CallService(MS_PROTO_GETCONTACTBASEPROTO,(UINT)hContact,0);
-                status=DBGetContactSettingWord(hContact,szProto,"Status",ID_STATUS_OFFLINE);
-            }
-        }
-    return IconFromStatusMode(szProto,status);
+	if (DBGetContactSettingByte(NULL,"CLC","Meta",0)==1)
+		return IconFromStatusMode(szProto,status);
+	if (szProto!=NULL)
+		if (MyStrCmp(szProto,"MetaContacts")==0)      {
+			hContact=(HANDLE)CallService(MS_MC_GETMOSTONLINECONTACT,(UINT)hContact,0);
+			if (hContact!=0)            {
+				szProto=(char*)CallService(MS_PROTO_GETCONTACTBASEPROTO,(UINT)hContact,0);
+				status=DBGetContactSettingWord(hContact,szProto,"Status",ID_STATUS_OFFLINE);
+			}
+		}
+		return IconFromStatusMode(szProto,status);
 }
 /////////// End by FYR ////////
 
@@ -131,24 +131,24 @@ static int GetStatusModeDescription(WPARAM wParam,LPARAM lParam)
 	char *descr;
 	int noPrefixReqd=0;
 	switch(wParam) {
-		case ID_STATUS_OFFLINE:	descr=Translate("Offline"); noPrefixReqd=1; break;
-		case ID_STATUS_CONNECTING: descr=Translate("Connecting"); noPrefixReqd=1; break;
-		case ID_STATUS_ONLINE: descr=Translate("Online"); noPrefixReqd=1; break;
-		case ID_STATUS_AWAY: descr=Translate("Away"); break;
-		case ID_STATUS_DND:	descr=Translate("DND"); break;
-		case ID_STATUS_NA: descr=Translate("NA"); break;
-		case ID_STATUS_OCCUPIED: descr=Translate("Occupied"); break;
-		case ID_STATUS_FREECHAT: descr=Translate("Free for chat"); break;
-		case ID_STATUS_INVISIBLE: descr=Translate("Invisible"); break;
-		case ID_STATUS_OUTTOLUNCH: descr=Translate("Out to lunch"); break;
-		case ID_STATUS_ONTHEPHONE: descr=Translate("On the phone"); break;
-		case ID_STATUS_IDLE: descr=Translate("Idle"); break;
-		default:
-			if(wParam>ID_STATUS_CONNECTING && wParam<ID_STATUS_CONNECTING+MAX_CONNECT_RETRIES) {
-				sprintf(szMode,TranslateT("Connecting (attempt %d)"),wParam-ID_STATUS_CONNECTING+1);
-				return (int)szMode;
-			}
-			return (int)(char*)NULL;
+case ID_STATUS_OFFLINE:	descr=Translate("Offline"); noPrefixReqd=1; break;
+case ID_STATUS_CONNECTING: descr=Translate("Connecting"); noPrefixReqd=1; break;
+case ID_STATUS_ONLINE: descr=Translate("Online"); noPrefixReqd=1; break;
+case ID_STATUS_AWAY: descr=Translate("Away"); break;
+case ID_STATUS_DND:	descr=Translate("DND"); break;
+case ID_STATUS_NA: descr=Translate("NA"); break;
+case ID_STATUS_OCCUPIED: descr=Translate("Occupied"); break;
+case ID_STATUS_FREECHAT: descr=Translate("Free for chat"); break;
+case ID_STATUS_INVISIBLE: descr=Translate("Invisible"); break;
+case ID_STATUS_OUTTOLUNCH: descr=Translate("Out to lunch"); break;
+case ID_STATUS_ONTHEPHONE: descr=Translate("On the phone"); break;
+case ID_STATUS_IDLE: descr=Translate("Idle"); break;
+default:
+	if(wParam>ID_STATUS_CONNECTING && wParam<ID_STATUS_CONNECTING+MAX_CONNECT_RETRIES) {
+		sprintf(szMode,TranslateT("Connecting (attempt %d)"),wParam-ID_STATUS_CONNECTING+1);
+		return (int)szMode;
+	}
+	return (int)(char*)NULL;
 	}
 	if(noPrefixReqd || !(lParam&GSMDF_PREFIXONLINE)) return (int)descr;
 	lstrcpyA(szMode,Translate("Online"));
@@ -161,19 +161,19 @@ static int ProtocolAck(WPARAM wParam,LPARAM lParam)
 {
 	ACKDATA *ack=(ACKDATA*)lParam;
 
-/*	if (ack->type==ACKTYPE_AWAYMSG && ack->lParam) {
-		DBVARIANT dbv;
-		if (!DBGetContactSetting(ack->hContact, "CList", "StatusMsg", &dbv)) {
-			if (!MyStrCmp(dbv.pszVal, (char *)ack->lParam)) {
-				DBFreeVariant(&dbv);
-				return 0;
-			}
-			DBFreeVariant(&dbv);
-		}
-		DBWriteContactSettingString(ack->hContact, "CList", "StatusMsg", (char *)ack->lParam);
-		return 0;
+	/*	if (ack->type==ACKTYPE_AWAYMSG && ack->lParam) {
+	DBVARIANT dbv;
+	if (!DBGetContactSetting(ack->hContact, "CList", "StatusMsg", &dbv)) {
+	if (!MyStrCmp(dbv.pszVal, (char *)ack->lParam)) {
+	DBFreeVariant(&dbv);
+	return 0;
 	}
-*/
+	DBFreeVariant(&dbv);
+	}
+	DBWriteContactSettingString(ack->hContact, "CList", "StatusMsg", (char *)ack->lParam);
+	return 0;
+	}
+	*/
 	if(ack->type!=ACKTYPE_STATUS) return 0;
 	CallService(MS_CLUI_PROTOCOLSTATUSCHANGED,ack->lParam,(LPARAM)ack->szModule);
 
@@ -226,7 +226,7 @@ int GetContactIcon(WPARAM wParam,LPARAM lParam)
 {
 	char *szProto;
 	int status;
-	
+
 	pdisplayNameCacheEntry cacheEntry;
 	cacheEntry=GetContactFullCacheEntry((HANDLE)wParam);
 
@@ -264,7 +264,7 @@ static int ContactListModulesLoaded(WPARAM wParam,LPARAM lParam)
 {
 	int i,protoCount,j,iImg;
 	PROTOCOLDESCRIPTOR **protoList;
-    TRACE("ContactListModulesLoaded Start\r\n");
+	TRACE("ContactListModulesLoaded Start\r\n");
 
 	CallService(MS_PROTO_ENUMPROTOCOLS,(WPARAM)&protoCount,(LPARAM)&protoList);
 	protoIconIndexCount=0;
@@ -279,7 +279,7 @@ static int ContactListModulesLoaded(WPARAM wParam,LPARAM lParam)
 		}
 		protoIconIndexCount++;
 	}
-//	LoadContactTree();
+	//	LoadContactTree();
 	TRACE("ContactListModulesLoaded Done\r\n");
 	return 0;
 }
@@ -300,62 +300,62 @@ static int ContactDoubleClicked(WPARAM wParam,LPARAM lParam)
 static BOOL CALLBACK AskForConfirmationDlgProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 {
 
-    switch (msg)
+	switch (msg)
 	{
-		case WM_INITDIALOG:
+	case WM_INITDIALOG:
+		{
+			TranslateDialogDefault(hWnd);
 			{
-				TranslateDialogDefault(hWnd);
-				{
-					LOGFONTA lf;
-					HFONT hFont;
+				LOGFONTA lf;
+				HFONT hFont;
 
-					hFont = (HFONT)SendDlgItemMessage(hWnd, IDYES, WM_GETFONT, 0, 0);
-					GetObject(hFont, sizeof(lf), &lf);
-					lf.lfWeight = FW_BOLD;
-					SendDlgItemMessage(hWnd, IDC_TOPLINE, WM_SETFONT, (WPARAM)CreateFontIndirect(&lf), 0);
-				}
-				{
-					TCHAR szFormat[256];
-					TCHAR szFinal[256];
-					TCHAR * ch=(TCHAR*)CallService(MS_CLIST_GETCONTACTDISPLAYNAME, lParam, 0); //TODO UNICODE
-					GetDlgItemText(hWnd, IDC_TOPLINE, szFormat, sizeof(szFormat));
-					_sntprintf(szFinal, sizeof(szFinal), szFormat, ch);
-					SetDlgItemText(hWnd, IDC_TOPLINE, szFinal);
-					mir_free(ch);
-				}
-				SetWindowPos(hWnd, HWND_TOPMOST, 0, 0, 0, 0, SWP_NOMOVE|SWP_NOSIZE);
-				return TRUE;
+				hFont = (HFONT)SendDlgItemMessage(hWnd, IDYES, WM_GETFONT, 0, 0);
+				GetObject(hFont, sizeof(lf), &lf);
+				lf.lfWeight = FW_BOLD;
+				SendDlgItemMessage(hWnd, IDC_TOPLINE, WM_SETFONT, (WPARAM)CreateFontIndirect(&lf), 0);
 			}
-
-		case WM_COMMAND:
 			{
-				switch (LOWORD(wParam))
+				TCHAR szFormat[256];
+				TCHAR szFinal[256];
+				TCHAR * ch=(TCHAR*)CallService(MS_CLIST_GETCONTACTDISPLAYNAME, lParam, 0); //TODO UNICODE
+				GetDlgItemText(hWnd, IDC_TOPLINE, szFormat, sizeof(szFormat));
+				_sntprintf(szFinal, sizeof(szFinal), szFormat, ch);
+				SetDlgItemText(hWnd, IDC_TOPLINE, szFinal);
+				mir_free(ch);
+			}
+			SetWindowPos(hWnd, HWND_TOPMOST, 0, 0, 0, 0, SWP_NOMOVE|SWP_NOSIZE);
+			return TRUE;
+		}
+
+	case WM_COMMAND:
+		{
+			switch (LOWORD(wParam))
+			{
+			case IDYES:
+				if (IsDlgButtonChecked(hWnd, IDC_HIDE))
 				{
-					case IDYES:
-						if (IsDlgButtonChecked(hWnd, IDC_HIDE))
-						{
-							EndDialog(hWnd, IDC_HIDE);
-							break;
-						}
-						//fall through
-					case IDCANCEL:
-					case IDNO:
-						EndDialog(hWnd, LOWORD(wParam));
-						break;
+					EndDialog(hWnd, IDC_HIDE);
+					break;
 				}
+				//fall through
+			case IDCANCEL:
+			case IDNO:
+				EndDialog(hWnd, LOWORD(wParam));
 				break;
 			}
-
-		case WM_CLOSE:
-			SendMessage(hWnd, WM_COMMAND, MAKEWPARAM(IDNO, BN_CLICKED), 0);
 			break;
+		}
 
-		case WM_DESTROY:
-			DeleteObject((HFONT)SendDlgItemMessage(hWnd, IDC_TOPLINE, WM_GETFONT, 0, 0));
-			break;
-    }
+	case WM_CLOSE:
+		SendMessage(hWnd, WM_COMMAND, MAKEWPARAM(IDNO, BN_CLICKED), 0);
+		break;
 
-    return FALSE;
+	case WM_DESTROY:
+		DeleteObject((HFONT)SendDlgItemMessage(hWnd, IDC_TOPLINE, WM_GETFONT, 0, 0));
+		break;
+	}
+
+	return FALSE;
 
 }
 
@@ -366,10 +366,10 @@ static int MenuItem_DeleteContact(WPARAM wParam,LPARAM lParam)
 	//see notes about deleting contacts on PF1_SERVERCLIST servers in m_protosvc.h
 	int action;
 
-    if (DBGetContactSettingByte(NULL, "CList", "ConfirmDelete", SETTING_CONFIRMDELETE_DEFAULT))
+	if (DBGetContactSettingByte(NULL, "CList", "ConfirmDelete", SETTING_CONFIRMDELETE_DEFAULT))
 	{
 		// Ask user for confirmation, and if the contact should be archived (hidden, not deleted)
-        action = DialogBoxParam(GetModuleHandle(NULL), MAKEINTRESOURCE(IDD_DELETECONTACT), (HWND)lParam, AskForConfirmationDlgProc, wParam);
+		action = DialogBoxParam(GetModuleHandle(NULL), MAKEINTRESOURCE(IDD_DELETECONTACT), (HWND)lParam, AskForConfirmationDlgProc, wParam);
 	}
 	else
 	{
@@ -379,42 +379,42 @@ static int MenuItem_DeleteContact(WPARAM wParam,LPARAM lParam)
 
 	switch(action) {
 
-	// Delete contact
-	case IDYES:
+		// Delete contact
+case IDYES:
+	{
+		char *szProto;
+
+		szProto = (char*)CallService(MS_PROTO_GETCONTACTBASEPROTO, wParam, 0);
+		if (szProto != NULL)
 		{
-			char *szProto;
+			// Check if protocol uses server side lists
+			DWORD caps;
 
-			szProto = (char*)CallService(MS_PROTO_GETCONTACTBASEPROTO, wParam, 0);
-			if (szProto != NULL)
+			caps = (DWORD)CallProtoService(szProto, PS_GETCAPS, PFLAGNUM_1, 0);
+			if (caps&PF1_SERVERCLIST)
 			{
-				// Check if protocol uses server side lists
-				DWORD caps;
+				int status;
 
-				caps = (DWORD)CallProtoService(szProto, PS_GETCAPS, PFLAGNUM_1, 0);
-				if (caps&PF1_SERVERCLIST)
+				status = CallProtoService(szProto, PS_GETSTATUS, 0, 0);
+				if (status == ID_STATUS_OFFLINE || (status >= ID_STATUS_CONNECTING && status<ID_STATUS_CONNECTING+MAX_CONNECT_RETRIES))
 				{
-					int status;
-					
-					status = CallProtoService(szProto, PS_GETSTATUS, 0, 0);
-					if (status == ID_STATUS_OFFLINE || (status >= ID_STATUS_CONNECTING && status<ID_STATUS_CONNECTING+MAX_CONNECT_RETRIES))
-					{
-						// Set a flag so we remember to delete the contact when the protocol goes online the next time
-						DBWriteContactSettingByte((HANDLE)wParam, "CList", "Delete", 1);
-						MessageBoxA(NULL, Translate("This contact is on an instant messaging system which stores its contact list on a central server. The contact will be removed from the server and from your contact list when you next connect to that network."), Translate("Delete Contact"), MB_OK);
-						return 0;
-					}
+					// Set a flag so we remember to delete the contact when the protocol goes online the next time
+					DBWriteContactSettingByte((HANDLE)wParam, "CList", "Delete", 1);
+					MessageBoxA(NULL, Translate("This contact is on an instant messaging system which stores its contact list on a central server. The contact will be removed from the server and from your contact list when you next connect to that network."), Translate("Delete Contact"), MB_OK);
+					return 0;
 				}
 			}
-			CallService(MS_DB_CONTACT_DELETE, wParam, 0);
-			break;
 		}
+		CallService(MS_DB_CONTACT_DELETE, wParam, 0);
+		break;
+	}
 
 	// Archive contact
-	case IDC_HIDE:
-		{
-			DBWriteContactSettingByte((HANDLE)wParam,"CList","Hidden",1);
-			break;
-		}
+case IDC_HIDE:
+	{
+		DBWriteContactSettingByte((HANDLE)wParam,"CList","Hidden",1);
+		break;
+	}
 
 	}
 
@@ -449,16 +449,16 @@ static int ContactFilesDropped(WPARAM wParam,LPARAM lParam)
 
 int LoadContactListModule(void)
 {
-/*	HANDLE hContact = (HANDLE) CallService(MS_DB_CONTACT_FINDFIRST, 0, 0);
+	/*	HANDLE hContact = (HANDLE) CallService(MS_DB_CONTACT_FINDFIRST, 0, 0);
 	while (hContact!=NULL) {
-		DBWriteContactSettingString(hContact, "CList", "StatusMsg", "");
-		hContact = (HANDLE) CallService(MS_DB_CONTACT_FINDNEXT, (WPARAM) hContact, 0);
+	DBWriteContactSettingString(hContact, "CList", "StatusMsg", "");
+	hContact = (HANDLE) CallService(MS_DB_CONTACT_FINDNEXT, (WPARAM) hContact, 0);
 	}
-*/
+	*/
 	HookEvent(ME_SYSTEM_SHUTDOWN,ContactListShutdownProc);
 	HookEvent(ME_SYSTEM_MODULESLOADED,ContactListModulesLoaded);
 	HookEvent(ME_OPT_INITIALISE,CListOptInit);
-  HookEvent(ME_OPT_INITIALISE,SkinOptInit);
+	HookEvent(ME_OPT_INITIALISE,SkinOptInit);
 	hSettingChanged=HookEvent(ME_DB_CONTACT_SETTINGCHANGED,ContactSettingChanged);
 	HookEvent(ME_DB_CONTACT_ADDED,ContactAdded);
 	HookEvent(ME_DB_CONTACT_DELETED,ContactDeleted);
@@ -479,8 +479,8 @@ int LoadContactListModule(void)
 	CreateServiceFunction(MS_CLIST_CONTACTCHANGEGROUP,ContactChangeGroup);
 	CreateServiceFunction(MS_CLIST_SHOWHIDE,ShowHide);
 	CreateServiceFunction(MS_CLIST_SETHIDEOFFLINE,SetHideOffline);
-  CreateServiceFunction(MS_CLIST_TOGGLEHIDEOFFLINE,ToggleHideOffline);
-  
+	CreateServiceFunction(MS_CLIST_TOGGLEHIDEOFFLINE,ToggleHideOffline);
+
 	CreateServiceFunction(MS_CLIST_DOCKINGPROCESSMESSAGE,Docking_ProcessWindowMessage);
 	CreateServiceFunction(MS_CLIST_DOCKINGISDOCKED,Docking_IsDocked);
 	CreateServiceFunction(MS_CLIST_HOTKEYSPROCESSMESSAGE,HotkeysProcessMessage);
@@ -493,25 +493,25 @@ int LoadContactListModule(void)
 	InitCustomMenus();
 	InitGroupServices();	
 	InitTray();
-	
+
 	{	CLISTMENUITEM mi;
-		ZeroMemory(&mi,sizeof(mi));
-		mi.cbSize=sizeof(mi);
-		CreateServiceFunction("CList/DeleteContactCommand",MenuItem_DeleteContact);
-		mi.position=2000070000;
-		mi.flags=0;
-		mi.hIcon=LoadIcon(GetModuleHandle(NULL),MAKEINTRESOURCE(IDI_DELETE));
-		mi.pszContactOwner=NULL;    //on every contact
-		mi.pszName=Translate("De&lete");
-		mi.pszService="CList/DeleteContactCommand";
-		CallService(MS_CLIST_ADDCONTACTMENUITEM,0,(LPARAM)&mi);
-		CreateServiceFunction("CList/AddToListContactCommand",MenuItem_AddContactToList);
-		mi.position=-2050000000;
-		mi.flags=CMIF_NOTONLIST;
-		mi.hIcon=LoadIcon(GetModuleHandle(NULL),MAKEINTRESOURCE(IDI_ADDCONTACT));
-		mi.pszName=Translate("&Add permanently to list");
-		mi.pszService="CList/AddToListContactCommand";
-		CallService(MS_CLIST_ADDCONTACTMENUITEM,0,(LPARAM)&mi);
+	ZeroMemory(&mi,sizeof(mi));
+	mi.cbSize=sizeof(mi);
+	CreateServiceFunction("CList/DeleteContactCommand",MenuItem_DeleteContact);
+	mi.position=2000070000;
+	mi.flags=0;
+	mi.hIcon=LoadIcon(GetModuleHandle(NULL),MAKEINTRESOURCE(IDI_DELETE));
+	mi.pszContactOwner=NULL;    //on every contact
+	mi.pszName=Translate("De&lete");
+	mi.pszService="CList/DeleteContactCommand";
+	CallService(MS_CLIST_ADDCONTACTMENUITEM,0,(LPARAM)&mi);
+	CreateServiceFunction("CList/AddToListContactCommand",MenuItem_AddContactToList);
+	mi.position=-2050000000;
+	mi.flags=CMIF_NOTONLIST;
+	mi.hIcon=LoadIcon(GetModuleHandle(NULL),MAKEINTRESOURCE(IDI_ADDCONTACT));
+	mi.pszName=Translate("&Add permanently to list");
+	mi.pszService="CList/AddToListContactCommand";
+	CallService(MS_CLIST_ADDCONTACTMENUITEM,0,(LPARAM)&mi);
 	}
 
 
@@ -519,8 +519,8 @@ int LoadContactListModule(void)
 	CreateServiceFunction(MS_CLIST_GETICONSIMAGELIST,GetIconsImageList);
 	ImageList_AddIcon(hCListImages, LoadIcon(GetModuleHandle(NULL),MAKEINTRESOURCE(IDI_BLANK)));
 	{	int i;
-		for(i=0;i<sizeof(statusModeList)/sizeof(statusModeList[0]);i++)
-			ImageList_AddIcon(hCListImages, LoadSkinnedIcon(skinIconStatusList[i]));
+	for(i=0;i<sizeof(statusModeList)/sizeof(statusModeList[0]);i++)
+		ImageList_AddIcon(hCListImages, LoadSkinnedIcon(skinIconStatusList[i]));
 	}
 	//see IMAGE_GROUP... in clist.h if you add more images above here
 	ImageList_AddIcon(hCListImages, LoadSkinnedIcon(SKINICON_OTHER_GROUPOPEN));
@@ -534,12 +534,12 @@ int LoadContactListModule(void)
 
 int UnLoadContactListModule(void)
 {
-  FreeDisplayNameCache(&lContactsCache);
+	FreeDisplayNameCache(&lContactsCache);
 
-  return 0;
+	return 0;
 }
 /*
-	Begin of Hrk's code for bug 
+Begin of Hrk's code for bug 
 */
 #define GWVS_HIDDEN 1
 #define GWVS_VISIBLE 2
@@ -558,31 +558,34 @@ _inline DWORD GetDIBPixelColor(int X, int Y, int Width, int Height, int ByteWidt
 int GetWindowVisibleState(HWND hWnd, int iStepX, int iStepY) {
 	RECT rc = { 0 };
 	POINT pt = { 0 };
-    HRGN rgn=NULL;
+	HRGN rgn=NULL;
 	register int i = 0, j = 0, width = 0, height = 0, iCountedDots = 0, iNotCoveredDots = 0;
 	BOOL bPartiallyCovered = FALSE;
 	HWND hAux = 0;
-    int res=0;
+	int res=0;
 
 	if (hWnd == NULL) {
 		SetLastError(0x00000006); //Wrong handle
 		return -1;
 	}
 	//Some defaults now. The routine is designed for thin and tall windows.
-	if (iStepX <= 0) iStepX = 4;
+	if (iStepX <= 0) iStepX = 8;
 	if (iStepY <= 0) iStepY = 16;
 
 	if (IsIconic(hWnd) || !IsWindowVisible(hWnd))
 		return GWVS_HIDDEN;
 	else {
-        int hstep,vstep;
+		int hstep,vstep;
 		BITMAP bmp;
 		HBITMAP WindowImage;
-		int maxx,maxy,wx;
+		int maxx=0;
+		int maxy=0;
+		int wx=0;
 		int dx,dy;
 		BYTE *ptr=NULL;
-		WindowImage=GetCurrentWindowImage();
-		if (WindowImage)
+		HRGN rgn=NULL;
+		WindowImage=LayeredFlag?GetCurrentWindowImage():0;
+		if (WindowImage&&LayeredFlag)
 		{
 			GetObject(WindowImage,sizeof(BITMAP),&bmp);
 			ptr=bmp.bmBits;
@@ -590,43 +593,73 @@ int GetWindowVisibleState(HWND hWnd, int iStepX, int iStepY) {
 			maxy=bmp.bmHeight;
 			wx=bmp.bmWidthBytes;
 		}
+		else
+		{
+			RECT rc;
+			int i=0;
+			rgn=CreateRectRgn(0,0,1,1);
+			GetWindowRect(hWnd,&rc);
+			GetWindowRgn(hWnd,rgn);
+			OffsetRgn(rgn,rc.left,rc.top);
+			GetRgnBox(rgn,&rc);	
+			i=i;
+			//maxx=rc.right;
+			//maxy=rc.bottom;
+		}
 		GetWindowRect(hWnd, &rc);
-    {
-      RECT rcMonitor={0};
-      Docking_GetMonitorRectFromWindow(hWnd,&rcMonitor);
-      rc.top=rc.top<rcMonitor.top?rcMonitor.top:rc.top;
-      rc.left=rc.left<rcMonitor.left?rcMonitor.left:rc.left;
-      rc.bottom=rc.bottom>rcMonitor.bottom?rcMonitor.bottom:rc.bottom;
-      rc.right=rc.right>rcMonitor.right?rcMonitor.right:rc.right;
-    }
+		{
+			RECT rcMonitor={0};
+			Docking_GetMonitorRectFromWindow(hWnd,&rcMonitor);
+			rc.top=rc.top<rcMonitor.top?rcMonitor.top:rc.top;
+			rc.left=rc.left<rcMonitor.left?rcMonitor.left:rc.left;
+			rc.bottom=rc.bottom>rcMonitor.bottom?rcMonitor.bottom:rc.bottom;
+			rc.right=rc.right>rcMonitor.right?rcMonitor.right:rc.right;
+		}
 		width = rc.right - rc.left;
 		height = rc.bottom- rc.top;
 		dx=-rc.left;
 		dy=-rc.top;
-        hstep=width/iStepX;
-        vstep=height/iStepY;
-        hstep=hstep>0?hstep:1;
-        vstep=vstep>0?vstep:1;
+		hstep=width/iStepX;
+		vstep=height/iStepY;
+		hstep=hstep>0?hstep:1;
+		vstep=vstep>0?vstep:1;
 
 		for (i = rc.top; i < rc.bottom; i+=vstep) {
 			pt.y = i;
 			for (j = rc.left; j < rc.right; j+=hstep) {
+				BOOL po=FALSE;
 				pt.x = j;
-                if (GetDIBPixelColor(j+dx,i+dy,maxx,maxy,wx,ptr)&0xFF000000 || ptr==0)
-                {
-                    hAux = WindowFromPoint(pt);
-				    while(GetParent(hAux) != NULL) hAux = GetParent(hAux);
-				    if (hAux != hWnd) //There's another window!
-                 //   {
-                        bPartiallyCovered = TRUE;
-                 //       break;
-                 //   }
-	    			else 
-		    			iNotCoveredDots++; //Let's count the not covered dots.
-			    	iCountedDots++; //Let's keep track of how many dots we checked.
-                }
+				if (rgn) 
+					po=PtInRegion(rgn,j,i);
+				else
+					po=(GetDIBPixelColor(j+dx,i+dy,maxx,maxy,wx,ptr)&0xFF000000)!=0;
+				if (po||(!rgn&&ptr==0))
+				{
+					BOOL hWndFound=FALSE;
+					hAux = WindowFromPoint(pt);
+					do
+					{
+						if (hAux==hWnd) 
+						{
+							hWndFound=TRUE;
+							break;
+						}
+						hAux = GetParent(hAux);
+					}while(hAux!= NULL);
+
+					if (hWndFound) //There's  window!
+            iNotCoveredDots++; //Let's count the not covered dots.			
+					//{
+					//		  //bPartiallyCovered = TRUE;
+          //           //iCountedDots++;
+					//	    //break;
+					//}
+					//else             
+					iCountedDots++; //Let's keep track of how many dots we checked.
+				}
 			}
-		}        
+		}    
+		if (rgn) DeleteObject(rgn);
 		if (iNotCoveredDots == iCountedDots) //Every dot was not covered: the window is visible.
 			return GWVS_VISIBLE;
 		else if (iNotCoveredDots == 0) //They're all covered!
@@ -636,7 +669,8 @@ int GetWindowVisibleState(HWND hWnd, int iStepX, int iStepY) {
 	}
 }
 BYTE CALLED_FROM_SHOWHIDE=0;
-int ShowHide(WPARAM wParam,LPARAM lParam) {
+int ShowHide(WPARAM wParam,LPARAM lParam) 
+{
 	HWND hwndContactList=(HWND)CallService(MS_CLUI_GETHWND,0,0);
 	BOOL bShow = FALSE;
 
@@ -690,26 +724,26 @@ int ShowHide(WPARAM wParam,LPARAM lParam) {
 		GetWindowRect(hwndContactList,&rcWindow);
 
 		ActivateSubContainers(TRUE);
-		ShowWindow(hwndContactList, SW_RESTORE);
+		ShowWindowNew(hwndContactList, SW_RESTORE);
 
 		if (!DBGetContactSettingByte(NULL,"CList","OnDesktop",0))
 		{
-      OnShowHide(hwndContactList,1);
+			OnShowHide(hwndContactList,1);
 			SetWindowPos(hwndContactList, HWND_TOPMOST, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE |SWP_NOACTIVATE);           
-      CALLED_FROM_SHOWHIDE=1;
+			CALLED_FROM_SHOWHIDE=1;
 			BringWindowToTop(hwndContactList);			     
 			if (!DBGetContactSettingByte(NULL,"CList","OnTop",SETTING_ONTOP_DEFAULT))
-				 //&& ((DBGetContactSettingByte(NULL, "CList", "BringToFront", SETTING_BRINGTOFRONT_DEFAULT) /*&& iVisibleState>=2*/)))
+				//&& ((DBGetContactSettingByte(NULL, "CList", "BringToFront", SETTING_BRINGTOFRONT_DEFAULT) /*&& iVisibleState>=2*/)))
 				SetWindowPos(hwndContactList, HWND_NOTOPMOST, 0, 0, 0, 0, SWP_NOSIZE | SWP_NOMOVE);
 			SetForegroundWindow(hwndContactList);	     
 			CALLED_FROM_SHOWHIDE=0;
 		}
-    else
-    {
-      SetWindowPos(hwndContactList, HWND_NOTOPMOST, 0, 0, 0, 0, SWP_NOSIZE | SWP_NOMOVE);
-      OnShowHide(hwndContactList,1);
-      SetForegroundWindow(hwndContactList);	
-    }
+		else
+		{
+			SetWindowPos(hwndContactList, HWND_NOTOPMOST, 0, 0, 0, 0, SWP_NOSIZE | SWP_NOMOVE);
+			OnShowHide(hwndContactList,1);
+			SetForegroundWindow(hwndContactList);	
+		}
 		DBWriteContactSettingByte(NULL,"CList","State",SETTING_STATE_NORMAL);
 		//this forces the window onto the visible screen
 		MyMonitorFromWindow=(HMONITOR (WINAPI *)(HWND,DWORD))GetProcAddress(GetModuleHandle(TEXT("USER32")),"MonitorFromWindow");
@@ -769,9 +803,9 @@ int CListIconsChanged(WPARAM wParam,LPARAM lParam)
 
 int HideWindow(HWND hwndContactList, int mode)
 {
-   TRACE("HIDE WINDOW\n");
-   
-   KillTimer(hwndContactList,1/*TM_AUTOALPHA*/);
-   if (!BehindEdge_Hide())  return SmoothAlphaTransition(hwndContactList, 0, 1);
-   return 0;
+	TRACE("HIDE WINDOW\n");
+
+	KillTimer(hwndContactList,1/*TM_AUTOALPHA*/);
+	if (!BehindEdge_Hide())  return SmoothAlphaTransition(hwndContactList, 0, 1);
+	return 0;
 }

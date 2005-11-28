@@ -250,6 +250,7 @@
 #define IDC_LANGUAGE3                   1070
 #define IDC_MOREOPTIONS                 1071
 #define IDC_USERMENU                    1071
+#define IDC_DN                          1072
 #define IDC_MIN2TRAY                    1073
 #define IDC_ONTOP                       1074
 #define IDC_SHOWMAINMENU                1075
@@ -361,6 +362,8 @@
 #define IDC_USESPECIFIC                 1212
 #define IDC_NOBORDERWND                 1212
 #define IDC_FILEDIR                     1213
+#define IDC_BORDER2                     1213
+#define IDC_ROUNDCORNERS                1213
 #define IDC_ALLFILESPROGRESS            1217
 #define IDC_CURRENTSPEED                1219
 #define IDC_STAWAYTYPE                  1220
@@ -668,6 +671,7 @@
 #define IDC_BUTTON_BROWSE               1633
 #define IDC_UP                          1633
 #define IDC_DOWN                        1634
+#define IDC_C_SPLIT                     1634
 #define IDC_IDLECHECK                   1636
 #define IDC_IDLEONWINDOWS               1637
 #define IDC_IDLEONMIRANDA               1638
@@ -726,10 +730,12 @@
 #define IDC_SUBIDENTCAPT                1766
 #define IDC_COMBO_FIT                   1766
 #define IDC_OFFSETICON3                 1766
+#define IDC_H_ALIGN                     1766
 #define IDC_BC_STATIC                   1767
 #define IDC_OBJECTSTREE                 1767
 #define IDC_OFFSETSPIN3                 1767
 #define IDC_REMOVE_OFFLINE_AWAYMSG      1767
+#define IDC_V_ALIGN                     1767
 #define IDC_SC_STATIC                   1768
 #define IDC_COMBO_SAME                  1768
 #define IDC_EDIT_FILENAME               1773
@@ -785,6 +791,7 @@
 #define IDC_CHECK2                      1807
 #define IDC_OBJECTSLIST2                1807
 #define IDC_SKINS_LIST                  1807
+#define IDC_LAYERENGINE                 1807
 #define IDC_CHECK3                      1808
 #define IDC_CHECK4                      1809
 #define IDC_CHECK5                      1810
@@ -834,11 +841,18 @@
 #define IDC_EDIT1                       1843
 #define IDC_HIDE_GROUPSICON             1844
 #define IDC_STATIC_INFO                 1845
+#define IDC_DESIGNTREE                  1848
+#define IDC_TYPE                        1849
+#define IDC_R_SPLIT                     1850
+#define IDC_PREVIEW_IMAGE               1851
+#define IDC_TITLEBAR_STATIC             1852
 #define IDC_CLSORT1                     6666
 #define IDC_CLSORT2                     6667
 #define IDC_CLSORT3                     6668
 #define IDD_OPT_GENMENU                 11267
 #define IDD_OPT_CLCBKG3                 11268
+#define IDD_OPT_ITEM_NEWROW             11268
+#define IDD_OPT_ITEM_EXTRAICONS         11269
 #define IDC_MENUITEMS                   11710
 #define IDC_MENUOBJECTS                 11711
 #define IDC_NOTSUPPORTWARNING           11712
@@ -898,7 +912,7 @@
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        397
 #define _APS_NEXT_COMMAND_VALUE         40018
-#define _APS_NEXT_CONTROL_VALUE         1846
+#define _APS_NEXT_CONTROL_VALUE         1853
 #define _APS_NEXT_SYMED_VALUE           101
 #endif
 #endif

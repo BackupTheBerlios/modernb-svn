@@ -210,7 +210,7 @@ int sub_ShowEnableContols(int * Enum, BYTE count,BYTE mode) //mode 0000 00yx y-e
 	int i;
 	for (i=0; i<count; i++)
 	{
-		ShowWindow(GetDlgItem(hDlg,Enum[i]),(mode&1));
+		ShowWindowNew(GetDlgItem(hDlg,Enum[i]),(mode&1));
 		if (mode&1) EnableWindow(GetDlgItem(hDlg,Enum[i]),(mode&2));
 	}
 	return 0;
@@ -723,7 +723,7 @@ static BOOL CALLBACK DlgSkinOpts(HWND hwndDlg, UINT msg, WPARAM wParam, LPARAM l
 								EnableWindow(GetDlgItem(hwndDlg,IDC_BUTTON_APPLY_SKIN),FALSE);
 								EnableWindow(GetDlgItem(hwndDlg,IDC_BUTTON_INFO),FALSE);
 							} 
-							ShowWindow(GetDlgItem(hwndDlg,IDC_PREVIEW),hPreviewBitmap?SW_SHOW:SW_HIDE);
+							ShowWindowNew(GetDlgItem(hwndDlg,IDC_PREVIEW),hPreviewBitmap?SW_SHOW:SW_HIDE);
 							if (hPreviewBitmap) InvalidateRect(GetDlgItem(hwndDlg,IDC_PREVIEW),NULL,TRUE);
 							else  //prepeare text
 							{
@@ -1123,39 +1123,39 @@ int AddSkinToList(HWND hwndDlg,char * path, char* file)
 //{
 //  // Controls for glyph
 //  { 
-//    ShowWindow(GetDlgItem(hwndDlg,IDC_BUTTON_BROWSE),Type==OT_GLYPHOBJECT);
-//    //    ShowWindow(GetDlgItem(hwndDlg,IDC_CHECK_ALPHA),Type==OT_GLYPHOBJECT);
-//    //    ShowWindow(GetDlgItem(hwndDlg,IDC_CHECK_COLOR),Type==OT_GLYPHOBJECT);
-//    //    ShowWindow(GetDlgItem(hwndDlg,IDC_CHECK_IMAGE),Type==OT_GLYPHOBJECT);
-//    //    ShowWindow(GetDlgItem(hwndDlg,IDC_CHECK_METHOD),Type==OT_GLYPHOBJECT);
-//    ShowWindow(GetDlgItem(hwndDlg,IDC_COLOUR),Type==OT_GLYPHOBJECT);
-//    ShowWindow(GetDlgItem(hwndDlg,IDC_COMBO_FIT),Type==OT_GLYPHOBJECT);
-//    //    ShowWindow(GetDlgItem(hwndDlg,IDC_COMBO_SAME),Type==OT_GLYPHOBJECT);
-//    ShowWindow(GetDlgItem(hwndDlg,IDC_COMBO_STYLE),Type==OT_GLYPHOBJECT);
-//    ShowWindow(GetDlgItem(hwndDlg,IDC_EDIT_ALPHA),Type==OT_GLYPHOBJECT);
-//    ShowWindow(GetDlgItem(hwndDlg,IDC_EDIT_FILENAME),Type==OT_GLYPHOBJECT);
-//    ShowWindow(GetDlgItem(hwndDlg,IDC_EDIT_LEFT),Type==OT_GLYPHOBJECT);
-//    ShowWindow(GetDlgItem(hwndDlg,IDC_EDIT_RIGHT),Type==OT_GLYPHOBJECT);
-//    ShowWindow(GetDlgItem(hwndDlg,IDC_EDIT_TOP),Type==OT_GLYPHOBJECT);
-//    ShowWindow(GetDlgItem(hwndDlg,IDC_EDIT_BOTTOM),Type==OT_GLYPHOBJECT);
-//    ShowWindow(GetDlgItem(hwndDlg,IDC_FRAME_BACKGROUND),Type==OT_GLYPHOBJECT);
-//    //    ShowWindow(GetDlgItem(hwndDlg,IDC_FRAME_GLYPH),Type==OT_GLYPHOBJECT);
-//    ShowWindow(GetDlgItem(hwndDlg,IDC_FRAME_IMAGE),Type==OT_GLYPHOBJECT);
-//    ShowWindow(GetDlgItem(hwndDlg,IDC_SPIN_ALPHA),Type==OT_GLYPHOBJECT);
-//    ShowWindow(GetDlgItem(hwndDlg,IDC_SPIN_LEFT),Type==OT_GLYPHOBJECT);
-//    ShowWindow(GetDlgItem(hwndDlg,IDC_SPIN_RIGHT),Type==OT_GLYPHOBJECT);
-//    ShowWindow(GetDlgItem(hwndDlg,IDC_SPIN_TOP),Type==OT_GLYPHOBJECT);
-//    ShowWindow(GetDlgItem(hwndDlg,IDC_SPIN_BOTTOM),Type==OT_GLYPHOBJECT);
-//    ShowWindow(GetDlgItem(hwndDlg,IDC_STATIC_ALPHA),Type==OT_GLYPHOBJECT);
-//    ShowWindow(GetDlgItem(hwndDlg,IDC_STATIC_BOTTOM),Type==OT_GLYPHOBJECT);
-//    ShowWindow(GetDlgItem(hwndDlg,IDC_STATIC_COLOR),Type==OT_GLYPHOBJECT);
-//    ShowWindow(GetDlgItem(hwndDlg,IDC_STATIC_FIT),Type==OT_GLYPHOBJECT);
-//    ShowWindow(GetDlgItem(hwndDlg,IDC_STATIC_LEFT),Type==OT_GLYPHOBJECT);
-//    ShowWindow(GetDlgItem(hwndDlg,IDC_STATIC_RIGHT),Type==OT_GLYPHOBJECT);
-//    ShowWindow(GetDlgItem(hwndDlg,IDC_STATIC_TOP),Type==OT_GLYPHOBJECT);
-//    //    ShowWindow(GetDlgItem(hwndDlg,IDC_STATIC_SAME),Type==OT_GLYPHOBJECT);
-//    ShowWindow(GetDlgItem(hwndDlg,IDC_STATIC_STYLE),Type==OT_GLYPHOBJECT);
-//    ShowWindow(GetDlgItem(hwndDlg,IDC_STATIC_MARGINS),Type==OT_GLYPHOBJECT);
+//    ShowWindowNew(GetDlgItem(hwndDlg,IDC_BUTTON_BROWSE),Type==OT_GLYPHOBJECT);
+//    //    ShowWindowNew(GetDlgItem(hwndDlg,IDC_CHECK_ALPHA),Type==OT_GLYPHOBJECT);
+//    //    ShowWindowNew(GetDlgItem(hwndDlg,IDC_CHECK_COLOR),Type==OT_GLYPHOBJECT);
+//    //    ShowWindowNew(GetDlgItem(hwndDlg,IDC_CHECK_IMAGE),Type==OT_GLYPHOBJECT);
+//    //    ShowWindowNew(GetDlgItem(hwndDlg,IDC_CHECK_METHOD),Type==OT_GLYPHOBJECT);
+//    ShowWindowNew(GetDlgItem(hwndDlg,IDC_COLOUR),Type==OT_GLYPHOBJECT);
+//    ShowWindowNew(GetDlgItem(hwndDlg,IDC_COMBO_FIT),Type==OT_GLYPHOBJECT);
+//    //    ShowWindowNew(GetDlgItem(hwndDlg,IDC_COMBO_SAME),Type==OT_GLYPHOBJECT);
+//    ShowWindowNew(GetDlgItem(hwndDlg,IDC_COMBO_STYLE),Type==OT_GLYPHOBJECT);
+//    ShowWindowNew(GetDlgItem(hwndDlg,IDC_EDIT_ALPHA),Type==OT_GLYPHOBJECT);
+//    ShowWindowNew(GetDlgItem(hwndDlg,IDC_EDIT_FILENAME),Type==OT_GLYPHOBJECT);
+//    ShowWindowNew(GetDlgItem(hwndDlg,IDC_EDIT_LEFT),Type==OT_GLYPHOBJECT);
+//    ShowWindowNew(GetDlgItem(hwndDlg,IDC_EDIT_RIGHT),Type==OT_GLYPHOBJECT);
+//    ShowWindowNew(GetDlgItem(hwndDlg,IDC_EDIT_TOP),Type==OT_GLYPHOBJECT);
+//    ShowWindowNew(GetDlgItem(hwndDlg,IDC_EDIT_BOTTOM),Type==OT_GLYPHOBJECT);
+//    ShowWindowNew(GetDlgItem(hwndDlg,IDC_FRAME_BACKGROUND),Type==OT_GLYPHOBJECT);
+//    //    ShowWindowNew(GetDlgItem(hwndDlg,IDC_FRAME_GLYPH),Type==OT_GLYPHOBJECT);
+//    ShowWindowNew(GetDlgItem(hwndDlg,IDC_FRAME_IMAGE),Type==OT_GLYPHOBJECT);
+//    ShowWindowNew(GetDlgItem(hwndDlg,IDC_SPIN_ALPHA),Type==OT_GLYPHOBJECT);
+//    ShowWindowNew(GetDlgItem(hwndDlg,IDC_SPIN_LEFT),Type==OT_GLYPHOBJECT);
+//    ShowWindowNew(GetDlgItem(hwndDlg,IDC_SPIN_RIGHT),Type==OT_GLYPHOBJECT);
+//    ShowWindowNew(GetDlgItem(hwndDlg,IDC_SPIN_TOP),Type==OT_GLYPHOBJECT);
+//    ShowWindowNew(GetDlgItem(hwndDlg,IDC_SPIN_BOTTOM),Type==OT_GLYPHOBJECT);
+//    ShowWindowNew(GetDlgItem(hwndDlg,IDC_STATIC_ALPHA),Type==OT_GLYPHOBJECT);
+//    ShowWindowNew(GetDlgItem(hwndDlg,IDC_STATIC_BOTTOM),Type==OT_GLYPHOBJECT);
+//    ShowWindowNew(GetDlgItem(hwndDlg,IDC_STATIC_COLOR),Type==OT_GLYPHOBJECT);
+//    ShowWindowNew(GetDlgItem(hwndDlg,IDC_STATIC_FIT),Type==OT_GLYPHOBJECT);
+//    ShowWindowNew(GetDlgItem(hwndDlg,IDC_STATIC_LEFT),Type==OT_GLYPHOBJECT);
+//    ShowWindowNew(GetDlgItem(hwndDlg,IDC_STATIC_RIGHT),Type==OT_GLYPHOBJECT);
+//    ShowWindowNew(GetDlgItem(hwndDlg,IDC_STATIC_TOP),Type==OT_GLYPHOBJECT);
+//    //    ShowWindowNew(GetDlgItem(hwndDlg,IDC_STATIC_SAME),Type==OT_GLYPHOBJECT);
+//    ShowWindowNew(GetDlgItem(hwndDlg,IDC_STATIC_STYLE),Type==OT_GLYPHOBJECT);
+//    ShowWindowNew(GetDlgItem(hwndDlg,IDC_STATIC_MARGINS),Type==OT_GLYPHOBJECT);
 //
 //  }
 //

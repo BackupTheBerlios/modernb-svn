@@ -104,7 +104,7 @@ LOGFONTA LoadLogFontFromDB(char * section, char * id, DWORD * color)
 }
 
 
-
+extern int FindFrameID(HWND FrameHwnd);
 
 int LoadStatusBarData()
 {
@@ -115,10 +115,27 @@ int LoadStatusBarData()
   sbdat.extraspace=(BYTE)DBGetContactSettingDword(NULL,"CLUI","SpaceBetween",0);
   sbdat.Align=DBGetContactSettingByte(NULL,"CLUI","Align",0);
   sbdat.sameWidth=DBGetContactSettingByte(NULL,"CLUI","EqualSections",0);
-  sbdat.connectingIcon=DBGetContactSettingByte(NULL,"CLUI","UseConnectingIcon",1);
-  
+  sbdat.connectingIcon=DBGetContactSettingByte(NULL,"CLUI","UseConnectingIcon",1); 
   if (sbdat.BarFont) DeleteObject(sbdat.BarFont);
   sbdat.BarFont=LoadFontFromDB("ModernData","StatusBar",&sbdat.fontColor);
+  {
+    int vis=DBGetContactSettingByte(NULL,"CLUI","ShowSBar",1);
+    int frameopt;
+    int frameID=FindFrameID(hModernStatusBar);
+    frameopt=CallService(MS_CLIST_FRAMES_GETFRAMEOPTIONS,MAKEWPARAM(FO_FLAGS,frameID),0);
+    frameopt=frameopt & (~F_VISIBLE);		
+    if(vis) 
+    {
+      ShowWindow(hModernStatusBar,SW_SHOW);
+      frameopt|=F_VISIBLE;
+    }
+    else 
+    {
+      ShowWindow(hModernStatusBar,SW_HIDE);
+    };
+    CallService(MS_CLIST_FRAMES_SETFRAMEOPTIONS,MAKEWPARAM(FO_FLAGS,frameID),frameopt);
+  }
+  SendMessage(hwndContactList,WM_SIZE,0,0);        
   return 1;
 }                                                           
 
@@ -385,10 +402,39 @@ LRESULT CALLBACK ModernStatusProc(HWND hwnd,UINT msg,WPARAM wParam,LPARAM lParam
       allocedItemData=0;
     }
     break;
+  case WM_SIZE:
+	  if (!LayeredFlag)
+		  InvalidateRect(hwnd,NULL,FALSE);
+	  return DefWindowProc(hwnd, msg, wParam, lParam);
+  case WM_ERASEBKGND:
+	  return 0;
   case WM_PAINT:
-    if (GetParent(hwnd)==hwndContactList)
+    if (GetParent(hwnd)==hwndContactList && LayeredFlag)
       InvalidateFrameImage((WPARAM)hwnd,0);
-    else
+    else if (GetParent(hwnd)==hwndContactList && !LayeredFlag)
+	{	
+		HDC hdc, hdc2;
+		HBITMAP hbmp,hbmpo;
+		RECT rc={0};
+		TRACE("Modern STATUSBAR PAINT ant non-layered mode\n");   
+		GetClientRect(hwnd,&rc);
+		rc.right++;
+		rc.bottom++;
+		hdc = GetDC(hwnd);
+		hdc2=CreateCompatibleDC(hdc);
+		hbmp=CreateBitmap32(rc.right,rc.bottom);
+		hbmpo=SelectObject(hdc2,hbmp);
+		BltBackImage(hwnd,hdc2,&rc);
+		ModernDrawStatusBarWorker(hwnd,hdc2);
+		BitBlt(hdc,rc.left,rc.top,rc.right-rc.left,rc.bottom-rc.top,
+			hdc2,rc.left,rc.top,SRCCOPY);   
+		SelectObject(hdc2,hbmpo);
+		DeleteObject(hbmp);
+		DeleteDC(hdc2);
+		ReleaseDC(hwnd,hdc);
+		ValidateRect(hwnd,NULL);
+	}
+	else
     {
       HDC hdc, hdc2;
       HBITMAP hbmp, hbmpo;
@@ -579,10 +625,10 @@ int CreateModernStatusBar(HWND parent)
     hFramehModernStatusBar=(HANDLE)CallService(MS_CLIST_FRAMES_ADDFRAME,(WPARAM)&Frame,(LPARAM)0);
     CallService(MS_SKINENG_REGISTERPAINTSUB,(WPARAM)Frame.hWnd,(LPARAM)NewStatusPaintCallbackProc); //$$$$$ register sub for frame
   }
+
   LoadStatusBarData();
   hStatusBarShowToolTipEvent=CreateHookableEvent(ME_CLIST_FRAMES_SB_SHOW_TOOLTIP);
   hStatusBarHideToolTipEvent=CreateHookableEvent(ME_CLIST_FRAMES_SB_HIDE_TOOLTIP);
-
   CluiProtocolStatusChanged(0,0);
 	CallService(MS_CLIST_FRAMES_UPDATEFRAME,-1,0);
   return (int)hModernStatusBar;

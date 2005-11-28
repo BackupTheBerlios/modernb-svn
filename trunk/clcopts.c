@@ -325,16 +325,16 @@ struct CheckBoxValues_t {
           {
             BYTE t;
             t=ServiceExists(MS_MC_GETMOSTONLINECONTACT);
-            ShowWindow(GetDlgItem(hwndDlg,IDC_META),t);
-            ShowWindow(GetDlgItem(hwndDlg,IDC_METADBLCLK),t);
-            ShowWindow(GetDlgItem(hwndDlg,IDC_METASUB_HIDEOFFLINE),t);
-            ShowWindow(GetDlgItem(hwndDlg,IDC_METAEXPAND),t);
-            ShowWindow(GetDlgItem(hwndDlg,IDC_METASUBEXTRA),t);
-            ShowWindow(GetDlgItem(hwndDlg,IDC_FRAME_META),t);
-            ShowWindow(GetDlgItem(hwndDlg,IDC_FRAME_META_CAPT),!t); 
-            ShowWindow(GetDlgItem(hwndDlg,IDC_SUBINDENTSPIN),t);
-            ShowWindow(GetDlgItem(hwndDlg,IDC_SUBINDENT),t);
-            ShowWindow(GetDlgItem(hwndDlg,IDC_SUBIDENTCAPT),t);
+            ShowWindowNew(GetDlgItem(hwndDlg,IDC_META),t);
+            ShowWindowNew(GetDlgItem(hwndDlg,IDC_METADBLCLK),t);
+            ShowWindowNew(GetDlgItem(hwndDlg,IDC_METASUB_HIDEOFFLINE),t);
+            ShowWindowNew(GetDlgItem(hwndDlg,IDC_METAEXPAND),t);
+            ShowWindowNew(GetDlgItem(hwndDlg,IDC_METASUBEXTRA),t);
+            ShowWindowNew(GetDlgItem(hwndDlg,IDC_FRAME_META),t);
+            ShowWindowNew(GetDlgItem(hwndDlg,IDC_FRAME_META_CAPT),!t); 
+            ShowWindowNew(GetDlgItem(hwndDlg,IDC_SUBINDENTSPIN),t);
+            ShowWindowNew(GetDlgItem(hwndDlg,IDC_SUBINDENT),t);
+            ShowWindowNew(GetDlgItem(hwndDlg,IDC_SUBIDENTCAPT),t);
           }
           return TRUE;
         case WM_COMMAND:
@@ -485,7 +485,7 @@ struct CheckBoxValues_t {
               SendMessage(GetParent(hwndDlg), PSM_CHANGED, (WPARAM)hwndDlg, 0);
 
               //all changes take effect in runtime
-              //ShowWindow(GetDlgItem(hwndDlg,IDC_PROTOCOLORDERWARNING),SW_SHOW);
+              //ShowWindowNew(GetDlgItem(hwndDlg,IDC_PROTOCOLORDERWARNING),SW_SHOW);
               }
               */
           }
@@ -820,8 +820,8 @@ struct CheckBoxValues_t {
             CluiProtocolStatusChanged(0,0);
             if (IsWindowVisible(hwndContactList))
             {
-              ShowWindow(hwndContactList,SW_HIDE);
-              ShowWindow(hwndContactList,SW_SHOW);
+              ShowWindowNew(hwndContactList,SW_HIDE);
+              ShowWindowNew(hwndContactList,SW_SHOW);
             }
 
             return TRUE;
@@ -914,14 +914,14 @@ struct CheckBoxValues_t {
 
       static void SwitchTextDlgToMode(HWND hwndDlg,int expert)
       {
-        ShowWindow(GetDlgItem(hwndDlg,IDC_GAMMACORRECT),expert?SW_SHOW:SW_HIDE);
-        ShowWindow(GetDlgItem(hwndDlg,IDC_STSAMETEXT),expert?SW_SHOW:SW_HIDE);
-        ShowWindow(GetDlgItem(hwndDlg,IDC_SAMETYPE),expert?SW_SHOW:SW_HIDE);
-        ShowWindow(GetDlgItem(hwndDlg,IDC_SAMESIZE),expert?SW_SHOW:SW_HIDE);
-        ShowWindow(GetDlgItem(hwndDlg,IDC_SAMESTYLE),expert?SW_SHOW:SW_HIDE);
-        ShowWindow(GetDlgItem(hwndDlg,IDC_SAMECOLOUR),expert?SW_SHOW:SW_HIDE);
-        ShowWindow(GetDlgItem(hwndDlg,IDC_STSIZETEXT),expert?SW_HIDE:SW_SHOW);
-        ShowWindow(GetDlgItem(hwndDlg,IDC_STCOLOURTEXT),expert?SW_HIDE:SW_SHOW);
+        ShowWindowNew(GetDlgItem(hwndDlg,IDC_GAMMACORRECT),expert?SW_SHOW:SW_HIDE);
+        ShowWindowNew(GetDlgItem(hwndDlg,IDC_STSAMETEXT),expert?SW_SHOW:SW_HIDE);
+        ShowWindowNew(GetDlgItem(hwndDlg,IDC_SAMETYPE),expert?SW_SHOW:SW_HIDE);
+        ShowWindowNew(GetDlgItem(hwndDlg,IDC_SAMESIZE),expert?SW_SHOW:SW_HIDE);
+        ShowWindowNew(GetDlgItem(hwndDlg,IDC_SAMESTYLE),expert?SW_SHOW:SW_HIDE);
+        ShowWindowNew(GetDlgItem(hwndDlg,IDC_SAMECOLOUR),expert?SW_SHOW:SW_HIDE);
+        ShowWindowNew(GetDlgItem(hwndDlg,IDC_STSIZETEXT),expert?SW_HIDE:SW_SHOW);
+        ShowWindowNew(GetDlgItem(hwndDlg,IDC_STCOLOURTEXT),expert?SW_HIDE:SW_SHOW);
         SetDlgItemTextA(hwndDlg,IDC_STASTEXT,Translate(expert?"as:":"based on:"));
         {	UTILRESIZEDIALOG urd={0};
         urd.cbSize=sizeof(urd);

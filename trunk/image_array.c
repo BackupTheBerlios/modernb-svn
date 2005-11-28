@@ -191,9 +191,10 @@ int ImageArray_AddImage(LP_IMAGE_ARRAY_DATA iad, HBITMAP hBmp, int pos)
 {
 	BITMAP bm;
 	int new_width, new_height;
-	HBITMAP hNewBmp;
+	HBITMAP hNewBmp, old_bmp;
 	HDC hdc_old;
 	BOOL last_one;
+
 	int i;
 
 	if (hBmp == NULL)
@@ -303,7 +304,7 @@ int ImageArray_AddImage(LP_IMAGE_ARRAY_DATA iad, HBITMAP hBmp, int pos)
 			x = w;
 			y = 0;
 		}
-		SelectObject(hdc_old, hBmp);
+		old_bmp=SelectObject(hdc_old, hBmp);
 		BitBlt(iad->hdc, x, y, bm.bmWidth, bm.bmHeight, hdc_old, 0, 0, SRCCOPY);
 
 		// 3- old data
@@ -311,7 +312,7 @@ int ImageArray_AddImage(LP_IMAGE_ARRAY_DATA iad, HBITMAP hBmp, int pos)
 		{
 			int ox, oy;
 
-			SelectObject(hdc_old, iad->img);
+			old_bmp=SelectObject(hdc_old, iad->img);
 
 			if (iad->width_based)
 			{
@@ -340,6 +341,7 @@ int ImageArray_AddImage(LP_IMAGE_ARRAY_DATA iad, HBITMAP hBmp, int pos)
 	}
 
 	// restore things
+	//SelectObject(hdc_old,old_bmp);
 	DeleteDC(hdc_old);
 	if (iad->img != NULL) DeleteObject(iad->img);
 	iad->img = hNewBmp;

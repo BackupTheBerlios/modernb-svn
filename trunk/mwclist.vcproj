@@ -112,9 +112,9 @@
 				UsePrecompiledHeader="2"
 				PrecompiledHeaderThrough="commonheaders.c"
 				PrecompiledHeaderFile=".\Debug/mwclist.pch"
-				AssemblerListingLocation=".\Debug/"
-				ObjectFile=".\Debug/"
-				ProgramDataBaseFileName=".\Debug/"
+				AssemblerListingLocation="..\temp\Debug/"
+				ObjectFile="..\temp\Debug/"
+				ProgramDataBaseFileName="..\temp\Debug/"
 				BrowseInformation="1"
 				WarningLevel="3"
 				SuppressStartupBanner="TRUE"
@@ -134,13 +134,13 @@
 				AdditionalLibraryDirectories=""
 				DelayLoadDLLs="gdiplus.dll"
 				GenerateDebugInformation="TRUE"
-				ProgramDatabaseFile=".\Debug/clist_mw.pdb"
+				ProgramDatabaseFile="..\temp\Debug/clist_mw.pdb"
 				GenerateMapFile="TRUE"
 				MapFileName="clistmw.map"
 				MapExports="TRUE"
 				MapLines="TRUE"
 				BaseAddress=""
-				ImportLibrary=".\Debug/clist_mw.lib"/>
+				ImportLibrary="..\temp\Debug/clist_mw.lib"/>
 			<Tool
 				Name="VCMIDLTool"
 				PreprocessorDefinitions="_DEBUG"
@@ -1303,6 +1303,9 @@
 				</File>
 				<File
 					RelativePath=".\genmenuopt.c">
+				</File>
+				<File
+					RelativePath=".\newrowopts.c">
 				</File>
 				<File
 					RelativePath=".\CLUIFrames\protocolorder.c">

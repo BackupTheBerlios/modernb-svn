@@ -532,7 +532,7 @@ void BeginRenameSelection(HWND hwnd,struct ClcData *dat)
 
     SendMessage(dat->hwndRenameEdit,EM_SETRECT,0,(LPARAM)(&r));
     
-	ShowWindow(dat->hwndRenameEdit,SW_SHOW);
+	ShowWindowNew(dat->hwndRenameEdit,SW_SHOW);
   SetWindowPos(dat->hwndRenameEdit,HWND_TOP,0,0,0,0,SWP_NOMOVE|SWP_NOSIZE);
 	SetFocus(dat->hwndRenameEdit);
 }

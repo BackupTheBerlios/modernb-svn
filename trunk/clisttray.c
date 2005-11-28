@@ -608,7 +608,7 @@ static VOID CALLBACK TrayIconAutoHideTimer(HWND hwnd,UINT message,UINT idEvent,D
 	KillTimer(hwnd,idEvent);
 	hwndClui=(HWND)CallService(MS_CLUI_GETHWND,0,0);
 	if(GetActiveWindow()==hwndClui) return;
-	//ShowWindow(hwndClui,SW_HIDE);
+	//ShowWindowNew(hwndClui,SW_HIDE);
     HideWindow(hwndClui, SW_HIDE);
 	if(MySetProcessWorkingSetSize!=NULL)
 		MySetProcessWorkingSetSize(GetCurrentProcess(),-1,-1);

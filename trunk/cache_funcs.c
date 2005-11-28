@@ -907,14 +907,14 @@ void Cache_GetAvatar(struct ClcData *dat, struct ClcContact *contact)
 					{
 						// Create data...
 						HDC hdc; 
-						HBITMAP hDrawBmp;
+						HBITMAP hDrawBmp,oldBmp;
 
 						// Make bounds -> keep aspect radio
 						LONG width_clip;
 						LONG height_clip;
 						RECT rc = {0};
 
-						// Clipping width and hieght
+						// Clipping width and height
 						width_clip = dat->avatars_size;
 						height_clip = dat->avatars_size;
 
@@ -930,7 +930,7 @@ void Cache_GetAvatar(struct ClcData *dat, struct ClcContact *contact)
 						// Create objs
 						hdc = CreateCompatibleDC(dat->avatar_cache.hdc); 
 						hDrawBmp = CreateBitmap32(width_clip, height_clip);
-						SelectObject(hdc, hDrawBmp);
+						oldBmp=SelectObject(hdc, hDrawBmp);
 						SetBkMode(hdc,TRANSPARENT);
 						{
 							POINT org;
@@ -945,12 +945,11 @@ void Cache_GetAvatar(struct ClcData *dat, struct ClcContact *contact)
 						// Draw bitmap             8//8
 						{
 							HDC dcMem = CreateCompatibleDC(hdc);
-							SelectObject(dcMem, hBmp);
-
+							HBITMAP obmp=SelectObject(dcMem, hBmp);						
 							StretchBlt(hdc, 0, 0, width_clip, height_clip,dcMem, 0, 0, bm.bmWidth, bm.bmHeight, SRCCOPY);
-
-              DeleteDC(dcMem);
-            }
+							SelectObject(dcMem,obmp);
+							DeleteDC(dcMem);
+						}
             {
               RECT rtr={0};
               rtr.right=width_clip+1;
@@ -959,6 +958,7 @@ void Cache_GetAvatar(struct ClcData *dat, struct ClcContact *contact)
             }
 
             hDrawBmp = GetCurrentObject(hdc, OBJ_BITMAP);
+			SelectObject(hdc,oldBmp);
             DeleteDC(hdc);
 
 						// Add to list

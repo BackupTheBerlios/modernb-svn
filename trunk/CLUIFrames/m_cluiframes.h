@@ -110,7 +110,7 @@ typedef struct tagCLISTFrame {
 #define F_LOCKED			8 //Lock Frame
 #define F_NOBORDER			16 //Dont apply WS_BORDER style for window
 #define F_SHOWTBTIP			32 //Show titlebar tooltip
-#define F_NO_SUBCONTAINER   1024    //Support skining no subcontainer needed
+#define F_NO_SUBCONTAINER   1024   //Support skining no subcontainer needed
 
 
 // frame alignment

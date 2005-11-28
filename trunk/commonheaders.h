@@ -175,5 +175,6 @@ extern int UnhookAll();
 
 HBITMAP CreateBitmap32(int cx, int cy);
 void FreeDisplayNameCache(SortedList *list);
+extern int ShowWindowNew(HWND hwnd, int cmd);
 
 #endif

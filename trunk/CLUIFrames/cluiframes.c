@@ -28,7 +28,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 //not needed,now use MS_CLIST_FRAMEMENUNOTIFY service
 //HANDLE hPreBuildFrameMenuEvent;//external event from clistmenus
-
+extern BOOL TransparentFlag;
 extern RECT new_window_rect;
 extern RECT old_window_rect;
 int QueueAllFramesUpdating(BYTE queue);
@@ -186,11 +186,11 @@ int SetAlpha(BYTE Alpha)
 			        parent=hProgMan;
           }
 
-          ShowWindow(hwnd,SW_HIDE);
+          ShowWindowNew(hwnd,SW_HIDE);
           SetParent(hwnd,NULL);
           SetWindowLong(hwnd,GWL_EXSTYLE,l|WS_EX_LAYERED);
           SetParent(hwnd,parent);
-          if (l&WS_VISIBLE)  ShowWindow(hwnd,SW_SHOW);
+          if (l&WS_VISIBLE)  ShowWindowNew(hwnd,SW_SHOW);
         }
         MySetLayeredWindowAttributesNew(hwnd, KeyColor,Alpha, LWA_ALPHA|((UseKeyColor)?LWA_COLORKEY:0));
       }
@@ -260,8 +260,8 @@ int OnShowHide(HWND hwnd, int mode)
   for(i=0;i<nFramescount;i++){
     if (!Frames[i].floating && Frames[i].OwnerWindow!=(HWND)0 &&Frames[i].OwnerWindow!=(HWND)-2)
     {
-      ShowWindow(Frames[i].OwnerWindow,(mode==SW_HIDE||!Frames[i].visible||Frames[i].needhide)?SW_HIDE:mode);
-      ShowWindow(Frames[i].hWnd,(mode==SW_HIDE||!Frames[i].visible||Frames[i].needhide)?SW_HIDE:mode);
+      ShowWindowNew(Frames[i].OwnerWindow,(mode==SW_HIDE||!Frames[i].visible||Frames[i].needhide)?SW_HIDE:mode);
+      ShowWindowNew(Frames[i].hWnd,(mode==SW_HIDE||!Frames[i].visible||Frames[i].needhide)?SW_HIDE:mode);
       if (mode!=SW_HIDE)
       {
         SetWindowPos(Frames[i].OwnerWindow,HWND_TOP,0,0,0,0,SWP_NOMOVE|SWP_NOSIZE|SWP_NOACTIVATE);
@@ -336,6 +336,14 @@ int QueueAllFramesUpdating(BYTE queue)
 {
   int i;
   for(i=0;i<nFramescount;i++)
+  {
+	  if (!LayeredFlag)
+	  {
+		  if (queue) 
+			  InvalidateRect(Frames[i].hWnd,NULL,FALSE);
+		  else
+			  ValidateRect(Frames[i].hWnd,NULL);
+	  }
     if (Frames[i].PaintCallbackProc)
     {
       Frames[i].bQueued=queue; 
@@ -347,10 +355,19 @@ int QueueAllFramesUpdating(BYTE queue)
       Frames[i].UpdateRgn=0;
     }
 
+  }
     return queue;
 
 }
-
+int FindFrameID(HWND FrameHwnd)
+{
+  wndFrame * frm=NULL;
+  if (FrameHwnd == NULL ) return 0;
+  frm=FindFrameByItsHWND(FrameHwnd);
+  if (frm)
+    return frm->id;
+  else return 0;
+}
 wndFrame * FindFrameByItsHWND(HWND FrameHwnd)
 {
   int i;
@@ -1459,12 +1476,12 @@ int CLUIFramesShowHideFrame(WPARAM wParam,LPARAM lParam)
   if (Frames[pos].OwnerWindow!=(HWND)-2)
   {
     if (Frames[pos].OwnerWindow) 
-      ShowWindow(Frames[pos].OwnerWindow,(Frames[pos].visible&& Frames[pos].collapsed && IsWindowVisible(hwndContactList))?SW_SHOW/*NOACTIVATE*/:SW_HIDE);
+      ShowWindowNew(Frames[pos].OwnerWindow,(Frames[pos].visible&& Frames[pos].collapsed && IsWindowVisible(hwndContactList))?SW_SHOW/*NOACTIVATE*/:SW_HIDE);
     else if (Frames[pos].visible)
     {
       Frames[pos].OwnerWindow=CreateSubContainerWindow(hwndContactList,Frames[pos].FloatingPos.x,Frames[pos].FloatingPos.y,10,10);
       SetParent(Frames[pos].hWnd,Frames[pos].OwnerWindow);
-      ShowWindow(Frames[pos].OwnerWindow,(Frames[pos].visible && Frames[pos].collapsed && IsWindowVisible(hwndContactList))?SW_SHOW/*NOACTIVATE*/:SW_HIDE);
+      ShowWindowNew(Frames[pos].OwnerWindow,(Frames[pos].visible && Frames[pos].collapsed && IsWindowVisible(hwndContactList))?SW_SHOW/*NOACTIVATE*/:SW_HIDE);
     }
   }
   if (Frames[pos].floating){CLUIFrameResizeFloatingFrame(pos);};
@@ -1950,7 +1967,7 @@ int CLUIFramesAddFrame(WPARAM wParam,LPARAM lParam)
   Frames[nFramescount].TitleBar.hicon=clfrm->hIcon;
   //Frames[nFramescount].TitleBar.BackColour;
   Frames[nFramescount].floating=FALSE;
-  if (clfrm->Flags&F_NO_SUBCONTAINER)
+  if (clfrm->Flags&F_NO_SUBCONTAINER || !LayeredFlag)
     Frames[nFramescount].OwnerWindow=(HWND)-2;
   else Frames[nFramescount].OwnerWindow=0;
 
@@ -2153,18 +2170,18 @@ int CLUIFrameMoveResize(const wndFrame *Frame)
   if(Frame->visible&&(!Frame->needhide)) {
     if (Frame->OwnerWindow!=(HWND)-2 &&Frame->OwnerWindow)         
     {
-      //          ShowWindow(Frame->OwnerWindow,SW_SHOW);
+      //          ShowWindowNew(Frame->OwnerWindow,SW_SHOW);
     }
-    ShowWindow(Frame->hWnd,SW_SHOW/*NOACTIVATE*/);
-    ShowWindow(Frame->TitleBar.hwnd,Frame->TitleBar.ShowTitleBar==TRUE?SW_SHOW/*NOACTIVATE*/:SW_HIDE);
+    ShowWindowNew(Frame->hWnd,SW_SHOW/*NOACTIVATE*/);
+    ShowWindowNew(Frame->TitleBar.hwnd,Frame->TitleBar.ShowTitleBar==TRUE?SW_SHOW/*NOACTIVATE*/:SW_HIDE);
   }
   else {
     if (Frame->OwnerWindow)         
     {
-      ShowWindow(Frame->OwnerWindow,SW_HIDE);
+      ShowWindowNew(Frame->OwnerWindow,SW_HIDE);
     }
-    ShowWindow(Frame->hWnd,SW_HIDE);
-    ShowWindow(Frame->TitleBar.hwnd,SW_HIDE);
+    ShowWindowNew(Frame->hWnd,SW_HIDE);
+    ShowWindowNew(Frame->TitleBar.hwnd,SW_HIDE);
     return(0);
   }
 
@@ -2747,6 +2764,11 @@ int SizeFramesByWindowRect(RECT *r, HDWP * PosBatch, int mode)
        dy=0;//_window_rect.top-old_window_rect.top;
        if (!Frames[i].floating)
        {
+         if (Frames[i].visible && !Frames[i].needhide && !IsWindowVisible(Frames[i].hWnd))
+         {
+           ShowWindow(Frames[i].hWnd,SW_SHOW);
+           if (Frames[i].TitleBar.ShowTitleBar) ShowWindow(Frames[i].TitleBar.hwnd,SW_SHOW);
+         }
          if (Frames[i].OwnerWindow && (int)(Frames[i].OwnerWindow)!=-2 )
          {
            if (!(mode&2))
@@ -2859,7 +2881,7 @@ int CLUIFramesOnClistResize(WPARAM wParam,LPARAM lParam)
   //resizing=TRUE;
   GetClientRect(hwndContactList,&nRect);
   //$$$ Fixed borders 
-  if (lParam && lParam!=1)
+  if (lParam && lParam!=1 && lParam!=2)
   {
     RECT oldRect;
     POINT pt;
@@ -2914,7 +2936,7 @@ int CLUIFramesOnClistResize(WPARAM wParam,LPARAM lParam)
   if (hwndContactList!=0) InvalidateRectZ(hwndContactList,NULL,TRUE);
   if (hwndContactList!=0) UpdateWindow(hwndContactList);
 
-  //if(lParam==2) RedrawWindow(hwndContactList,NULL,NULL,RDW_UPDATENOW|RDW_ALLCHILDREN|RDW_ERASE|RDW_INVALIDATE);
+  if(lParam==2) RedrawWindow(hwndContactList,NULL,NULL,RDW_UPDATENOW|RDW_ALLCHILDREN|RDW_ERASE|RDW_INVALIDATE);
 
 
   Sleep(0);
@@ -3044,7 +3066,11 @@ int DrawTitleBar(HDC hdcMem2,RECT rect,int Frameid)
       }
       else
       {
-        BitBlt(hdcMem,0,0,rc.right-rc.left,rc.bottom-rc.top,hdcMem2,rect.left,rect.top,SRCCOPY);
+		if (!LayeredFlag)
+		{
+			 BltBackImage(Frames[pos].TitleBar.hwnd,hdcMem,&rc);
+		}
+		else  BitBlt(hdcMem,0,0,rc.right-rc.left,rc.bottom-rc.top,hdcMem2,rect.left,rect.top,SRCCOPY);
         SkinDrawGlyph(hdcMem,&rc,&rc,"Main,ID=FrameCaption");
       }
       if (SelBkColour) 
@@ -3079,7 +3105,7 @@ int DrawTitleBar(HDC hdcMem2,RECT rect,int Frameid)
   }
   {
 	  BLENDFUNCTION bf={AC_SRC_OVER, 0, 255, AC_SRC_ALPHA };
-	  if (Frames[pos].floating)
+	  if (Frames[pos].floating || (!LayeredFlag))
 	  {
 		  HRGN rgn=CreateRectRgn(rect.left,rect.top,rect.right,rect.bottom);
 		  SelectClipRgn(hdcMem2,rgn);
@@ -3094,7 +3120,7 @@ int DrawTitleBar(HDC hdcMem2,RECT rect,int Frameid)
   SelectObject(hdcMem,b2);
   DeleteObject(b1);
   SelectObject(hdcMem,hoTTBFont);
-  SelectObject(hdcMem,hBack);
+  SelectObject(hdcMem,hoBrush);
   DeleteDC(hdcMem);
   return 0;
 }
@@ -3685,6 +3711,10 @@ LRESULT CALLBACK CLUIFrameTitleBarProc(HWND hwnd, UINT msg, WPARAM wParam, LPARA
       //if (lParam&PRF_CLIENT)
       {
         GetClientRect(hwnd,&rect);
+		if (!LayeredFlag)
+		{
+			BltBackImage(hwnd,(HDC)wParam,&rect);
+		}
         DrawTitleBar((HDC)wParam,rect,Frameid);
       }
       break;
@@ -3697,7 +3727,7 @@ LRESULT CALLBACK CLUIFrameTitleBarProc(HWND hwnd, UINT msg, WPARAM wParam, LPARA
   case WM_PAINT:	
     {
       HDC paintDC;
-      if (Frames[id2pos(Frameid)].floating)
+      if (Frames[id2pos(Frameid)].floating || (!LayeredFlag))
       {	   
         GetClientRect(hwnd,&rect);	
 		paintDC = GetDC(hwnd);
@@ -3727,13 +3757,13 @@ int CLUIFrameResizeFloatingFrame(int framepos)
   width=rect.right-rect.left;
   height=rect.bottom-rect.top;
 
-  Frames[framepos].visible?ShowWindow(Frames[framepos].ContainerWnd,SW_SHOW/*NOACTIVATE*/):ShowWindow(Frames[framepos].ContainerWnd,SW_HIDE);
+  Frames[framepos].visible?ShowWindowNew(Frames[framepos].ContainerWnd,SW_SHOW/*NOACTIVATE*/):ShowWindowNew(Frames[framepos].ContainerWnd,SW_HIDE);
 
 
 
   if (Frames[framepos].TitleBar.ShowTitleBar)
   {
-    ShowWindow(Frames[framepos].TitleBar.hwnd,SW_SHOW/*NOACTIVATE*/);
+    ShowWindowNew(Frames[framepos].TitleBar.hwnd,SW_SHOW/*NOACTIVATE*/);
     //if (Frames[framepos].Locked){return(0);};
     Frames[framepos].height=height-DEFAULT_TITLEBAR_HEIGHT;
 
@@ -3746,7 +3776,7 @@ int CLUIFrameResizeFloatingFrame(int framepos)
     //SetWindowPos(Frames[framepos].TitleBar.hwnd,HWND_TOP,0,0,width,DEFAULT_TITLEBAR_HEIGHT,SWP_SHOWWINDOW|SWP_NOMOVE);
     //if (Frames[framepos].Locked){return(0);};
     Frames[framepos].height=height;
-    ShowWindow(Frames[framepos].TitleBar.hwnd,SW_HIDE);
+    ShowWindowNew(Frames[framepos].TitleBar.hwnd,SW_HIDE);
     SetWindowPos(Frames[framepos].hWnd,HWND_TOP,0,0,width,height,SWP_SHOWWINDOW|SWP_NOACTIVATE);		
 
   };
@@ -3794,7 +3824,7 @@ LRESULT CALLBACK CLUIFrameSubContainerProc(HWND hwnd, UINT msg, WPARAM wParam, L
   {
   case WM_ACTIVATE:   
     {
-      if(DBGetContactSettingByte(NULL,"CList","Transparent",SETTING_TRANSPARENT_DEFAULT))
+      if(TransparentFlag)
       {
         BYTE alpha;
         if ((wParam!=WA_INACTIVE || ((HWND)lParam==hwnd) || GetParent((HWND)lParam)==hwnd))
@@ -4164,7 +4194,7 @@ int CLUIFrameSetFloat(WPARAM wParam,LPARAM lParam)
       if (Frames[wParam].OwnerWindow!=(HWND)-2 &&Frames[wParam].visible)
       {
         if (Frames[wParam].OwnerWindow==0) Frames[wParam].OwnerWindow=CreateSubContainerWindow(hwndContactList,Frames[wParam].FloatingPos.x,Frames[wParam].FloatingPos.y,10,10);
-        ShowWindow(Frames[wParam].OwnerWindow,(Frames[wParam].visible && Frames[wParam].collapsed && IsWindowVisible(hwndContactList))?SW_SHOW/*NOACTIVATE*/:SW_HIDE);
+        ShowWindowNew(Frames[wParam].OwnerWindow,(Frames[wParam].visible && Frames[wParam].collapsed && IsWindowVisible(hwndContactList))?SW_SHOW/*NOACTIVATE*/:SW_HIDE);
         SetParent(Frames[wParam].hWnd,Frames[wParam].OwnerWindow);
         SetParent(Frames[wParam].TitleBar.hwnd,hwndContactList);
         SetWindowLong(Frames[wParam].OwnerWindow,GWL_USERDATA,Frames[wParam].id);
