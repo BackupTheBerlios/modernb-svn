@@ -435,7 +435,7 @@ void * AddTempGroup(HWND hwnd,struct ClcData *dat,const TCHAR *szName,DWORD flag
 	 mir_free(mbuf);
 	 for(i=1;;i++) 
      {
-	    szGroupName=(TCHAR*)CallService(MS_CLIST_GROUPGETNAME2,i,(LPARAM)&groupFlags);
+	    szGroupName=(TCHAR*)CallService(MS_CLIST_GROUPGETNAMET,i,(LPARAM)&groupFlags);
 	    if(szGroupName==NULL) break;
         if (!MyStrCmpiT(szGroupName,szName)) f=1;
 	 }
@@ -448,7 +448,7 @@ void * AddTempGroup(HWND hwnd,struct ClcData *dat,const TCHAR *szName,DWORD flag
         _sntprintf(b2,sizeof(b2),_T("#%s"),szName);
         b2[0]=1|GROUPF_EXPANDED;
 		DBWriteContactSettingTString(NULL,"CListGroups",buf,b2);
-        CallService(MS_CLIST_GROUPGETNAME2,i,(LPARAM)&groupFlags);      
+        CallService(MS_CLIST_GROUPGETNAMET,i,(LPARAM)&groupFlags);      
         res=AddGroup(hwnd,dat,szName,groupFlags,i,0);
         return res;
      }
@@ -490,17 +490,20 @@ void AddContactToTree(HWND hwnd,struct ClcData *dat,HANDLE hContact,int updateTo
 			int i,len;
 			DWORD groupFlags;
 			TCHAR *szGroupName;
-			if(!(style&CLS_HIDEEMPTYGROUPS)) {/*mir_free(dbv.pszVal);*/AddTempGroup(hwnd,dat,cacheEntry->szGroup,(DWORD)-1,0,0);return;}
+			if(!(style&CLS_HIDEEMPTYGROUPS)) {
+			//	/*mir_free(dbv.pszVal);*/AddTempGroup(hwnd,dat,cacheEntry->szGroup,(DWORD)-1,0,0);
+				return;
+			}
 			if(checkHideOffline && IsHiddenMode(dat,status)) {
 				for(i=1;;i++) {
-					szGroupName=(TCHAR*)CallService(MS_CLIST_GROUPGETNAME2,i,(LPARAM)&groupFlags); //UNICODE
+					szGroupName=(TCHAR*)CallService(MS_CLIST_GROUPGETNAMET,i,(LPARAM)&groupFlags); //UNICODE
 					if(szGroupName==NULL) {/*mir_free(dbv.pszVal);*/ return;}   //never happens
 					if(!lstrcmp(szGroupName,cacheEntry->szGroup)) break;
 				}
 				if(groupFlags&GROUPF_HIDEOFFLINE) {/*mir_free(dbv.pszVal);*/ return;}
 			}
 			for(i=1;;i++) {
-				szGroupName=(TCHAR*)CallService(MS_CLIST_GROUPGETNAME2,i,(LPARAM)&groupFlags); //UNICODE
+				szGroupName=(TCHAR*)CallService(MS_CLIST_GROUPGETNAMET,i,(LPARAM)&groupFlags); //UNICODE
 				if(szGroupName==NULL) {/*mir_free(dbv.pszVal);*/ return;}   //never happens
 				if(!lstrcmp(szGroupName,cacheEntry->szGroup)) break;
 				len=lstrlen(szGroupName);
@@ -583,7 +586,7 @@ void DeleteItemFromTree(HWND hwnd,HANDLE hItem)
 		if(!IsHContactContact(hItem)) return;
 		ClearClcContactCache(dat,hItem);
 
-    if(DBGetContactSetting(hItem,"CList","Group",&dbv)) {DBFreeVariant(&dbv); return;}
+    if(DBGetContactSettingTString(hItem,"CList","Group",&dbv)) {DBFreeVariant(&dbv); return;}
 
 		//decrease member counts of all parent groups too
 		group=&dat->list;
@@ -652,7 +655,7 @@ void RebuildEntireList(HWND hwnd,struct ClcData *dat)
 		DWORD groupFlags;
 
 		for(i=1;;i++) {
-			szGroupName=(TCHAR*)CallService(MS_CLIST_GROUPGETNAME2,i,(LPARAM)&groupFlags); //UNICODE
+			szGroupName=(TCHAR*)CallService(MS_CLIST_GROUPGETNAMET,i,(LPARAM)&groupFlags); //UNICODE
 			if(szGroupName==NULL) break;
 			AddGroup(hwnd,dat,szGroupName,groupFlags,i,0);
 		}
@@ -676,7 +679,7 @@ void RebuildEntireList(HWND hwnd,struct ClcData *dat)
 				group=&dat->list;
 			else {
 				group=AddGroup(hwnd,dat,cacheEntry->szGroup,(DWORD)-1,0,0);
-                if (!group) group=AddTempGroup(hwnd,dat,cacheEntry->szGroup,(DWORD)-1,0,0);
+//                if (!group) group=AddTempGroup(hwnd,dat,cacheEntry->szGroup,(DWORD)-1,0,0);
 				//mir_free(dbv.pszVal);
 			}
             if(group!=NULL) {

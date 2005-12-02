@@ -161,11 +161,12 @@ static int GetStatusModeDescription(WPARAM wParam,LPARAM lParam)
 #ifdef UNICODE
 	if (!(lParam&CNF_UNICODE))
 	{
-		
+		static char szMode[64]={0};
 		TCHAR *buf1=(TCHAR*)GetStatusModeDescriptionW(wParam,lParam);
 		char *buf2=u2a(buf1);
-		mir_free(buf1);
-		return (int)buf2;
+		_snprintf(szMode,sizeof(szMode),"%s",buf2);
+		mir_free(buf2);
+		return (int)szMode;
 	}
 	else
 #endif

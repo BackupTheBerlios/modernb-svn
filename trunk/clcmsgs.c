@@ -42,7 +42,7 @@ LRESULT ProcessExternalMessages(HWND hwnd,struct ClcData *dat,UINT msg,WPARAM wP
 
 		case CLM_ADDGROUP:
 		{	DWORD groupFlags;
-			TCHAR *szName=(TCHAR*)CallService(MS_CLIST_GROUPGETNAME2,wParam,(LPARAM)&groupFlags); //TOD UNICODE
+			TCHAR *szName=(TCHAR*)CallService(MS_CLIST_GROUPGETNAMET,wParam,(LPARAM)&groupFlags); //TOD UNICODE
 			if(szName==NULL) break;
 			AddGroup(hwnd,dat,szName,groupFlags,wParam,0);
 			RecalcScrollBar(hwnd,dat);

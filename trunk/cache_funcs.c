@@ -606,7 +606,7 @@ void Cache_GetFirstLineText(struct ClcData *dat, struct ClcContact *contact)
 {
   TCHAR *ch;
   if (contact->szText) mir_free(contact->szText);
-  ch=(TCHAR*)CallService(MS_CLIST_GETCONTACTDISPLAYNAME,(WPARAM)contact->hContact,0/*TODO UNICODE*/);
+  ch=(TCHAR*)CallService(MS_CLIST_GETCONTACTDISPLAYNAME,(WPARAM)contact->hContact,GCDNF_UNICODE/*TODO UNICODE*/);
   contact->szText=mir_strdupT(ch);
 	
 	Cache_ReplaceSmileys(dat, contact, contact->szText, lstrlen(contact->szText)+1, &(contact->plText),

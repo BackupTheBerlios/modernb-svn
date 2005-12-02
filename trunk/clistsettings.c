@@ -287,7 +287,7 @@ void CheckPDNCE(pdisplayNameCacheEntry pdnce)
 		{
 			DBVARIANT dbv;
 
-			if (!DBGetContactSetting(pdnce->hContact,"CList","Group",&dbv))
+			if (!DBGetContactSettingTString(pdnce->hContact,"CList","Group",&dbv))
 			{
 				pdnce->szGroup=mir_strdupT(dbv.ptszVal);
 				mir_free(dbv.ptszVal);
@@ -609,20 +609,51 @@ int GetContactCachedStatus(HANDLE hContact)
 	return (0);	
 };
 
-
+//----
 //TODO UNICODE
 int GetContactDisplayName(WPARAM wParam,LPARAM lParam)
 {
 	pdisplayNameCacheEntry cacheEntry=NULL;
 
-	if ((int)lParam!=GCDNF_NOMYHANDLE) {
-		cacheEntry=GetDisplayNameCacheEntry((HANDLE)wParam);
-		if (cacheEntry&&cacheEntry->name) return (int)cacheEntry->name;
-		//cacheEntry=cacheEntry;
-    return 0;//"-invalid-";
-		//if(displayNameCache[cacheEntry].name) return (int)displayNameCache[cacheEntry].name;
+#ifdef UNICODE
+	if ( lParam & GCDNF_UNICODE)
+#endif
+	{
+		if ((int)lParam!=GCDNF_NOMYHANDLE) {
+			cacheEntry=GetDisplayNameCacheEntry((HANDLE)wParam);
+			if (cacheEntry&&cacheEntry->name) return (int)cacheEntry->name;
+			//cacheEntry=cacheEntry;
+		return 0;//"-invalid-";
+			//if(displayNameCache[cacheEntry].name) return (int)displayNameCache[cacheEntry].name;
+		}
+		return (GetNameForContact((HANDLE)wParam,lParam,NULL));
 	}
-	return (GetNameForContact((HANDLE)wParam,lParam,NULL));
+#ifdef UNICODE
+	else
+	{
+		TCHAR * b=NULL;
+		char * temp=NULL;
+		static char cachedname[120]={0};
+		if ((int)lParam!=GCDNF_NOMYHANDLE) {
+			cacheEntry=GetDisplayNameCacheEntry((HANDLE)wParam);
+			if (cacheEntry&&cacheEntry->name) 
+				b=cacheEntry->name;
+			else
+				return 0;//"-invalid-";
+		}
+		else
+			b=(TCHAR*)GetNameForContact((HANDLE)wParam,lParam,NULL);	
+		if (!b) return 0;
+		temp=u2a(b);
+		if (temp)
+		{
+			_snprintf(cachedname,sizeof(cachedname),"%s",temp);
+			mir_free(temp);
+			return (int)cachedname;
+		}
+		return 0;
+	}
+#endif
 }
 
 int InvalidateDisplayName(WPARAM wParam,LPARAM lParam) {

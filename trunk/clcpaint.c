@@ -554,12 +554,17 @@ _inline char * GetCLCContactRowBackObject(struct ClcGroup * group, struct ClcCon
 		//TODO b2 to UTF8
 		AppendChar(buf,BUFSIZE,",Name=");
 #ifdef UNICODE
-		AppendChar(buf,BUFSIZE,Utf8EncodeUcs2(b2));
+		{
+			char* b3=Utf8EncodeUcs2(b2);
+			AppendChar(buf,BUFSIZE,b3);
+			free(b3);
+		}
+		
 #else
 		AppendChar(buf,BUFSIZE,b2);
 #endif
-		
 		mir_free(b2);
+		
 	}
 	if (group->parent)
 	{
@@ -571,11 +576,15 @@ _inline char * GetCLCContactRowBackObject(struct ClcGroup * group, struct ClcCon
 		//TODO b2 to UTF8
 		AppendChar(buf,BUFSIZE,",Group=");		
 #ifdef UNICODE
-		AppendChar(buf,BUFSIZE,Utf8EncodeUcs2(b2));
+		{
+		   char * b3=Utf8EncodeUcs2(b2);
+		   AppendChar(buf,BUFSIZE,b3);
+		   free(b3);
+		}
 #else
 		AppendChar(buf,BUFSIZE,b2);
 #endif
-		mir_free(b2);
+		
 	}
 	return mir_strdup(buf);  
 }

@@ -25,6 +25,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 static int RenameGroup(WPARAM wParam,LPARAM lParam);
 static int MoveGroupBefore(WPARAM wParam,LPARAM lParam);
 
+
 static int CountGroups(void)
 {
 	DBVARIANT dbv;
@@ -52,7 +53,7 @@ static int GroupNameExists(const TCHAR *name, int skipGroup)
 		itoa(i,idstr,10);
 		if (DBGetContactSettingTString(NULL, "CListGroups", idstr, &dbv))
 			break;
-		if (!_tcscmp(dbv.ptszVal + 1, name)) {
+		if (!_tcscmp(((TCHAR*)dbv.ptszVal + 1), name)) {
 			DBFreeVariant(&dbv);
 			return 1;
 		}
@@ -107,7 +108,7 @@ static int GetGroupName2(WPARAM wParam,LPARAM lParam)
 	return (int)name;
 }
 
-TCHAR* GetGroupNameT( int idx, DWORD* pdwFlags )
+TCHAR* GetGroupNameTS( int idx, DWORD* pdwFlags )
 {
 	char idstr[33];
 	DBVARIANT dbv;
@@ -117,11 +118,16 @@ TCHAR* GetGroupNameT( int idx, DWORD* pdwFlags )
 	if (DBGetContactSettingTString( NULL, "CListGroups", idstr, &dbv ))
 		return NULL;
 
-	lstrcpyn( name, dbv.ptszVal + 1, SIZEOF( name ));
+	lstrcpyn( name, (TCHAR*)dbv.ptszVal + 1, SIZEOF( name ));
 	if ( pdwFlags != NULL )
 		*pdwFlags = dbv.ptszVal[0];
 	DBFreeVariant( &dbv );
 	return name;
+}
+
+int GetGroupNameT(WPARAM wParam,LPARAM lParam)
+{
+	return (int)GetGroupNameTS ((int) wParam, (DWORD*)lParam);
 }
 
 static int GetGroupName(WPARAM wParam,LPARAM lParam)
@@ -148,7 +154,7 @@ static int DeleteGroup(WPARAM wParam,LPARAM lParam)
 	if (DBGetContactSettingByte(NULL, "CList", "ConfirmDelete", SETTING_CONFIRMDELETE_DEFAULT))
 		if (MessageBox((HWND)CallService(MS_CLUI_GETHWND, 0, 0), TranslateT("Are you sure you want to delete this group?  This operation can not be undone."), TranslateT("Delete Group"), MB_YESNO|MB_ICONQUESTION)==IDNO)
 			return 1;
-	lstrcpyn(name, dbv.ptszVal + 1, SIZEOF(name));
+	lstrcpyn(name, (TCHAR*)dbv.ptszVal + 1, SIZEOF(name));
 	DBFreeVariant(&dbv);
 	SetCursor(LoadCursor(NULL,IDC_WAIT));
 	//must remove setting from all child contacts too
@@ -194,7 +200,7 @@ static int DeleteGroup(WPARAM wParam,LPARAM lParam)
 			itoa(i,str,10);
 			if (DBGetContactSettingTString(NULL, "CListGroups", str, &dbv))
 				break;
-			if (!_tcsncmp(dbv.ptszVal + 1, name, len) && dbv.ptszVal[len + 1] == '\\' && _tcschr(dbv.ptszVal + len + 2, '\\') == NULL) {
+			if (!_tcsncmp((TCHAR*)dbv.ptszVal + 1, name, len) && dbv.ptszVal[len + 1] == '\\' && _tcschr(dbv.ptszVal + len + 2, '\\') == NULL) {
 				if (szNewParent[0])
 					mir_sntprintf(szNewName, SIZEOF(szNewName), _T("%s\\%s"), szNewParent, dbv.ptszVal + len + 2);
 				else
@@ -225,10 +231,17 @@ static int RenameGroupWithMove(int groupId,const TCHAR *szName,int move)
 	itoa(groupId,idstr,10);
 	if (DBGetContactSettingTString(NULL, "CListGroups", idstr, &dbv))
 		return 1;
-	str[0]=dbv.pszVal[0];
-	lstrcpyn(oldName, dbv.ptszVal + 1, SIZEOF(oldName));
+	str[0]=dbv.ptszVal[0];
+	lstrcpyn(oldName, (TCHAR*)dbv.ptszVal + 1, SIZEOF(oldName));
 	DBFreeVariant(&dbv);
-	lstrcpyn(str + 1, szName, SIZEOF(str) - 1);
+	{
+		WORD l;
+		l=lstrlen(szName)+sizeof(TCHAR);
+		l=min(l,SIZEOF(str));
+		l--;
+		lstrcpyn(str + 1, szName, l);
+		str[l+1]=_T('\0');
+	}
 	DBWriteContactSettingTString(NULL, "CListGroups", idstr, str);
 
 	//must rename setting in all child contacts too
@@ -254,8 +267,8 @@ static int RenameGroupWithMove(int groupId,const TCHAR *szName,int move)
 			itoa(i,idstr,10);
 			if (DBGetContactSettingTString(NULL, "CListGroups", idstr, &dbv))
 				break;
-			if ( !_tcsncmp(dbv.ptszVal + 1, oldName, len) && dbv.ptszVal[len + 1] == '\\' && _tcschr(dbv.ptszVal + len + 2, '\\') == NULL) {
-				mir_sntprintf( szNewName, SIZEOF(szNewName), _T("%s\\%s"), szName, dbv.pszVal + len + 2 );
+			if ( !_tcsncmp((TCHAR*)dbv.ptszVal + 1, oldName, len) && dbv.ptszVal[len + 1] == _T('\\') && _tcschr((TCHAR*)dbv.ptszVal+len + 2, _T('\\')) == NULL) {
+				mir_sntprintf( szNewName, SIZEOF(szNewName), _T("%s\\%s"), szName,(TCHAR*)dbv.pszVal + len + 2 );
 				RenameGroupWithMove(i,szNewName,0);	//luckily, child groups will never need reordering
 			}
 			DBFreeVariant(&dbv);
@@ -276,7 +289,7 @@ static int RenameGroupWithMove(int groupId,const TCHAR *szName,int move)
 			itoa(i,idstr,10);
 			if (DBGetContactSettingTString(NULL, "CListGroups", idstr, &dbv))
 				break;
-			if (!lstrcmp(dbv.ptszVal + 1, str)) {
+			if (!lstrcmp((TCHAR*)dbv.ptszVal + 1, str)) {
 				if (i < groupId)
 					break;      //is OK
 				MoveGroupBefore(groupId+1,i+2);
@@ -298,7 +311,7 @@ static int RenameGroup(WPARAM wParam,LPARAM lParam)
 	#if defined( _UNICODE )
 		WCHAR* temp = a2u(( char* )lParam );
 		int result = ( -1 != RenameGroupWithMove(wParam - 1, temp, 1));
-		free( temp );
+		mir_free( temp );
 		return result;
 	#else
 		return -1 != RenameGroupWithMove(wParam - 1, (TCHAR*) lParam, 1);
@@ -422,7 +435,7 @@ static int BuildGroupMenu(WPARAM wParam,LPARAM lParam)
 		if (DBGetContactSettingTString(NULL, "CListGroups", idstr, &dbv))
 			break;
 
-		pNextField = dbv.ptszVal + 1;
+		pNextField = (TCHAR*)dbv.ptszVal + 1;
 		hThisMenu=hRootMenu;
 		mii.cbSize=MENUITEMINFO_V4_SIZE;
 		do {
@@ -500,9 +513,10 @@ int InitGroupServices(void)
 {
 	CreateServiceFunction(MS_CLIST_GROUPCREATE,CreateGroup);
 	CreateServiceFunction(MS_CLIST_GROUPDELETE,DeleteGroup);
-	CreateServiceFunction(MS_CLIST_GROUPRENAME,RenameGroup);
+	CreateServiceFunction(MS_CLIST_GROUPRENAMET,RenameGroupT);
 	CreateServiceFunction(MS_CLIST_GROUPGETNAME,GetGroupName);
 	CreateServiceFunction(MS_CLIST_GROUPGETNAME2,GetGroupName2);
+	CreateServiceFunction(MS_CLIST_GROUPGETNAMET,GetGroupNameT);
 	CreateServiceFunction(MS_CLIST_GROUPSETEXPANDED,SetGroupExpandedState);
 	CreateServiceFunction(MS_CLIST_GROUPSETFLAGS,SetGroupFlags);
 	CreateServiceFunction(MS_CLIST_GROUPMOVEBEFORE,MoveGroupBefore);

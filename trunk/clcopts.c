@@ -62,7 +62,7 @@ DWORD GetDefaultExStyle(void)
 
 static void GetDefaultFontSetting(int i,LOGFONTA *lf,COLORREF *colour)
 {
-  SystemParametersInfo(SPI_GETICONTITLELOGFONT,sizeof(LOGFONT),lf,FALSE);
+  SystemParametersInfoA(SPI_GETICONTITLELOGFONT,sizeof(LOGFONTA),lf,FALSE);
   *colour=GetSysColor(COLOR_WINDOWTEXT);
   switch(i) {
     case FONTID_GROUPS:
@@ -145,7 +145,7 @@ void GetFontSetting(int i,LOGFONTA *lf,COLORREF *colour)
 	mir_snprintf(idstr,sizeof(idstr),"Font%dCol",i);
   *colour=DBGetContactSettingDword(NULL,"CLC",idstr,*colour);
 	mir_snprintf(idstr,sizeof(idstr),"Font%dSize",i);
-  lf->lfHeight=(char)DBGetContactSettingByte(NULL,"CLC",idstr,lf->lfHeight);
+  lf->lfHeight=(signed short)DBGetContactSettingByte(NULL,"CLC",idstr,lf->lfHeight);
 	mir_snprintf(idstr,sizeof(idstr),"Font%dSty",i);
   style=(BYTE)DBGetContactSettingByte(NULL,"CLC",idstr,(lf->lfWeight==FW_NORMAL?0:DBFONTF_BOLD)|(lf->lfItalic?DBFONTF_ITALIC:0)|(lf->lfUnderline?DBFONTF_UNDERLINE:0));
   lf->lfWidth=lf->lfEscapement=lf->lfOrientation=0;
@@ -232,35 +232,35 @@ struct CheckBoxToStyleEx_t {
 
 struct CheckBoxValues_t {
     DWORD style;
-    char *szDescr;
+    TCHAR *szDescr;
  };
   static const struct CheckBoxValues_t greyoutValues[]={
-    {GREYF_UNFOCUS,"Not focused"},
-    {MODEF_OFFLINE,"Offline"},
-    {PF2_ONLINE,"Online"},
-    {PF2_SHORTAWAY,"Away"},
-    {PF2_LONGAWAY,"NA"},
-    {PF2_LIGHTDND,"Occupied"},
-    {PF2_HEAVYDND,"DND"},
-    {PF2_FREECHAT,"Free for chat"},
-    {PF2_INVISIBLE,"Invisible"},
-    {PF2_OUTTOLUNCH,"Out to lunch"},
-    {PF2_ONTHEPHONE,"On the phone"}};
+    {GREYF_UNFOCUS,_T("Not focused")},
+    {MODEF_OFFLINE,_T("Offline")},
+    {PF2_ONLINE,_T("Online")},
+    {PF2_SHORTAWAY,_T("Away")},
+    {PF2_LONGAWAY,_T("NA")},
+    {PF2_LIGHTDND,_T("Occupied")},
+    {PF2_HEAVYDND,_T("DND")},
+    {PF2_FREECHAT,_T("Free for chat")},
+    {PF2_INVISIBLE,_T("Invisible")},
+    {PF2_OUTTOLUNCH,_T("Out to lunch")},
+    {PF2_ONTHEPHONE,_T("On the phone")}};
     static const struct CheckBoxValues_t offlineValues[]={
-      {MODEF_OFFLINE,"Offline"},
-      {PF2_ONLINE,"Online"},
-      {PF2_SHORTAWAY,"Away"},
-      {PF2_LONGAWAY,"NA"},
-      {PF2_LIGHTDND,"Occupied"},
-      {PF2_HEAVYDND,"DND"},
-      {PF2_FREECHAT,"Free for chat"},
-      {PF2_INVISIBLE,"Invisible"},
-      {PF2_OUTTOLUNCH,"Out to lunch"},
-      {PF2_ONTHEPHONE,"On the phone"}};
+      {MODEF_OFFLINE,_T("Offline")},
+      {PF2_ONLINE,_T("Online")},
+      {PF2_SHORTAWAY,_T("Away")},
+      {PF2_LONGAWAY,_T("NA")},
+      {PF2_LIGHTDND,_T("Occupied")},
+      {PF2_HEAVYDND,_T("DND")},
+      {PF2_FREECHAT,_T("Free for chat")},
+      {PF2_INVISIBLE,_T("Invisible")},
+      {PF2_OUTTOLUNCH,_T("Out to lunch")},
+      {PF2_ONTHEPHONE,_T("On the phone")}};
 
       static void FillCheckBoxTree(HWND hwndTree,const struct CheckBoxValues_t *values,int nValues,DWORD style)
       {
-        TVINSERTSTRUCTA tvis;
+        TVINSERTSTRUCT tvis;
         int i;
 
         tvis.hParent=NULL;
@@ -268,7 +268,7 @@ struct CheckBoxValues_t {
         tvis.item.mask=TVIF_PARAM|TVIF_TEXT|TVIF_STATE|TVIF_IMAGE;
         for(i=0;i<nValues;i++) {
           tvis.item.lParam=values[i].style;
-          tvis.item.pszText=Translate(values[i].szDescr);
+          tvis.item.pszText=TranslateTS(values[i].szDescr);
           tvis.item.stateMask=TVIS_STATEIMAGEMASK;
           tvis.item.state=INDEXTOSTATEIMAGEMASK((style&tvis.item.lParam)!=0?2:1);
           tvis.item.iImage=tvis.item.iSelectedImage=(style&tvis.item.lParam)!=0?1:0;

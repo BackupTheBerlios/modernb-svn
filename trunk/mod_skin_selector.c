@@ -275,7 +275,7 @@ BOOL CompareModernMask(ModernMask * mmValue,ModernMask * mmTemplate)
       vh=p.ValueHash;
       pVal=0;
       if (p.ParamFlag&4)  //compare by hash     
-          while (mmValue->ParamsList[pVal].ParamFlag !=0)
+          while (pVal<mmValue->ParamsCount && mmValue->ParamsList[pVal].ParamFlag !=0)
           {
              if (mmValue->ParamsList[pVal].ParamID==ph)
              {

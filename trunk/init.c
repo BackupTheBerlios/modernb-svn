@@ -53,7 +53,7 @@ PLUGININFO pluginInfo = {
 	"shpynov@nm.ru" ,
 	"Copyright 2000-2005 Miranda-IM project ["__DATE__" "__TIME__"]",
 	"http://miranda-im.org/download/details.php?action=viewfile&id=2103",
-	0,
+	UNICODE_AWARE,
 	DEFMOD_CLISTALL
 };
 

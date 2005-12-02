@@ -569,6 +569,7 @@ typedef struct {
 #define GROUPF_EXPANDED    0x04
 #define GROUPF_HIDEOFFLINE 0x08
 #define MS_CLIST_GROUPGETNAME2      "CList/GroupGetName2"
+#define MS_CLIST_GROUPGETNAMET      "CList/GroupGetNameT"
 
 //move a group to directly before another group             v0.1.2.1+
 //wParam=(WPARAM)(HANDLE)hGroup
@@ -585,7 +586,14 @@ typedef struct {
 //returns 0 on success, nonzero on failure
 //this will fail if the group name is a duplicate of an existing name
 //CLUI is not called when this change is made
-#define MS_CLIST_GROUPRENAME       "CList/GroupRename"
+
+#ifdef UNICODE
+	#define MS_CLIST_GROUPRENAMET       "CList/GroupRenameT"
+	#define MS_CLIST_GROUPRENAME       "CList/GroupRenameT"
+#else
+	#define MS_CLIST_GROUPRENAMET       "CList/GroupRename"
+	#define MS_CLIST_GROUPRENAME       "CList/GroupRename"
+#endif
 
 //build a menu of the group tree                          v0.1.2.1+
 //wParam=0

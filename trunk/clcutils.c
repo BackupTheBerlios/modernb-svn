@@ -394,7 +394,13 @@ void EndRename(HWND hwnd,struct ClcData *dat,int save)
 				if(contact->type==CLCIT_GROUP&&!_tcsstr(text,TEXT("\\"))) {
 					TCHAR szFullName[256];
 					if(contact->group->parent && contact->group->parent->parent)
-						_sntprintf(szFullName,sizeof(szFullName),TEXT("%s\\%s"),(char*)CallService(MS_CLIST_GROUPGETNAME2,(WPARAM)contact->group->parent->groupId,(LPARAM)(int*)NULL),text); ///TODO: SECOND PARAM -Unicode
+					{
+						TCHAR * tc=(TCHAR*)CallService(MS_CLIST_GROUPGETNAMET,(WPARAM)contact->group->parent->groupId,(LPARAM)(int*)NULL);
+						//if (tc)
+							_sntprintf(szFullName,sizeof(szFullName),TEXT("%s\\%s"),tc,text); ///TODO: SECOND PARAM -Unicode
+						//else
+						//	_sntprintf(szFullName,sizeof(szFullName),TEXT("%s"),text); ///TODO: SECOND PARAM -Unicode
+					}
 					else lstrcpyn(szFullName,text,sizeof(szFullName));
 					CallService(MS_CLIST_GROUPRENAME,contact->groupId,(LPARAM)szFullName); //TODO: UNICODE
 				}

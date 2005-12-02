@@ -83,7 +83,7 @@ void LoadContactTree(void)
 	tick=GetTickCount();
 	CallService(MS_CLUI_LISTBEGINREBUILD,0,0);
 	for(i=1;;i++) {
-		if((char*)CallService(MS_CLIST_GROUPGETNAME2,i,(LPARAM)(int*)NULL)==NULL) break;
+		if((char*)CallService(MS_CLIST_GROUPGETNAMET,i,(LPARAM)(int*)NULL)==NULL) break;
 		CallService(MS_CLUI_GROUPADDED,i,0);
 	}
 
@@ -248,7 +248,7 @@ int ContactChangeGroup(WPARAM wParam,LPARAM lParam)
 	if((HANDLE)lParam==NULL)
 		DBDeleteContactSetting((HANDLE)wParam,"CList","Group");
 	else
-		DBWriteContactSettingString((HANDLE)wParam,"CList","Group",(char*)CallService(MS_CLIST_GROUPGETNAME2,lParam,(LPARAM)(int*)NULL));
+		DBWriteContactSettingString((HANDLE)wParam,"CList","Group",(char*)CallService(MS_CLIST_GROUPGETNAMET,lParam,(LPARAM)(int*)NULL));
 	CallService(MS_CLUI_CONTACTADDED,wParam,ExtIconFromStatusMode((HANDLE)wParam,(char*)CallService(MS_PROTO_GETCONTACTBASEPROTO,wParam,0),GetContactStatus((HANDLE)wParam)));
 	return 0;
 }

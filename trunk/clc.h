@@ -399,7 +399,7 @@ void RegisterFileDropping(HWND hwnd);
 void UnregisterFileDropping(HWND hwnd);
 
 //groups.c
-TCHAR* GetGroupNameT( int idx, DWORD* pdwFlags );
+TCHAR* GetGroupNameTS( int idx, DWORD* pdwFlags );
 int RenameGroupT( int idx, TCHAR* tszNewName );
 
 int GetContactCachedStatus(HANDLE hContact);

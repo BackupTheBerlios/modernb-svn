@@ -23,6 +23,14 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #ifndef _COMMON_HEADERS_H_
 #define _COMMON_HEADERS_H_ 1
 
+
+#if defined(UNICODE)
+#define _UNICODE 1
+#define UNICODE_AWARE 1
+#else
+	#define UNICODE_AWARE 0
+#endif
+
 //#include "AggressiveOptimize.h"
 
 #include <malloc.h>

@@ -42,6 +42,7 @@ extern int BehindEdgeSettings;
 static HANDLE hSettingChanged1;
 static HANDLE hSettingChanged2;
 extern void InitDisplayNameCache(SortedList *list);
+extern void InvalidateDisplayNameCacheEntry(HANDLE hContact);
 extern pdisplayNameCacheEntry GetDisplayNameCacheEntry(HANDLE hContact);
 extern BOOL InvalidateRectZ(HWND hWnd, CONST RECT* lpRect,BOOL bErase );
 extern int BgStatusBarChange(WPARAM wParam,LPARAM lParam);
@@ -761,10 +762,11 @@ static LRESULT CALLBACK ContactListControlWndProc(HWND hwnd, UINT msg, WPARAM wP
 		{
 			struct ClcContact *contact;
 			BYTE iExtraImage[MAXEXTRACOLUMNS];
+			InvalidateDisplayNameCacheEntry((HANDLE)wParam);
 			if(!FindItem(hwnd,dat,(HANDLE)wParam,&contact,NULL,NULL,TRUE))
 				memset(iExtraImage,0xFF,sizeof(iExtraImage));
 			else CopyMemory(iExtraImage,contact->iExtraImage,sizeof(iExtraImage));
-			DeleteItemFromTree(hwnd,(HANDLE)wParam);
+			DeleteItemFromTree(hwnd,(HANDLE)wParam);		
 			if(GetWindowLong(hwnd,GWL_STYLE)&CLS_SHOWHIDDEN || !DBGetContactSettingByte((HANDLE)wParam,"CList","Hidden",0)) {
 				NMCLISTCONTROL nm;
 				AddContactToTree(hwnd,dat,(HANDLE)wParam,1,1);
@@ -1007,10 +1009,11 @@ static LRESULT CALLBACK ContactListControlWndProc(HWND hwnd, UINT msg, WPARAM wP
 	case INTM_NAMECHANGED:
 		{
 			struct ClcContact *contact;
-			//InvalidateDisplayNameCacheEntry((HANDLE)wParam);
+			InvalidateDisplayNameCacheEntry((HANDLE)wParam);
 			if(!FindItem(hwnd,dat,(HANDLE)wParam,&contact,NULL,NULL,FALSE)) break;
 
-			//ShowTracePopup("INTM_NAMECHANGED");
+//			ShowTracePopup("INTM_NAMECHANGED");
+
 			if (contact->szText) mir_free(contact->szText);
 			contact->szText=mir_strdupT((TCHAR*)CallService(MS_CLIST_GETCONTACTDISPLAYNAME,wParam,0)); //TODO: UNICODE
 
@@ -2146,13 +2149,13 @@ static LRESULT CALLBACK ContactListControlWndProc(HWND hwnd, UINT msg, WPARAM wP
 		*/
 	case DROPTARGET_ONGROUP:
 		{	struct ClcContact *contact;
-		char *szGroup;
+		TCHAR *szGroup;
 		GetRowByIndex(dat,dat->selection,&contact,NULL);
-		szGroup=(char*)CallService(MS_CLIST_GROUPGETNAME2,contact->groupId,(LPARAM)(int*)NULL);
+		szGroup=(TCHAR*)CallService(MS_CLIST_GROUPGETNAMET,contact->groupId,(LPARAM)(int*)NULL);
 		GetRowByIndex(dat,dat->iDragItem,&contact,NULL);
-		if(contact->type==CLCIT_CONTACT)	 //dropee is a contact
+		if(contact->type==CLCIT_CONTACT)	 //drop is a contact
 			if (!contact->isSubcontact || !ServiceExists(MS_MC_ADDTOMETA))
-				DBWriteContactSettingString(contact->hContact,"CList","Group",szGroup);
+				DBWriteContactSettingTString(contact->hContact,"CList","Group",szGroup);
 			else
 			{
 				HANDLE hcontact,hfrom;
@@ -2165,12 +2168,12 @@ static LRESULT CALLBACK ContactListControlWndProc(HWND hwnd, UINT msg, WPARAM wP
 
 					DBDeleteContactSetting(hcontact,"MetaContacts","OldCListGroup");
 					CallService(MS_MC_REMOVEFROMMETA,(WPARAM)0,(LPARAM)hcontact);    
-					DBWriteContactSettingString(hcontact,"CList","Group",szGroup);
+					DBWriteContactSettingTString(hcontact,"CList","Group",szGroup);
 				}
 			}
 		else if(contact->type==CLCIT_GROUP) { //dropee is a group
-			char szNewName[120];
-			mir_snprintf(szNewName,sizeof(szNewName),"%s\\%s",szGroup,contact->szText);
+			TCHAR szNewName[120];
+			mir_sntprintf(szNewName,SIZEOF(szNewName),_T("%s\\%s"),szGroup,contact->szText);
 			CallService(MS_CLIST_GROUPRENAME,contact->groupId,(LPARAM)szNewName);
 		}
 		break;
