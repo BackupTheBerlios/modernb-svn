@@ -1318,7 +1318,7 @@ int CLUIFramesSetFrameOptions(WPARAM wParam,LPARAM lParam)
     SendMessage(Frames[pos].TitleBar.hwndTip,TTM_ACTIVATE,(WPARAM)Frames[pos].TitleBar.ShowTitleBarTip,0);
 
     style=(int)GetWindowLong(Frames[pos].hWnd,GWL_STYLE);
-    style|=WS_BORDER;
+	style|=!LayeredFlag?WS_BORDER:0;
     if(flag&F_NOBORDER) {style&=(~WS_BORDER);};
     {
       SetWindowLong(Frames[pos].hWnd,GWL_STYLE,(LONG)style);
@@ -2000,7 +2000,7 @@ int CLUIFramesAddFrame(WPARAM wParam,LPARAM lParam)
   Frames[nFramescount].Locked = clfrm->Flags&F_LOCKED?TRUE:FALSE;
   Frames[nFramescount].visible = clfrm->Flags&F_VISIBLE?TRUE:FALSE;
 
-  Frames[nFramescount].UseBorder=(clfrm->Flags&F_NOBORDER)?FALSE:TRUE;
+  Frames[nFramescount].UseBorder=((clfrm->Flags&F_NOBORDER)||LayeredFlag)?FALSE:TRUE;
 
   //Frames[nFramescount].OwnerWindow=0;
 
@@ -2064,7 +2064,7 @@ int CLUIFramesAddFrame(WPARAM wParam,LPARAM lParam)
 
   style=GetWindowLong(Frames[nFramescount-1].hWnd,GWL_STYLE);
   style&=(~WS_BORDER);
-  style|=((Frames[nFramescount-1].UseBorder)?WS_BORDER:0);
+  style|=(((Frames[nFramescount-1].UseBorder)&&!LayeredFlag)?WS_BORDER:0);
   SetWindowLong(Frames[nFramescount-1].hWnd,GWL_STYLE,style);
   SetWindowLong(Frames[nFramescount-1].TitleBar.hwnd,GWL_STYLE,style);
   SetWindowLong(Frames[nFramescount-1].TitleBar.hwnd,GWL_STYLE,GetWindowLong(Frames[nFramescount-1].TitleBar.hwnd,GWL_STYLE)&~(WS_VSCROLL|WS_HSCROLL));
@@ -4000,8 +4000,8 @@ LRESULT CALLBACK CLUIFrameSubContainerProc(HWND hwnd, UINT msg, WPARAM wParam, L
 static HWND CreateSubContainerWindow(HWND parent,int x,int y,int width,int height)
 {
   HWND hwnd;
-  hwnd=CreateWindowEx(MySetLayeredWindowAttributesNew?WS_EX_LAYERED:0,TEXT(CLUIFrameSubContainerClassName),TEXT("aaaa"),WS_POPUP|WS_BORDER/*|WS_THICKFRAME*/,x,y,width,height,parent,0,g_hInst,0);
-  SetWindowLong(hwnd,GWL_STYLE,GetWindowLong(hwnd,GWL_STYLE)&~(WS_CAPTION|WS_BORDER));
+  hwnd=CreateWindowEx(MySetLayeredWindowAttributesNew?WS_EX_LAYERED:0,TEXT(CLUIFrameSubContainerClassName),TEXT("aaaa"),WS_POPUP|!LayeredFlag?WS_BORDER:0/*|WS_THICKFRAME*/,x,y,width,height,parent,0,g_hInst,0);
+  SetWindowLong(hwnd,GWL_STYLE,GetWindowLong(hwnd,GWL_STYLE)&~(WS_CAPTION|!LayeredFlag?WS_BORDER:0));
   if (IsOnDesktop)
   {
     HWND hProgMan=FindWindow(TEXT("Progman"),NULL);

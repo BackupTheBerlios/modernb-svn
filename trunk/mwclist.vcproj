@@ -2,7 +2,7 @@
 <VisualStudioProject
 	ProjectType="Visual C++"
 	Version="7.10"
-	Name="mwclist"
+	Name="modern_b_u"
 	RootNamespace="mwclist"
 	SccProjectName=""
 	SccLocalPath="">
@@ -18,7 +18,7 @@
 			ConfigurationType="2"
 			UseOfMFC="0"
 			ATLMinimizesCRunTimeLibraryUsage="TRUE"
-			CharacterSet="2"
+			CharacterSet="1"
 			WholeProgramOptimization="TRUE">
 			<Tool
 				Name="VCCLCompilerTool"
@@ -51,14 +51,14 @@
 				Name="VCLinkerTool"
 				AdditionalOptions="/MACHINE:I386"
 				AdditionalDependencies="MSImg32.Lib comctl32.lib shlwapi.lib  gdiplus.lib Delayimp.lib"
-				OutputFile="../../bin/release/plugins/clist_modern.dll"
+				OutputFile="../../bin/release/plugins/clist_modern_u.dll"
 				LinkIncremental="1"
 				SuppressStartupBanner="TRUE"
 				IgnoreAllDefaultLibraries="FALSE"
 				DelayLoadDLLs="gdiplus.dll"
 				GenerateDebugInformation="TRUE"
 				GenerateMapFile="TRUE"
-				MapFileName="C:/Dev/miranda_src_0401/bin/release/plugins/modern.map"
+				MapFileName="C:/Dev/miranda_src_0401/bin/release/plugins/modern_unicode.map"
 				MapExports="FALSE"
 				MapLines="TRUE"
 				OptimizeReferences="2"
@@ -101,7 +101,7 @@
 			UseOfMFC="0"
 			UseOfATL="0"
 			ATLMinimizesCRunTimeLibraryUsage="TRUE"
-			CharacterSet="2">
+			CharacterSet="1">
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
@@ -130,7 +130,7 @@
 				AdditionalOptions="/MACHINE:I386"
 				AdditionalDependencies="MSImg32.Lib comctl32.lib shlwapi.lib gdiplus.lib Delayimp.lib"
 				ShowProgress="0"
-				OutputFile="../../bin/debug/plugins/clist_modern.dll"
+				OutputFile="../../bin/unicode/plugins/clist_modern_unicode.dll"
 				LinkIncremental="1"
 				SuppressStartupBanner="TRUE"
 				AdditionalLibraryDirectories=""
@@ -138,7 +138,7 @@
 				GenerateDebugInformation="TRUE"
 				ProgramDatabaseFile="..\temp\Debug/clist_mw.pdb"
 				GenerateMapFile="TRUE"
-				MapFileName="clistmw.map"
+				MapFileName="modern_unicode.map"
 				MapExports="TRUE"
 				MapLines="TRUE"
 				BaseAddress=""
@@ -178,7 +178,7 @@
 			ConfigurationType="2"
 			UseOfMFC="0"
 			ATLMinimizesCRunTimeLibraryUsage="FALSE"
-			CharacterSet="0">
+			CharacterSet="1">
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
@@ -253,7 +253,7 @@
 			ConfigurationType="2"
 			UseOfMFC="0"
 			ATLMinimizesCRunTimeLibraryUsage="TRUE"
-			CharacterSet="2"
+			CharacterSet="1"
 			WholeProgramOptimization="TRUE">
 			<Tool
 				Name="VCCLCompilerTool"
@@ -335,7 +335,7 @@
 			ConfigurationType="2"
 			UseOfMFC="0"
 			ATLMinimizesCRunTimeLibraryUsage="FALSE"
-			CharacterSet="2"
+			CharacterSet="1"
 			WholeProgramOptimization="FALSE">
 			<Tool
 				Name="VCCLCompilerTool"
@@ -409,7 +409,7 @@
 			ConfigurationType="2"
 			UseOfMFC="0"
 			ATLMinimizesCRunTimeLibraryUsage="TRUE"
-			CharacterSet="2"
+			CharacterSet="1"
 			WholeProgramOptimization="TRUE">
 			<Tool
 				Name="VCCLCompilerTool"

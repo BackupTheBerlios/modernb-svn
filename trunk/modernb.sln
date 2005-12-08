@@ -1,5 +1,9 @@
 Microsoft Visual Studio Solution File, Format Version 8.00
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "mwclist", "mwclist.vcproj", "{A8426716-7E3F-416F-A0A0-8F10092DB6B3}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "modern_b_u", "mwclist.vcproj", "{A8426716-7E3F-416F-A0A0-8F10092DB6B3}"
+	ProjectSection(ProjectDependencies) = postProject
+	EndProjectSection
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "modern_b_a", "mwclist_u.vcproj", "{AA9C9DE3-E716-4820-A6B3-8559C86E0B8D}"
 	ProjectSection(ProjectDependencies) = postProject
 	EndProjectSection
 EndProject
@@ -12,6 +16,9 @@ Global
 		Debug in Main = Debug in Main
 		debug UNICODE = debug UNICODE
 		Release = Release
+		Release in Main = Release in Main
+		Release2 = Release2
+		ReleaseInMain = ReleaseInMain
 	EndGlobalSection
 	GlobalSection(ProjectConfiguration) = postSolution
 		{A8426716-7E3F-416F-A0A0-8F10092DB6B3}.Debug.ActiveCfg = Debug|Win32
@@ -22,6 +29,26 @@ Global
 		{A8426716-7E3F-416F-A0A0-8F10092DB6B3}.debug UNICODE.Build.0 = debug UNICODE|Win32
 		{A8426716-7E3F-416F-A0A0-8F10092DB6B3}.Release.ActiveCfg = Release|Win32
 		{A8426716-7E3F-416F-A0A0-8F10092DB6B3}.Release.Build.0 = Release|Win32
+		{A8426716-7E3F-416F-A0A0-8F10092DB6B3}.Release in Main.ActiveCfg = Release in Main|Win32
+		{A8426716-7E3F-416F-A0A0-8F10092DB6B3}.Release in Main.Build.0 = Release in Main|Win32
+		{A8426716-7E3F-416F-A0A0-8F10092DB6B3}.Release2.ActiveCfg = Release2|Win32
+		{A8426716-7E3F-416F-A0A0-8F10092DB6B3}.Release2.Build.0 = Release2|Win32
+		{A8426716-7E3F-416F-A0A0-8F10092DB6B3}.ReleaseInMain.ActiveCfg = ReleaseInMain|Win32
+		{A8426716-7E3F-416F-A0A0-8F10092DB6B3}.ReleaseInMain.Build.0 = ReleaseInMain|Win32
+		{AA9C9DE3-E716-4820-A6B3-8559C86E0B8D}.Debug.ActiveCfg = Debug|Win32
+		{AA9C9DE3-E716-4820-A6B3-8559C86E0B8D}.Debug.Build.0 = Debug|Win32
+		{AA9C9DE3-E716-4820-A6B3-8559C86E0B8D}.Debug in Main.ActiveCfg = Debug in Main|Win32
+		{AA9C9DE3-E716-4820-A6B3-8559C86E0B8D}.Debug in Main.Build.0 = Debug in Main|Win32
+		{AA9C9DE3-E716-4820-A6B3-8559C86E0B8D}.debug UNICODE.ActiveCfg = debug UNICODE|Win32
+		{AA9C9DE3-E716-4820-A6B3-8559C86E0B8D}.debug UNICODE.Build.0 = debug UNICODE|Win32
+		{AA9C9DE3-E716-4820-A6B3-8559C86E0B8D}.Release.ActiveCfg = Release|Win32
+		{AA9C9DE3-E716-4820-A6B3-8559C86E0B8D}.Release.Build.0 = Release|Win32
+		{AA9C9DE3-E716-4820-A6B3-8559C86E0B8D}.Release in Main.ActiveCfg = Release in Main|Win32
+		{AA9C9DE3-E716-4820-A6B3-8559C86E0B8D}.Release in Main.Build.0 = Release in Main|Win32
+		{AA9C9DE3-E716-4820-A6B3-8559C86E0B8D}.Release2.ActiveCfg = Release2|Win32
+		{AA9C9DE3-E716-4820-A6B3-8559C86E0B8D}.Release2.Build.0 = Release2|Win32
+		{AA9C9DE3-E716-4820-A6B3-8559C86E0B8D}.ReleaseInMain.ActiveCfg = ReleaseInMain|Win32
+		{AA9C9DE3-E716-4820-A6B3-8559C86E0B8D}.ReleaseInMain.Build.0 = ReleaseInMain|Win32
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 	EndGlobalSection

@@ -475,12 +475,17 @@ LRESULT CALLBACK ModernStatusProc(HWND hwnd,UINT msg,WPARAM wParam,LPARAM lParam
   case WM_SHOWWINDOW:  			
     {
       int res;
+	  int ID;
       if (tooltipshoing){
 					NotifyEventHooks(hStatusBarHideToolTipEvent,0,0);
 					tooltipshoing=FALSE;
 				};
-      res=CallService(MS_CLIST_FRAMES_GETFRAMEOPTIONS, MAKEWPARAM(FO_FLAGS,hwnd),0);
-      DBWriteContactSettingByte(0,"CLUI","ShowSBar",(BYTE)((res&F_VISIBLE)?1:0));
+	  ID=FindFrameID(hwnd);
+	  if (ID)
+	  {
+		res=CallService(MS_CLIST_FRAMES_GETFRAMEOPTIONS, MAKEWPARAM(FO_FLAGS,ID),0);
+		if (res>=0)	DBWriteContactSettingByte(0,"CLUI","ShowSBar",(BYTE)((res&F_VISIBLE)?1:0));
+	  }
     }
     break;
   case WM_TIMER:

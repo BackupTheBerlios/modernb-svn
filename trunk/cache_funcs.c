@@ -396,7 +396,7 @@ int GetStatusName(TCHAR *text, int text_size, struct ClcContact *contact, BOOL x
 	if (!noAwayMsg&& !noXstatus&& xstatus_has_priority && contact->hContact && contact->proto)
 	{
 		DBVARIANT dbv;
-		if (!DBGetContactSetting(contact->hContact, contact->proto, "XStatusName", &dbv)) 
+		if (!DBGetContactSettingTString(contact->hContact, contact->proto, "XStatusName", &dbv)) 
 		{
 			//lstrcpyn(text, dbv.pszVal, text_size);
 			CopySkipUnPrintableChars(text, dbv.ptszVal, text_size-1);
@@ -420,7 +420,7 @@ int GetStatusName(TCHAR *text, int text_size, struct ClcContact *contact, BOOL x
 	if (!noAwayMsg && !noXstatus && !xstatus_has_priority && contact->hContact && contact->proto)
 	{
 		DBVARIANT dbv;
-		if (!DBGetContactSetting(contact->hContact, contact->proto, "XStatusName", &dbv)) 
+		if (!DBGetContactSettingTString(contact->hContact, contact->proto, "XStatusName", &dbv)) 
 		{
 			//lstrcpyn(text, dbv.pszVal, text_size);
 			CopySkipUnPrintableChars(text, dbv.ptszVal, text_size-1);
@@ -450,7 +450,7 @@ int GetStatusMessage(TCHAR *text, int text_size, struct ClcContact *contact, BOO
 	if (!noAwayMsg &&xstatus_has_priority && contact->hContact && contact->proto)
 	{
 		// Try to get XStatusMsg
-		if (!DBGetContactSetting(contact->hContact, contact->proto, "XStatusMsg", &dbv)) 
+		if (!DBGetContactSettingTString(contact->hContact, contact->proto, "XStatusMsg", &dbv)) 
 		{
 			//lstrcpyn(text, dbv.pszVal, text_size);
 			CopySkipUnPrintableChars(text, dbv.ptszVal, text_size-1);
@@ -464,7 +464,7 @@ int GetStatusMessage(TCHAR *text, int text_size, struct ClcContact *contact, BOO
 	// Get StatusMsg
 	if (contact->hContact && text[0] == '\0')
 	{
-		if (!DBGetContactSetting(contact->hContact, "CList", "StatusMsg", &dbv)) 
+		if (!DBGetContactSettingTString(contact->hContact, "CList", "StatusMsg", &dbv)) 
 		{
 			//lstrcpyn(text, dbv.pszVal, text_size);
 			CopySkipUnPrintableChars(text, dbv.ptszVal, text_size-1);
@@ -479,7 +479,7 @@ int GetStatusMessage(TCHAR *text, int text_size, struct ClcContact *contact, BOO
 	if (!noAwayMsg && !xstatus_has_priority && contact->hContact && contact->proto && text[0] == '\0')
 	{
 		// Try to get XStatusMsg
-		if (!DBGetContactSetting(contact->hContact, contact->proto, "XStatusMsg", &dbv)) 
+		if (!DBGetContactSettingTString(contact->hContact, contact->proto, "XStatusMsg", &dbv)) 
 		{
 			//lstrcpyn(text, dbv.pszVal, text_size);
 			CopySkipUnPrintableChars(text, dbv.ptszVal, text_size-1);
@@ -508,7 +508,7 @@ void Cache_GetLineText(struct ClcContact *contact, int type, LPTSTR text, int te
 				DBVARIANT dbv;
 
 				// Try to get XStatusMsg
-				if (!DBGetContactSetting(contact->hContact, contact->proto, "XStatusMsg", &dbv)) 
+				if (!DBGetContactSettingTString(contact->hContact, contact->proto, "XStatusMsg", &dbv)) 
 				{
 					if (dbv.ptszVal != NULL && dbv.ptszVal[0] != 0)
 					{
@@ -527,7 +527,7 @@ void Cache_GetLineText(struct ClcContact *contact, int type, LPTSTR text, int te
 			if (contact->hContact && contact->proto)
 			{
 				DBVARIANT dbv;
-				if (!DBGetContactSetting(contact->hContact, contact->proto, "Nick", &dbv)) 
+				if (!DBGetContactSettingTString(contact->hContact, contact->proto, "Nick", &dbv)) 
 				{
 					lstrcpyn(text, dbv.ptszVal, text_size);
 					DBFreeVariant(&dbv);
@@ -542,7 +542,7 @@ void Cache_GetLineText(struct ClcContact *contact, int type, LPTSTR text, int te
 				DBVARIANT dbv;
 
 				// Try to get XStatusName
-				if (!DBGetContactSetting(contact->hContact, contact->proto, "XStatusName", &dbv)) 
+				if (!DBGetContactSettingTString(contact->hContact, contact->proto, "XStatusName", &dbv)) 
 				{
 					if (dbv.pszVal != NULL && dbv.pszVal[0] != 0)
 					{
@@ -616,7 +616,7 @@ void Cache_GetFirstLineText(struct ClcData *dat, struct ClcContact *contact)
 void Cache_GetSecondLineText(struct ClcData *dat, struct ClcContact *contact)
 {
   TCHAR Text[120-MAXEXTRACOLUMNS]={0};
-	Cache_GetLineText(contact, dat->second_line_type, (TCHAR*)Text, sizeof(Text), dat->second_line_text,
+	Cache_GetLineText(contact, dat->second_line_type, (TCHAR*)Text, SIZEOF(Text), dat->second_line_text,
     dat->second_line_xstatus_has_priority,dat->second_line_show_status_if_no_away,
 	dat->second_line_use_name_and_message_for_xstatus, dat->contact_time_show_only_if_different);
   if (contact->szSecondLineText) mir_free(contact->szSecondLineText);
@@ -633,7 +633,7 @@ void Cache_GetSecondLineText(struct ClcData *dat, struct ClcContact *contact)
 void Cache_GetThirdLineText(struct ClcData *dat, struct ClcContact *contact)
 {
   TCHAR Text[120-MAXEXTRACOLUMNS]={0};
-	Cache_GetLineText(contact, dat->third_line_type,(TCHAR*)Text, sizeof(Text), dat->third_line_text,
+	Cache_GetLineText(contact, dat->third_line_type,(TCHAR*)Text, SIZEOF(Text), dat->third_line_text,
 		dat->third_line_xstatus_has_priority,dat->third_line_show_status_if_no_away,
 		dat->third_line_use_name_and_message_for_xstatus, dat->contact_time_show_only_if_different);
   if (contact->szThirdLineText) mir_free(contact->szThirdLineText);

@@ -156,11 +156,12 @@ int CheckProtocolOrder()
 
 int FillTree(HWND hwnd)
 {
-			TVINSERTSTRUCTA tvis;
+			TVINSERTSTRUCT tvis;
 			ProtocolData *PD;
 			char szName[64];
 			char *szSTName;
 			char buf[10];
+			TCHAR *buf2=NULL;
 			int i,count;
 
 
@@ -194,9 +195,20 @@ int FillTree(HWND hwnd)
 				PD->protopos=DBGetContactSettingDword(0,"Protocols",(char *)&buf,-1);
 					
 				tvis.item.lParam=(LPARAM)PD;
+#ifdef UNICODE
+				{
+					buf2=a2u(szName);
+					tvis.item.pszText=buf2;
+				}
+#else
 				tvis.item.pszText=Translate(szName);
+#endif			
+				
 				tvis.item.iImage=tvis.item.iSelectedImage=PD->show;
 				TreeView_InsertItem(hwnd,&tvis);
+#ifdef UNICODE
+				if (buf2) mir_free(buf2);
+#endif
 				//tvis.item.iImage=tvis.item.iSelectedImage=PD->show;
 				//TreeView_InsertItem(GetDlgItem(hwndDlg,IDC_PROTOCOLVISIBILITY),&tvis);
 				//TreeView_InsertItem(GetDlgItem(hwndDlg,IDC_PROTOCOLVISIBILITY),&tvis);
@@ -320,7 +332,7 @@ static BOOL CALLBACK ProtocolOrderOpts(HWND hwndDlg, UINT msg, WPARAM wParam, LP
 					*/
 				case IDC_PROTOCOLORDER:
 					switch (((LPNMHDR)lParam)->code) {
-						case TVN_BEGINDRAG:
+						case TVN_BEGINDRAGA:
 							SetCapture(hwndDlg);
 							dat->dragging=1;
 							dat->hDragItem=((LPNMTREEVIEW)lParam)->itemNew.hItem;

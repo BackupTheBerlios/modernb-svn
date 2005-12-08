@@ -396,16 +396,13 @@ void EndRename(HWND hwnd,struct ClcData *dat,int save)
 					if(contact->group->parent && contact->group->parent->parent)
 					{
 						TCHAR * tc=(TCHAR*)CallService(MS_CLIST_GROUPGETNAMET,(WPARAM)contact->group->parent->groupId,(LPARAM)(int*)NULL);
-						//if (tc)
-							_sntprintf(szFullName,sizeof(szFullName),TEXT("%s\\%s"),tc,text); ///TODO: SECOND PARAM -Unicode
-						//else
-						//	_sntprintf(szFullName,sizeof(szFullName),TEXT("%s"),text); ///TODO: SECOND PARAM -Unicode
+							_sntprintf(szFullName,sizeof(szFullName),TEXT("%s\\%s"),tc,text);						
 					}
 					else lstrcpyn(szFullName,text,sizeof(szFullName));
-					CallService(MS_CLIST_GROUPRENAME,contact->groupId,(LPARAM)szFullName); //TODO: UNICODE
+					CallService(MS_CLIST_GROUPRENAME,contact->groupId,(LPARAM)szFullName);
 				}
 				else if(contact->type==CLCIT_CONTACT) {
-					TCHAR *otherName=(TCHAR*)CallService(MS_CLIST_GETCONTACTDISPLAYNAME,(WPARAM)contact->hContact,GCDNF_NOMYHANDLE/*|TODO: UNICODE*/);
+					TCHAR *otherName=mir_strdupT((TCHAR*)CallService(MS_CLIST_GETCONTACTDISPLAYNAME,(WPARAM)contact->hContact,GCDNF_NOMYHANDLE|GCDNF_UNICODE/*|TODO: UNICODE*/));
 					InvalidateDisplayNameCacheEntry(contact->hContact);
 					if(text[0]==TEXT('\0')) {
 						DBDeleteContactSetting(contact->hContact,"CList","MyHandle");
@@ -810,7 +807,7 @@ void LoadClcOptions(HWND hwnd,struct ClcData *dat)
 	{
 		DBVARIANT dbv;
 		
-		if (!DBGetContactSetting(NULL, "CList","SecondLineText", &dbv))
+		if (!DBGetContactSettingTString(NULL, "CList","SecondLineText", &dbv))
 		{
 			lstrcpyn(dat->second_line_text, dbv.ptszVal, sizeof(dat->second_line_text)-1);
 			dat->second_line_text[sizeof(dat->second_line_text)-1] = '\0';
@@ -847,7 +844,7 @@ void LoadClcOptions(HWND hwnd,struct ClcData *dat)
 	{
 		DBVARIANT dbv;
 		
-		if (!DBGetContactSetting(NULL, "CList","ThirdLineText", &dbv))
+		if (!DBGetContactSettingTString(NULL, "CList","ThirdLineText", &dbv))
 		{
 			lstrcpyn(dat->third_line_text, dbv.ptszVal, sizeof(dat->third_line_text)-1);
 			dat->third_line_text[sizeof(dat->third_line_text)-1] = '\0';

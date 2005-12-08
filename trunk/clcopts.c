@@ -35,7 +35,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 static WORD fontSameAsDefault[FONTID_MAX+1]={0x00FF,0x0B00,0x0F00,0x0700,0x0B00,0x0104,0x0D00,0x0B02,0x0300,0x0300,
 0x0F00,0x0F00,0x0F00,0x0F00,0x0F00,0x0F00,0x0F00,0x0F00,0x0F00};
-static char *fontSizes[]={"7","8","10","14","16","18","20","24","28"};
+static TCHAR *fontSizes[]={_T("7"),_T("8"),_T("10"),_T("14"),_T("16"),_T("18"),_T("20"),_T("24"),_T("28")};
 static int fontListOrder[FONTID_MAX+1]={FONTID_CONTACTS,FONTID_INVIS,FONTID_OFFLINE,FONTID_OFFINVIS,FONTID_NOTONLIST,FONTID_GROUPS,FONTID_GROUPCOUNTS,FONTID_DIVIDERS,FONTID_SECONDLINE,FONTID_THIRDLINE,
 FONTID_AWAY,FONTID_DND,FONTID_NA,FONTID_OCCUPIED,FONTID_CHAT,FONTID_INVISIBLE,FONTID_PHONE,FONTID_LUNCH,FONTID_CONTACT_TIME};
 
@@ -833,26 +833,26 @@ struct CheckBoxValues_t {
         return FALSE;
       }
 
-      static const char *szFontIdDescr[FONTID_MAX+1]=
-      {"Standard contacts",
-      "Online contacts to whom you have a different visibility",
-      "Offline contacts",
-      "Contacts which are 'not on list'",
-      "Groups",
-      "Group member counts",
-      "Dividers",
-      "Offline contacts to whom you have a different visibility",
-      "Second line",
-	"Third line",
-	"Away contacts",
-	"DND contacts",
-	"NA contacts",
-	"Occupied contacts",
-	"Free for chat contacts",
-	"Invisible contacts",
-	"On the phone contacts",
-	"Out to lunch contacts",
-	"Contact time"
+      static const TCHAR *szFontIdDescr[FONTID_MAX+1]=
+      {_T("Standard contacts"),
+      _T("Online contacts to whom you have a different visibility"),
+      _T("Offline contacts"),
+      _T("Contacts which are 'not on list'"),
+      _T("Groups"),
+      _T("Group member counts"),
+      _T("Dividers"),
+      _T("Offline contacts to whom you have a different visibility"),
+      _T("Second line"),
+	_T("Third line"),
+	_T("Away contacts"),
+	_T("DND contacts"),
+	_T("NA contacts"),
+	_T("Occupied contacts"),
+	_T("Free for chat contacts"),
+	_T("Invisible contacts"),
+	_T("On the phone contacts"),
+	_T("Out to lunch contacts"),
+	_T("Contact time")
 	};
 
 #include <pshpack1.h>
@@ -878,11 +878,11 @@ struct CheckBoxValues_t {
 #define M_GUESSSAMEASBOXES   (WM_USER+19)
 #define M_SETSAMEASBOXES     (WM_USER+20)
 
-      static int CALLBACK EnumFontsProc(ENUMLOGFONTEX *lpelfe,NEWTEXTMETRICEX *lpntme,int FontType,LPARAM lParam)
+      static int CALLBACK EnumFontsProc(ENUMLOGFONTEXA *lpelfe,NEWTEXTMETRICEX *lpntme,int FontType,LPARAM lParam)
       {
         if(!IsWindow((HWND)lParam)) return FALSE;
-        if(SendMessage((HWND)lParam,CB_FINDSTRINGEXACT,-1,(LPARAM)lpelfe->elfLogFont.lfFaceName)==CB_ERR)
-          SendMessage((HWND)lParam,CB_ADDSTRING,0,(LPARAM)lpelfe->elfLogFont.lfFaceName);
+        if(SendMessageA((HWND)lParam,CB_FINDSTRINGEXACT,-1,(LPARAM)lpelfe->elfLogFont.lfFaceName)==CB_ERR)
+          SendMessageA((HWND)lParam,CB_ADDSTRING,0,(LPARAM)lpelfe->elfLogFont.lfFaceName);
         return TRUE;
       }
 
@@ -986,7 +986,7 @@ struct CheckBoxValues_t {
             fontSettings[fontId].charset=lf.lfCharSet;
             fontSettings[fontId].colour=colour;
             lstrcpyA(fontSettings[fontId].szFace,lf.lfFaceName);
-            itemId=SendDlgItemMessage(hwndDlg,IDC_FONTID,CB_ADDSTRING,0,(LPARAM)Translate(szFontIdDescr[fontId]));
+            itemId=SendDlgItemMessage(hwndDlg,IDC_FONTID,CB_ADDSTRING,0,(LPARAM)TranslateTS(szFontIdDescr[fontId]));
             SendDlgItemMessage(hwndDlg,IDC_FONTID,CB_SETITEMDATA,itemId,fontId);
           }
           SendDlgItemMessage(hwndDlg,IDC_FONTID,CB_SETCURSEL,0,0);
@@ -1015,9 +1015,9 @@ struct CheckBoxValues_t {
           {	int i=SendDlgItemMessage(hwndDlg,IDC_FONTID,CB_GETITEMDATA,SendDlgItemMessage(hwndDlg,IDC_FONTID,CB_GETCURSEL,0,0),0);
           SendMessage(hwndDlg,M_SETSAMEASBOXES,i,0);
           {	int j,id,itemId;
-          char szText[256];
+          TCHAR szText[256];
           SendDlgItemMessage(hwndDlg,IDC_SAMEAS,CB_RESETCONTENT,0,0);
-          itemId=SendDlgItemMessage(hwndDlg,IDC_SAMEAS,CB_ADDSTRING,0,(LPARAM)Translate("<none>"));
+          itemId=SendDlgItemMessage(hwndDlg,IDC_SAMEAS,CB_ADDSTRING,0,(LPARAM)TranslateT("<none>"));
           SendDlgItemMessage(hwndDlg,IDC_SAMEAS,CB_SETITEMDATA,itemId,0xFF);
           if(0xFF==fontSettings[i].sameAs)
             SendDlgItemMessage(hwndDlg,IDC_SAMEAS,CB_SETCURSEL,itemId,0);

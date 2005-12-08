@@ -384,6 +384,8 @@ typedef struct {
 							//and puts the event at the top of the queue
 #define CLEF_ONLYAFEW  2	//the icon will not flash for ever, only a few
 							//times. This is for eg online alert
+#define CLEF_UNICODE  0x80
+
 #define MS_CLIST_ADDEVENT     "CList/AddEvent"
 
 //removes an event from the contact list's queue

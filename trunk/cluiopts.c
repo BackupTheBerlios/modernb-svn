@@ -237,15 +237,15 @@ static BOOL CALLBACK DlgProcCluiOpts(HWND hwndDlg, UINT msg, WPARAM wParam, LPAR
       EnableWindow(GetDlgItem(hwndDlg,IDC_AUTOSIZEUPWARD),FALSE);
     }
     {	DBVARIANT dbv;
-    char *s;
+    TCHAR *s=NULL;
     char szUin[20];
-    if(!DBGetContactSetting(NULL,"CList","TitleText",&dbv))
-      s=mir_strdup(dbv.pszVal);
+    if(!DBGetContactSettingTString(NULL,"CList","TitleText",&dbv))
+      s=mir_strdupT(dbv.ptszVal);
     else
-      s=mir_strdup(MIRANDANAME);
-    dbv.pszVal=s;
-    SetDlgItemTextA(hwndDlg,IDC_TITLETEXT,dbv.pszVal);
-    if (dbv.pszVal) mir_free(dbv.pszVal);
+      s=mir_strdupT(_T(MIRANDANAME));
+    //dbv.pszVal=s;
+    SetDlgItemText(hwndDlg,IDC_TITLETEXT,s);
+    if (s) mir_free(s);
     DBFreeVariant(&dbv);
     //if (s) mir_free(s);
     SendDlgItemMessage(hwndDlg,IDC_TITLETEXT,CB_ADDSTRING,0,(LPARAM)MIRANDANAME);
@@ -522,9 +522,9 @@ static BOOL CALLBACK DlgProcSBarOpts(HWND hwndDlg, UINT msg, WPARAM wParam, LPAR
 
     {
       int i, item;
-      char *align[]={"Left", "Center", "Right"};
+      TCHAR *align[]={_T("Left"), _T("Center"), _T("Right")};
       for (i=0; i<sizeof(align)/sizeof(char*); i++) {
-        item=SendDlgItemMessage(hwndDlg,IDC_COMBO2,CB_ADDSTRING,0,(LPARAM)Translate(align[i]));
+        item=SendDlgItemMessage(hwndDlg,IDC_COMBO2,CB_ADDSTRING,0,(LPARAM)TranslateTS(align[i]));
         SendDlgItemMessage(hwndDlg,IDC_COMBO2,CB_SETCURSEL,DBGetContactSettingByte(NULL,"CLUI","Align",0),0);
       }
     }
@@ -600,7 +600,7 @@ static BOOL CALLBACK DlgProcSBarOpts(HWND hwndDlg, UINT msg, WPARAM wParam, LPAR
     {
     case PSN_APPLY:
       {             
-        DBWriteContactSettingByte(NULL,"CLUI","ShowSBar",(BYTE)IsDlgButtonChecked(hwndDlg,IDC_SHOWSBAR));
+        //DBWriteContactSettingByte(NULL,"CLUI","ShowSBar",(BYTE)IsDlgButtonChecked(hwndDlg,IDC_SHOWSBAR));
         DBWriteContactSettingByte(NULL,"CLUI","SBarShow",(BYTE)((IsDlgButtonChecked(hwndDlg,IDC_SHOWICON)?1:0)|(IsDlgButtonChecked(hwndDlg,IDC_SHOWPROTO)?2:0)|(IsDlgButtonChecked(hwndDlg,IDC_SHOWSTATUS)?4:0)));
         DBWriteContactSettingByte(NULL,"CLUI","SBarRightClk",(BYTE)IsDlgButtonChecked(hwndDlg,IDC_RIGHTMIRANDA));
         DBWriteContactSettingByte(NULL,"CLUI","EqualSections",(BYTE)IsDlgButtonChecked(hwndDlg,IDC_EQUALSECTIONS));

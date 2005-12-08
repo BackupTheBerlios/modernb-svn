@@ -35,7 +35,8 @@ static ATOM aSearch = 0;
 static ATOM aOpts = 0;
 
 typedef struct {
-	char *name,*section,*description,*tempFile,*pszService;
+	char *name,*section,*tempFile,*pszService;
+	char *description;
 	int DefHotKey;
 	ATOM aAtom;
 
@@ -389,20 +390,34 @@ static int ServiceSkinPlayHotKey(WPARAM wParam, LPARAM lParam)
 	return 1;
 }
 
-static HTREEITEM FindNamedTreeItemAtRoot(HWND hwndTree,const char *name)
+static HTREEITEM FindNamedTreeItemAtRoot(HWND hwndTree,const char *nam)
 {
-	TVITEMA tvi;
-	char str[128];
-
+	TVITEM tvi;
+	TCHAR str[128]={0};
+#ifdef UNICODE
+	TCHAR * name=a2u((char*)nam);
+#else
+	const char * name=nam;
+#endif
+    
 	tvi.mask=TVIF_TEXT;
 	tvi.pszText=str;
 	tvi.cchTextMax=sizeof(str);
 	tvi.hItem=TreeView_GetRoot(hwndTree);
 	while(tvi.hItem!=NULL) {
 		TreeView_GetItem(hwndTree,&tvi);
-		if(!strcmpi(str,name)) return tvi.hItem;
+		if(!lstrcmpi(str,name)) 
+		{
+#ifdef UNICODE
+			mir_free(name);
+#endif
+			return tvi.hItem;
+		}
 		tvi.hItem=TreeView_GetNextSibling(hwndTree,tvi.hItem);
 	}
+#ifdef UNICODE
+	mir_free(name);
+#endif
 	return NULL;
 }
 
@@ -426,8 +441,9 @@ BOOL CALLBACK DlgProcHotKeyOpts2(HWND hwndDlg, UINT msg, WPARAM wParam, LPARAM l
 		}
         case DM_REBUILD_STREE:
         {
-            TVINSERTSTRUCTA tvis;
+            TVINSERTSTRUCT tvis;
             int i;
+			TCHAR *buf2=NULL;
 
             TreeView_SelectItem(hwndTree ,NULL);
             ShowWindowNew(hwndTree,SW_HIDE);
@@ -443,17 +459,36 @@ BOOL CALLBACK DlgProcHotKeyOpts2(HWND hwndDlg, UINT msg, WPARAM wParam, LPARAM l
 				tvis.hParent=FindNamedTreeItemAtRoot(hwndTree,HotKeyList[i].section);
 				if(tvis.hParent==NULL) {
                  	tvis.item.lParam=-1;
+#ifdef UNICODE
+					buf2=a2u(HotKeyList[i].section);
+					tvis.item.pszText=buf2;
+#else
 					tvis.item.pszText=HotKeyList[i].section;
+#endif
+					
 					tvis.hParent=TreeView_InsertItem(hwndTree,&tvis);
                     tvis.item.stateMask=TVIS_STATEIMAGEMASK;
                     tvis.item.state=INDEXTOSTATEIMAGEMASK(0);
                     TreeView_SetItem(hwndTree,&tvis.item);
+#ifdef UNICODE
+					mir_free(buf2);
+#endif
 				}
                 tvis.item.stateMask=TVIS_STATEIMAGEMASK;
 		        tvis.item.state=INDEXTOSTATEIMAGEMASK(!DBGetContactSettingByte(NULL,"SkinHotKeysOff",HotKeyList[i].name,0)?2:1);
 				tvis.item.lParam=i;
+#ifdef UNICODE
+				{
+					buf2=a2u(HotKeyList[i].description);
+					tvis.item.pszText=buf2;
+					TreeView_InsertItem(hwndTree,&tvis);
+					mir_free(buf2);
+				}
+#else
 				tvis.item.pszText=HotKeyList[i].description;
 				TreeView_InsertItem(hwndTree,&tvis);
+#endif
+				
             }
             {
                 TVITEMA tvi;

@@ -290,7 +290,7 @@ void ChangeWindowMode()
 	{
 		TCHAR titleText[255]={0};
 		DBVARIANT dbv;
-		if(DBGetContactSetting(NULL,"CList","TitleText",&dbv))
+		if(DBGetContactSettingTString(NULL,"CList","TitleText",&dbv))
 			lstrcpyn(titleText,TEXT(MIRANDANAME),sizeof(titleText));
 		else 
 		{
@@ -3565,7 +3565,7 @@ int LoadCLUIModule(void)
 {
 	WNDCLASS wndclass;
 	DBVARIANT dbv;
-	char titleText[256];
+	TCHAR titleText[256];
 	ATOM	a;
 	int laster;
 	DWORD style;
@@ -3615,10 +3615,10 @@ int LoadCLUIModule(void)
 
 	a=RegisterClass(&wndclass);
 
-	if(DBGetContactSetting(NULL,"CList","TitleText",&dbv))
-		lstrcpynA(titleText,MIRANDANAME,sizeof(titleText));
+	if(DBGetContactSettingTString(NULL,"CList","TitleText",&dbv))
+		lstrcpyn(titleText,_T(MIRANDANAME),sizeof(titleText));
 	else {
-		lstrcpynA(titleText,dbv.pszVal,sizeof(titleText));
+		lstrcpyn(titleText,dbv.ptszVal,sizeof(titleText));
 		DBFreeVariant(&dbv);
 	}
 //TODO Titletext to UNICODE

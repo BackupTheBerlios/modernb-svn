@@ -95,13 +95,15 @@ static DLLVERSIONINFO dviShell;
 static TCHAR *TrayIconMakeTooltip(const TCHAR *szPrefix,const char *szProto) //TODO: UNICODE
 {
 	static TCHAR szTip[128];
-	TCHAR szProtoName[32];
-	char  szProtoNameTemp[32];
+	TCHAR * szProtoName=NULL;
+	
+	char  szProtoNameTemp[32]={0};
 	TCHAR *szStatus, *szSeparator;
 	int t,cn;
-
+#ifndef UNICODE
+	szProtoName=(char*)szProtoNameTemp;
+#endif
 	szSeparator=(IsWinVerMEPlus())?szSeparator=TEXT("\n"):TEXT(" | ");
-
 	if(szProto==NULL) {
 		PROTOCOLDESCRIPTOR **protos;
 		int count,netProtoCount,i;
@@ -132,10 +134,6 @@ static TCHAR *TrayIconMakeTooltip(const TCHAR *szPrefix,const char *szProto) //T
 				lstrcpyn(szProtoName,szProtoName2,sizeof(szProtoName)/sizeof(TCHAR));
 				mir_free(szProtoName2);
 			}
-#else
-			{
-				lstrcpyn(szProtoName,szProtoNameTemp,sizeof(szProtoName)/sizeof(TCHAR));
-			}
 #endif
 
 			szStatus=(TCHAR*)CallService(MS_CLIST_GETSTATUSMODEDESCRIPTION,CallProtoService(protos[i]->szName,PS_GETSTATUS,0,0),CNF_UNICODET); //TODO:UNICODE
@@ -146,7 +144,12 @@ static TCHAR *TrayIconMakeTooltip(const TCHAR *szPrefix,const char *szProto) //T
 		}
 	}
 	else {
-		CallProtoService(szProto,PS_GETNAME,sizeof(szProtoName),(LPARAM)szProtoName);
+		CallProtoService(szProto,PS_GETNAME,sizeof(szProtoNameTemp),(LPARAM)szProtoNameTemp);
+#ifdef UNICODE
+		szProtoName=a2u(szProtoNameTemp);
+#else
+		szProtoName=szProtoNameTemp;
+#endif
 		szStatus=(TCHAR*)CallService(MS_CLIST_GETSTATUSMODEDESCRIPTION,CallProtoService(szProto,PS_GETSTATUS,0,0),CNF_UNICODET);
 		if(szPrefix && szPrefix[0]) {
 			if(DBGetContactSettingByte(NULL,"CList","AlwaysStatus",SETTING_ALWAYSSTATUS_DEFAULT))
@@ -155,6 +158,9 @@ static TCHAR *TrayIconMakeTooltip(const TCHAR *szPrefix,const char *szProto) //T
 		}
 		else _sntprintf(szTip,sizeof(szTip),_T("%s %s"),szProtoName,szStatus);
 	}
+#ifdef UNICODE
+	if (szProtoName) mir_free(szProtoName);
+#endif
 	return szTip;
 }
 

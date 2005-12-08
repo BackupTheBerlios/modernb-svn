@@ -89,7 +89,7 @@ static int AddEvent(WPARAM wParam,LPARAM lParam)
 {
 	CLISTEVENT *cle=(CLISTEVENT*)lParam;
 	int i;
-
+	TRACE("Called ADD event\n");
 	if(cle->cbSize!=sizeof(CLISTEVENT)) return 1;
 	event=(struct CListEvent*)mir_realloc(event,sizeof(struct CListEvent)*(eventCount+1));
 	if(cle->flags&CLEF_URGENT) {
@@ -101,7 +101,17 @@ static int AddEvent(WPARAM wParam,LPARAM lParam)
 	event[i].imlIconIndex=GetImlIconIndex(event[i].cle.hIcon);
 	event[i].flashesDone=12;
 	event[i].cle.pszService=mir_strdup(event[i].cle.pszService);  
+	{  
+#ifdef UNICODE
+	if (event[i].cle.flags&CLEF_UNICODE)
+		event[i].cle.pszTooltip=mir_strdupT(event[i].cle.pszTooltip);
+	else
+		event[i].cle.pszTooltip=a2u((char*)event[i].cle.pszTooltip); //if no flag defined it handled as unicode
+#else
 	event[i].cle.pszTooltip=mir_strdupT(event[i].cle.pszTooltip);//TODO convert from utf to mb
+#endif
+	
+	}
 	eventCount++;
 	if(eventCount==1) {
 		char *szProto;
@@ -111,6 +121,7 @@ static int AddEvent(WPARAM wParam,LPARAM lParam)
 		flashTimerId=SetTimer(NULL,0,DBGetContactSettingWord(NULL,"CList","IconFlashTime",550),IconFlashTimer);
 	    TrayIconUpdateWithImageList(iconsOn?event[0].imlIconIndex:0,event[0].cle.pszTooltip,szProto);
 	}
+	TRACE("Called ChangeContactIcon event\n");
 	ChangeContactIcon(cle->hContact,event[eventCount-1].imlIconIndex,1);
 	SortContacts(NULL);
 	return 0;
@@ -141,7 +152,10 @@ static int RemoveEvent(WPARAM wParam, LPARAM lParam)
 
 	// Event was not found
 	if (i == eventCount)
+	{
+		TRACE("---===   EVENT NOT FOUND   ===---\n");
 		return 1;
+	}
 
 	// Update contact's icon
 	szProto = (char*)CallService(MS_PROTO_GETCONTACTBASEPROTO, wParam, 0);

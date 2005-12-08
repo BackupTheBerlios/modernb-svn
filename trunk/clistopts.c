@@ -138,27 +138,27 @@ static BOOL CALLBACK DlgProcItemRowOpts(HWND hwndDlg, UINT msg, WPARAM wParam, L
 				{
 				case ITEM_AVATAR:
 					{
-						pos = SendMessage(hwndList, LB_ADDSTRING, 0, (LPARAM) Translate("Avatar"));
+						pos = SendMessage(hwndList, LB_ADDSTRING, 0, (LPARAM) TranslateT("Avatar"));
 						break;
 					}
 				case ITEM_ICON:
 					{
-						pos = SendMessage(hwndList, LB_ADDSTRING, 0, (LPARAM) Translate("Icon"));
+						pos = SendMessage(hwndList, LB_ADDSTRING, 0, (LPARAM) TranslateT("Icon"));
 						break;
 					}
 				case ITEM_TEXT:
 					{
-						pos = SendMessage(hwndList, LB_ADDSTRING, 0, (LPARAM) Translate("Text"));
+						pos = SendMessage(hwndList, LB_ADDSTRING, 0, (LPARAM) TranslateT("Text"));
 						break;
 					}
 				case ITEM_EXTRA_ICONS:
 					{
-						pos = SendMessage(hwndList, LB_ADDSTRING, 0, (LPARAM) Translate("Extra icons"));
+						pos = SendMessage(hwndList, LB_ADDSTRING, 0, (LPARAM) TranslateT("Extra icons"));
 						break;
 					}
 				case ITEM_CONTACT_TIME:
 					{
-						pos = SendMessage(hwndList, LB_ADDSTRING, 0, (LPARAM) Translate("Contact time"));
+						pos = SendMessage(hwndList, LB_ADDSTRING, 0, (LPARAM) TranslateT("Contact time"));
 						break;
 					}
 				}
@@ -643,9 +643,9 @@ static BOOL CALLBACK DlgProcItemTextOpts(HWND hwndDlg, UINT msg, WPARAM wParam, 
 			//TODO: init IDC_ALIGNGROUPCOMBO from DBGetContactSettingByte(NULL,"CList","AlignGroupCaptions",0);
 			{
 				int i, item;
-				char *align[]={"Left align group names", "Center group names", "Right align group names"};
+				TCHAR *align[]={_T("Left align group names"), _T("Center group names"), _T("Right align group names")};
 				for (i=0; i<sizeof(align)/sizeof(char*); i++) 
-					item=SendDlgItemMessage(hwndDlg,IDC_ALIGNGROUPCOMBO,CB_ADDSTRING,0,(LPARAM)Translate(align[i]));
+					item=SendDlgItemMessage(hwndDlg,IDC_ALIGNGROUPCOMBO,CB_ADDSTRING,0,(LPARAM)TranslateTS(align[i]));
 				SendDlgItemMessage(hwndDlg,IDC_ALIGNGROUPCOMBO,CB_SETCURSEL,DBGetContactSettingByte(NULL,"CList","AlignGroupCaptions",0),0);
 			}
 			CheckDlgButton(hwndDlg, IDC_ALIGN_RIGHT, DBGetContactSettingByte(NULL,"CList","TextAlignToRight",0) == 1 ? BST_CHECKED : BST_UNCHECKED );
@@ -734,9 +734,9 @@ static BOOL CALLBACK DlgProcItemSecondLineOpts(HWND hwndDlg, UINT msg, WPARAM wP
 			{
 				DBVARIANT dbv;
 
-				if (!DBGetContactSetting(NULL, "CList","SecondLineText", &dbv))
+				if (!DBGetContactSettingTString(NULL, "CList","SecondLineText", &dbv))
 				{
-					SetWindowTextA(GetDlgItem(hwndDlg,IDC_VARIABLE_TEXT), dbv.pszVal);
+					SetWindowText(GetDlgItem(hwndDlg,IDC_VARIABLE_TEXT), dbv.ptszVal);
 					DBFreeVariant(&dbv);
 				}
 			}
@@ -873,12 +873,12 @@ static BOOL CALLBACK DlgProcItemSecondLineOpts(HWND hwndDlg, UINT msg, WPARAM wP
 							DBWriteContactSettingWord(NULL,"CList","SecondLineType", (WORD)radio);
 
 							{
-								char t[TEXT_TEXT_MAX_LENGTH];
+								TCHAR t[TEXT_TEXT_MAX_LENGTH];
 
-								GetWindowTextA(GetDlgItem(hwndDlg,IDC_VARIABLE_TEXT), t, sizeof(t));
+								GetWindowText(GetDlgItem(hwndDlg,IDC_VARIABLE_TEXT), t, sizeof(t));
 								t[TEXT_TEXT_MAX_LENGTH - 1] = '\0';
 
-								DBWriteContactSettingString(NULL, "CList", "SecondLineText", t);
+								DBWriteContactSettingTString(NULL, "CList", "SecondLineText", t);
 							}
 
 							DBWriteContactSettingByte(NULL,"CList","SecondLineXStatusHasPriority", (BYTE)IsDlgButtonChecked(hwndDlg,IDC_XSTATUS_HAS_PRIORITY));
@@ -917,9 +917,9 @@ static BOOL CALLBACK DlgProcItemThirdLineOpts(HWND hwndDlg, UINT msg, WPARAM wPa
 			{
 				DBVARIANT dbv;
 
-				if (!DBGetContactSetting(NULL, "CList","ThirdLineText", &dbv))
+				if (!DBGetContactSettingTString(NULL, "CList","ThirdLineText", &dbv))
 				{
-					SetWindowTextA(GetDlgItem(hwndDlg,IDC_VARIABLE_TEXT), dbv.pszVal);
+					SetWindowText(GetDlgItem(hwndDlg,IDC_VARIABLE_TEXT), dbv.ptszVal);
 					DBFreeVariant(&dbv);
 				}
 			}
@@ -1054,12 +1054,12 @@ static BOOL CALLBACK DlgProcItemThirdLineOpts(HWND hwndDlg, UINT msg, WPARAM wPa
 							DBWriteContactSettingWord(NULL,"CList","ThirdLineType", (WORD)radio);
 
 							{
-								char t[TEXT_TEXT_MAX_LENGTH];
+								TCHAR t[TEXT_TEXT_MAX_LENGTH];
 
-								GetWindowTextA(GetDlgItem(hwndDlg,IDC_VARIABLE_TEXT), t, sizeof(t));
+								GetWindowText(GetDlgItem(hwndDlg,IDC_VARIABLE_TEXT), t, sizeof(t));
 								t[TEXT_TEXT_MAX_LENGTH - 1] = '\0';
 
-								DBWriteContactSettingString(NULL, "CList", "ThirdLineText", t);
+								DBWriteContactSettingTString(NULL, "CList", "ThirdLineText", t);
 							}
 
 							DBWriteContactSettingByte(NULL,"CList","ThirdLineXStatusHasPriority", (BYTE)IsDlgButtonChecked(hwndDlg,IDC_XSTATUS_HAS_PRIORITY));
@@ -1084,7 +1084,7 @@ static BOOL CALLBACK DlgProcItemThirdLineOpts(HWND hwndDlg, UINT msg, WPARAM wPa
 
 typedef struct _ItemOptionConf 
 { 
-	char *name;				// Tab name
+	TCHAR *name;				// Tab name
 	int id;					// Dialog id
 	DLGPROC wnd_proc;		// Dialog function
 } ItemOptionConf;
@@ -1102,15 +1102,15 @@ typedef struct _WndItemsData
 	int selected_item;
 } WndItemsData; 
 
-ItemOptionConf opt_items[] = { { "Row", IDD_OPT_ITEM_ROW, DlgProcItemRowOpts },
-//{ "Row design", IDD_OPT_ITEM_NEWROW, DlgProcItemNewRowOpts },
-{ "Avatar", IDD_OPT_ITEM_AVATAR, DlgProcItemAvatarOpts },
-{ "Icon", IDD_OPT_ITEM_ICON, DlgProcItemIconOpts },
-{ "Contact time", IDD_OPT_ITEM_CONTACT_TIME, DlgProcItemContactTimeOpts },
-{ "Text", IDD_OPT_ITEM_TEXT, DlgProcItemTextOpts },
-{ "Second Line", IDD_OPT_ITEM_SECOND_LINE, DlgProcItemSecondLineOpts },
-{ "Third Line", IDD_OPT_ITEM_THIRD_LINE, DlgProcItemThirdLineOpts },
-{ "Extra Icons", IDD_OPT_ITEM_EXTRAICONS, DlgProcExtraIconsOpts}
+ItemOptionConf opt_items[] = { { _T("Row"), IDD_OPT_ITEM_ROW, DlgProcItemRowOpts },
+//{ _T("Row design"), IDD_OPT_ITEM_NEWROW, DlgProcItemNewRowOpts },
+{ _T("Avatar"), IDD_OPT_ITEM_AVATAR, DlgProcItemAvatarOpts },
+{ _T("Icon"), IDD_OPT_ITEM_ICON, DlgProcItemIconOpts },
+{ _T("Contact time"), IDD_OPT_ITEM_CONTACT_TIME, DlgProcItemContactTimeOpts },
+{ _T("Text"), IDD_OPT_ITEM_TEXT, DlgProcItemTextOpts },
+{ _T("Second Line"), IDD_OPT_ITEM_SECOND_LINE, DlgProcItemSecondLineOpts },
+{ _T("Third Line"), IDD_OPT_ITEM_THIRD_LINE, DlgProcItemThirdLineOpts },
+{ _T("Extra Icons"), IDD_OPT_ITEM_EXTRAICONS, DlgProcExtraIconsOpts}
 };
 
 
@@ -1120,9 +1120,9 @@ ItemOptionConf opt_items[] = { { "Row", IDD_OPT_ITEM_ROW, DlgProcItemRowOpts },
 // Returns the address of the locked resource. 
 // lpszResName - name of the resource 
 
-static DLGTEMPLATE * DoLockDlgRes(LPCSTR lpszResName) 
+static DLGTEMPLATE * DoLockDlgRes(LPCTSTR lpszResName) 
 { 
-	HRSRC hrsrc = FindResourceA(g_hInst, lpszResName, MAKEINTRESOURCEA(5)); 
+	HRSRC hrsrc = FindResource(g_hInst, lpszResName, MAKEINTRESOURCE(5)); 
 	HGLOBAL hglb = LoadResource(g_hInst, hrsrc); 
 	return (DLGTEMPLATE *) LockResource(hglb); 
 } 
@@ -1185,7 +1185,7 @@ static BOOL CALLBACK DlgProcItemsOpts(HWND hwndDlg, UINT msg, WPARAM wParam, LPA
 			HWND hwndTab;
 			WndItemsData *data;
 			int i;
-			TCITEMA tie; 
+			TCITEM tie; 
 			RECT rc_tab;
 
 			TranslateDialogDefault(hwndDlg);
@@ -1205,13 +1205,13 @@ static BOOL CALLBACK DlgProcItemsOpts(HWND hwndDlg, UINT msg, WPARAM wParam, LPA
 				DLGTEMPLATE *templ;
 
 				data->items[i].conf = &opt_items[i];
-				templ = DoLockDlgRes(MAKEINTRESOURCEA(data->items[i].conf->id));
+				templ = DoLockDlgRes(MAKEINTRESOURCE(data->items[i].conf->id));
 				data->items[i].hwnd = CreateDialogIndirect(g_hInst, templ, hwndDlg, 
 					data->items[i].conf->wnd_proc); 
 				TranslateDialogDefault(data->items[i].hwnd);
 				ShowWindowNew(data->items[i].hwnd, SW_HIDE);
 
-				tie.pszText = Translate(data->items[i].conf->name); 
+				tie.pszText = TranslateTS(data->items[i].conf->name); 
 				TabCtrl_InsertItem(hwndTab, i, &tie);
 			}
 
@@ -1323,13 +1323,13 @@ static BOOL CALLBACK DlgProcGenOpts(HWND hwndDlg, UINT msg, WPARAM wParam, LPARA
 		CheckDlgButton(hwndDlg, IDC_DISABLEGROUPS, DBGetContactSettingByte(NULL,"CList","UseGroups",SETTING_USEGROUPS_DEFAULT) ? BST_UNCHECKED : BST_CHECKED);
 		{
 			int i, item;
-			char *sortby[]={"Name", "Status", "Last message time", "Protocol", "-Nothing-"};
+			TCHAR *sortby[]={_T("Name"), _T("Status"), _T("Last message time"), _T("Protocol"), _T("-Nothing-")};
 			for (i=0; i<sizeof(sortby)/sizeof(char*); i++) {
-				item=SendDlgItemMessage(hwndDlg,IDC_CLSORT1,CB_ADDSTRING,0,(LPARAM)Translate(sortby[i]));
+				item=SendDlgItemMessage(hwndDlg,IDC_CLSORT1,CB_ADDSTRING,0,(LPARAM)TranslateTS(sortby[i]));
 				SendDlgItemMessage(hwndDlg,IDC_CLSORT1,CB_SETITEMDATA,item,(LPARAM)0);
-				item=SendDlgItemMessage(hwndDlg,IDC_CLSORT2,CB_ADDSTRING,0,(LPARAM)Translate(sortby[i]));
+				item=SendDlgItemMessage(hwndDlg,IDC_CLSORT2,CB_ADDSTRING,0,(LPARAM)TranslateTS(sortby[i]));
 				SendDlgItemMessage(hwndDlg,IDC_CLSORT2,CB_SETITEMDATA,item,(LPARAM)0);
-				item=SendDlgItemMessage(hwndDlg,IDC_CLSORT3,CB_ADDSTRING,0,(LPARAM)Translate(sortby[i]));
+				item=SendDlgItemMessage(hwndDlg,IDC_CLSORT3,CB_ADDSTRING,0,(LPARAM)TranslateTS(sortby[i]));
 				SendDlgItemMessage(hwndDlg,IDC_CLSORT3,CB_SETITEMDATA,item,(LPARAM)0);
 			}
 			SendDlgItemMessage(hwndDlg,IDC_CLSORT1,CB_SETCURSEL,DBGetContactSettingByte(NULL,"CList","SortBy1",SETTING_SORTBY1_DEFAULT),0);
@@ -1423,12 +1423,12 @@ static BOOL CALLBACK DlgProcGenOpts(HWND hwndDlg, UINT msg, WPARAM wParam, LPARA
 		DBVARIANT dbv={DBVT_DELETED};
 		DBGetContactSetting(NULL,"CList","PrimaryStatus",&dbv);
 		CallService(MS_PROTO_ENUMPROTOCOLS,(WPARAM)&count,(LPARAM)&protos);
-		item=SendDlgItemMessage(hwndDlg,IDC_PRIMARYSTATUS,CB_ADDSTRING,0,(LPARAM)Translate("Global"));
+		item=SendDlgItemMessage(hwndDlg,IDC_PRIMARYSTATUS,CB_ADDSTRING,0,(LPARAM)TranslateT("Global"));
 		SendDlgItemMessage(hwndDlg,IDC_PRIMARYSTATUS,CB_SETITEMDATA,item,(LPARAM)0);
 		for(i=0;i<count;i++) {
 			if(protos[i]->type!=PROTOTYPE_PROTOCOL || CallProtoService(protos[i]->szName,PS_GETCAPS,PFLAGNUM_2,0)==0) continue;
 			CallProtoService(protos[i]->szName,PS_GETNAME,sizeof(szName),(LPARAM)szName);
-			item=SendDlgItemMessage(hwndDlg,IDC_PRIMARYSTATUS,CB_ADDSTRING,0,(LPARAM)szName);
+			item=SendDlgItemMessageA(hwndDlg,IDC_PRIMARYSTATUS,CB_ADDSTRING,0,(LPARAM)szName);
 			SendDlgItemMessage(hwndDlg,IDC_PRIMARYSTATUS,CB_SETITEMDATA,item,(LPARAM)protos[i]);
 			if((dbv.type==DBVT_ASCIIZ || dbv.type==DBVT_UTF8)&& !strcmp(dbv.pszVal,protos[i]->szName))
 				SendDlgItemMessage(hwndDlg,IDC_PRIMARYSTATUS,CB_SETCURSEL,item,0);

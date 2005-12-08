@@ -43,17 +43,31 @@ void UninitSkinHotKeys();
 PLUGININFO pluginInfo = {
 	sizeof(PLUGININFO),
 #ifndef _DEBUG
-	"Modern Contact List Layered",
+	#ifdef UNICODE
+		"Modern Contact List (UNICODE)",
+	#else
+		"Modern Contact List",
+	#endif	
+	
 #else
-	"DEBUG of Modern Contact List Layered",
+	#ifdef UNICODE
+			"Debug of Modern Contact List (UNICODE)",
+	#else
+			"Debug of Modern Contact List",
+	#endif	
 #endif
 	0,                              //will initiate later in MirandaPluginInfo
 	"Display contacts, event notifications, protocol status with advantage visual modifications. Supported MW modifications, enchanced metacontact cooperation.",
 	"Artem Shpynov and Ricardo Pescuma Domenecci, based on clist_mw by Bethoven",
 	"shpynov@nm.ru" ,
-	"Copyright 2000-2005 Miranda-IM project ["__DATE__" "__TIME__"]",
+	"Copyright 2000-2005 Miranda-IM project ["__DATE__" "__TIME__"]",	
+#ifdef UNICODE
 	"http://miranda-im.org/download/details.php?action=viewfile&id=2103",
 	UNICODE_AWARE,
+#else
+	"http://miranda-im.org/download/details.php?action=viewfile&id=2103",
+	0,
+#endif		
 	DEFMOD_CLISTALL
 };
 

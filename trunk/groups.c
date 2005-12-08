@@ -205,7 +205,7 @@ static int DeleteGroup(WPARAM wParam,LPARAM lParam)
 					mir_sntprintf(szNewName, SIZEOF(szNewName), _T("%s\\%s"), szNewParent, dbv.ptszVal + len + 2);
 				else
 					lstrcpyn(szNewName, dbv.ptszVal + len + 2, SIZEOF(szNewName));
-				RenameGroupT(i + 1, szNewName);
+				RenameGroupT((WPARAM)(i + 1), (LPARAM)szNewName);
 			}
 			DBFreeVariant(&dbv);
 		}
@@ -301,9 +301,9 @@ static int RenameGroupWithMove(int groupId,const TCHAR *szName,int move)
 	return 0;
 }
 
-int RenameGroupT( int groupID, TCHAR* newName )
+int RenameGroupT( WPARAM groupID, LPARAM newName )
 {
-	return -1 != RenameGroupWithMove( groupID-1, newName, 1);
+	return -1 != RenameGroupWithMove( (int)groupID-1, (TCHAR*)newName, 1);
 }
 
 static int RenameGroup(WPARAM wParam,LPARAM lParam)
