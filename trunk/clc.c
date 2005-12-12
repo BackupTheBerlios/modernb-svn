@@ -1728,14 +1728,13 @@ static LRESULT CALLBACK ContactListControlWndProc(HWND hwnd, UINT msg, WPARAM wP
 
 	case WM_MOUSEMOVE:
 		{
-
-			if (BehindEdgeSettings) UpdateTimer(0);
-			if (ProceedDragToScroll(hwnd, (short)HIWORD(lParam))) return 0;
-			{
-				int k=TestCursorOnBorders();
+      if (IsInMainWindow(hwnd))
+      {
+			  if (BehindEdgeSettings) UpdateTimer(0);
+      	TestCursorOnBorders();
 				// return k?k:DefWindowProc(hwnd,msg,wParam,lParam);
 			}
-
+      if (ProceedDragToScroll(hwnd, (short)HIWORD(lParam))) return 0;
 			if(hitcontact!=NULL)
 			{
 				int x,y,xm,ym;
@@ -2303,7 +2302,7 @@ static LRESULT CALLBACK ContactListControlWndProc(HWND hwnd, UINT msg, WPARAM wP
 
 		if(dat->selection!=-1 && hitFlags&(CLCHT_ONITEMICON|CLCHT_ONITEMCHECK|CLCHT_ONITEMLABEL)) {
 			if(contact->type==CLCIT_GROUP) {
-				hMenu=(HMENU)CallService(MS_CLIST_MENUBUILDSUBGROUP,(WPARAM)contact->group,0);
+				hMenu=(HMENU)CallService(MS_CLIST_MENUBUILDSUBGROUP,(WPARAM)contact->group,(LPARAM)hwnd);
 				ClientToScreen(hwnd,&pt);
 				TrackPopupMenu(hMenu,TPM_TOPALIGN|TPM_LEFTALIGN|TPM_LEFTBUTTON,pt.x,pt.y,0,(HWND)CallService(MS_CLUI_GETHWND,0,0),NULL);
 				return 0;

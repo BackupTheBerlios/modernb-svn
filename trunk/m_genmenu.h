@@ -195,6 +195,8 @@ LPARAM lParam;
 //Set onAddService for menuobject. 
 #define OPT_MENUOBJECT_SET_ONADD_SERVICE					3
 
+#define OPT_MENUOBJECT_SET_CHECK_SERVICE          4
+
 //enable ability user to edit menuitems via options page.
 #define OPT_USERDEFINEDITEMS 1
 

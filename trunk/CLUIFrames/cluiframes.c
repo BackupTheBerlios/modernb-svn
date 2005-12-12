@@ -2189,8 +2189,9 @@ int CLUIFrameMoveResize(const wndFrame *Frame)
   {
     RECT pr;
     POINT Off={0};
-    ClientToScreen(GetParent(Frame->OwnerWindow),&Off);
-   GetWindowRect(GetParent(Frame->OwnerWindow),&pr);
+
+    ClientToScreen(hwndContactList,&Off);
+   GetWindowRect(hwndContactList,&pr);
     //dock_prevent_moving=0;
 
     SetWindowPos(Frame->OwnerWindow,NULL,Frame->wndSize.left+Off.x,Frame->wndSize.top+Off.y,
@@ -2279,7 +2280,12 @@ int CLUIFramesGetMinHeight()
   //	clirect.bottom-=clirect.top;
   //	clirect.bottom+=border.top+border.bottom;
   //allbord=(winrect.bottom-winrect.top)-(clirect.bottom-clirect.top);
-  return (sumheight+border.top+border.bottom+allbord+tbh+3);
+
+  //TODO minsize
+  sumheight+=DBGetContactSettingByte(NULL,"CLUI","TopClientMargin",0);
+  sumheight+=DBGetContactSettingByte(NULL,"CLUI","BottomClientMargin",0); //$$ BOTTOM border
+  return  max(DBGetContactSettingWord(NULL,"CLUI","MinHeight",0),
+        (sumheight+border.top+border.bottom+allbord+tbh+3)       );
 }
 
 
@@ -2867,6 +2873,7 @@ int CheckFramesPos(RECT *wr)
   ulockfrm();
   return 0;
 }
+
 int CLUIFramesOnClistResize(WPARAM wParam,LPARAM lParam)
 {
   RECT nRect;
@@ -2926,8 +2933,9 @@ int CLUIFramesOnClistResize(WPARAM wParam,LPARAM lParam)
 
 
   CLUIFramesResize(nRect);
-  CLUIFramesApplyNewSizes(3);
 
+  CLUIFramesApplyNewSizes(2);
+  CLUIFramesApplyNewSizes(1);
 
   //resizing=FALSE;	
   ulockfrm();
@@ -4001,7 +4009,7 @@ static HWND CreateSubContainerWindow(HWND parent,int x,int y,int width,int heigh
 {
   HWND hwnd;
   hwnd=CreateWindowEx(MySetLayeredWindowAttributesNew?WS_EX_LAYERED:0,TEXT(CLUIFrameSubContainerClassName),TEXT("aaaa"),WS_POPUP|!LayeredFlag?WS_BORDER:0/*|WS_THICKFRAME*/,x,y,width,height,parent,0,g_hInst,0);
-  SetWindowLong(hwnd,GWL_STYLE,GetWindowLong(hwnd,GWL_STYLE)&~(WS_CAPTION|!LayeredFlag?WS_BORDER:0));
+  SetWindowLong(hwnd,GWL_STYLE,GetWindowLong(hwnd,GWL_STYLE)&~(WS_CAPTION|WS_BORDER));
   if (IsOnDesktop)
   {
     HWND hProgMan=FindWindow(TEXT("Progman"),NULL);

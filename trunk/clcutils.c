@@ -809,8 +809,8 @@ void LoadClcOptions(HWND hwnd,struct ClcData *dat)
 		
 		if (!DBGetContactSettingTString(NULL, "CList","SecondLineText", &dbv))
 		{
-			lstrcpyn(dat->second_line_text, dbv.ptszVal, sizeof(dat->second_line_text)-1);
-			dat->second_line_text[sizeof(dat->second_line_text)-1] = '\0';
+			lstrcpyn(dat->second_line_text, dbv.ptszVal, SIZEOF(dat->second_line_text)-1);
+			dat->second_line_text[SIZEOF(dat->second_line_text)-1] = '\0';
 			DBFreeVariant(&dbv);
 		}
 		else
@@ -846,8 +846,8 @@ void LoadClcOptions(HWND hwnd,struct ClcData *dat)
 		
 		if (!DBGetContactSettingTString(NULL, "CList","ThirdLineText", &dbv))
 		{
-			lstrcpyn(dat->third_line_text, dbv.ptszVal, sizeof(dat->third_line_text)-1);
-			dat->third_line_text[sizeof(dat->third_line_text)-1] = '\0';
+			lstrcpyn(dat->third_line_text, dbv.ptszVal, SIZEOF(dat->third_line_text)-1);
+			dat->third_line_text[SIZEOF(dat->third_line_text)-1] = '\0';
 			DBFreeVariant(&dbv);
 		}
 		else

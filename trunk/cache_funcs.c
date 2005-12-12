@@ -110,7 +110,7 @@ int AskStatusMessageThread(HWND hwnd)
   DWORD time;
   HANDLE h;
   HANDLE ACK=0;
-  
+  pdisplayNameCacheEntry pdnce=NULL;
   h=GetCurrChain(); 
   if (!h) return 0;
 
@@ -129,7 +129,7 @@ int AskStatusMessageThread(HWND hwnd)
     }
 
 	{
-		pdisplayNameCacheEntry pdnce = GetDisplayNameCacheEntry((HANDLE)h);
+		pdnce = GetDisplayNameCacheEntry((HANDLE)h);
 		if (pdnce->ApparentMode!=ID_STATUS_OFFLINE) //don't ask if contact is always invisible (should be done with protocol)
 			ACK=(HANDLE)CallContactService(h,PSS_GETAWAYMSG,0,0);
 	}   
@@ -139,6 +139,10 @@ int AskStatusMessageThread(HWND hwnd)
       ack.hContact=h;
       ack.type=ACKTYPE_AWAYMSG;
       ack.result=ACKRESULT_FAILED;
+      if (pdnce)
+        ack.szModule=pdnce->szProto;
+      else
+        ack.szModule=NULL;
       ClcProtoAck((WPARAM)h,(LPARAM) &ack);
     }
     RequestTick=time;

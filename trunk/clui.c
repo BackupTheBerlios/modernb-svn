@@ -251,6 +251,7 @@ void ChangeWindowMode()
 	{
 		storedVisMode=TRUE;
 		ShowWindowNew(hwndContactList,SW_HIDE);
+    OnShowHide(hwndContactList,0);
 	}
 	//2- Calculate STYLES and STYLESEX
 	if (!LayeredFlag)
@@ -312,9 +313,31 @@ void ChangeWindowMode()
 		SetMenu(hwndContactList,NULL);
 	else
 		SetMenu(hwndContactList,hMenuMain);
-	//6- if it was visible - show
-	if (storedVisMode) 
+
+  //6- Pin to desktop mode
+  if (DBGetContactSettingByte(NULL,"CList","OnDesktop", 0)) 
+  {
+    HWND hProgMan=FindWindow(TEXT("Progman"),NULL);
+    if (IsWindow(hProgMan)) 
+    {
+      SetParent(hwndContactList,hProgMan);
+      SetParentForContainers(hProgMan);
+      IsOnDesktop=1;
+    }
+  } 
+  else 
+  {
+    SetParent(hwndContactList,NULL);
+    SetParentForContainers(NULL);
+    IsOnDesktop=0;
+  }
+
+  //7- if it was visible - show
+  if (storedVisMode) 
+  {
 		ShowWindowNew(hwndContactList,SW_SHOW);
+    OnShowHide(hwndContactList,1);
+  }
 	if (!LayeredFlag)
 	{
 		HRGN hRgn1;
@@ -2919,8 +2942,11 @@ LRESULT CALLBACK ContactListWndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM l
 
 	case WM_GETMINMAXINFO:
 		DefWindowProc(hwnd,msg,wParam,lParam);
-		((LPMINMAXINFO)lParam)->ptMinTrackSize.x=18;
-		if (requr==0){((LPMINMAXINFO)lParam)->ptMinTrackSize.y=CLUIFramesGetMinHeight();};
+		((LPMINMAXINFO)lParam)->ptMinTrackSize.x=max(DBGetContactSettingWord(NULL,"CLUI","MinWidth",18),max(18,DBGetContactSettingByte(NULL,"CLUI","LeftClientMargin",0)+DBGetContactSettingByte(NULL,"CLUI","RightClientMargin",0)+18));
+		if (requr==0)
+    {
+      ((LPMINMAXINFO)lParam)->ptMinTrackSize.y=CLUIFramesGetMinHeight();
+    };
 		return 0;
 
 	case WM_DISPLAYCHANGE:
@@ -3000,9 +3026,7 @@ LRESULT CALLBACK ContactListWndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM l
 					static RECT rcWindow,rcTree,rcTree2,rcWorkArea,rcOld;
 					int maxHeight,newHeight;
 					int winstyle;
-
 					if (disableautoupd==1){break;};
-
 					if (during_sizing)
 						rcWindow=sizing_rect;
 					else					
@@ -3034,11 +3058,12 @@ LRESULT CALLBACK ContactListWndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM l
 						//	break;
 					}
 					lastreqh=nmc->pt.y;
-					newHeight=max(nmc->pt.y,3)+1+((winstyle&WS_BORDER)?2:0)+(rcWindow.bottom-rcWindow.top)-(rcTree.bottom-rcTree.top);
+					newHeight=max(CLUIFramesGetMinHeight(),max(nmc->pt.y,3)+1+((winstyle&WS_BORDER)?2:0)+(rcWindow.bottom-rcWindow.top)-(rcTree.bottom-rcTree.top));
 					if (newHeight==(rcWindow.bottom-rcWindow.top)) break;
 
 					if(newHeight>(rcWorkArea.bottom-rcWorkArea.top)*maxHeight/100)
 						newHeight=(rcWorkArea.bottom-rcWorkArea.top)*maxHeight/100;
+
 					if(DBGetContactSettingByte(NULL,"CLUI","AutoSizeUpward",0)) {
 						rcWindow.top=rcWindow.bottom-newHeight;
 						if(rcWindow.top<rcWorkArea.top) rcWindow.top=rcWorkArea.top;
@@ -3673,18 +3698,6 @@ int LoadCLUIModule(void)
 	//SetWindowLong(hwndContactList,GWL_STYLE,style);
 
 
-	if ( DBGetContactSettingByte(NULL,"CList","OnDesktop",0) )
-	{
-		HWND hProgMan=FindWindow(TEXT("Progman"),NULL);
-		if (IsWindow(hProgMan)) 
-		{
-			IsOnDesktop=1;
-			SetParent(hwndContactList,hProgMan);
-			//and all subcontainers
-			SetParentForContainers(hProgMan);
-		}
-	}
-
 
 	laster=GetLastError();
 	PreCreateCLC(hwndContactList);
@@ -3698,6 +3711,7 @@ int LoadCLUIModule(void)
 
 	hMenuMain=GetMenu(hwndContactList);
 	ChangeWindowMode();
+
 	{	CLISTMENUITEM mi;
 	ZeroMemory(&mi,sizeof(mi));
 	mi.cbSize=sizeof(mi);

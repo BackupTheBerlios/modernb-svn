@@ -79,3 +79,6 @@ extern HANDLE hClcWindowList;
 extern char *DBGetStringA(HANDLE hContact,const char *szModule,const char *szSetting);
 extern int CreateTimerForConnectingIcon(WPARAM,LPARAM);
 extern BOOL ImageList_DrawEx_New( HIMAGELIST himl,int i,HDC hdcDst,int x,int y,int dx,int dy,COLORREF rgbBk,COLORREF rgbFg,UINT fStyle);
+
+extern int OnMoving(HWND hwnd,RECT *lParam);
+extern int CLUIFramesOnClistResize2(WPARAM wParam,LPARAM lParam, int mode);

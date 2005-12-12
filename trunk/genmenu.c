@@ -493,11 +493,16 @@ int MO_SetOptionsMenuObject(WPARAM wParam,LPARAM lParam)
     case OPT_MENUOBJECT_SET_ONADD_SERVICE:
       FreeAndNil(&MenuObjects[pimoidx].onAddService);
       MenuObjects[pimoidx].onAddService=mir_strdup((char *)lpop->Value);
+      break;
 
     case OPT_MENUOBJECT_SET_FREE_SERVICE:
       FreeAndNil(&MenuObjects[pimoidx].FreeService);
       MenuObjects[pimoidx].FreeService=mir_strdup((char *)lpop->Value);
-
+      break;
+    
+    case OPT_MENUOBJECT_SET_CHECK_SERVICE:
+      FreeAndNil(&MenuObjects[pimoidx].CheckService);
+      MenuObjects[pimoidx].CheckService=mir_strdup((char *)lpop->Value);
       break;
     case OPT_USERDEFINEDITEMS:
       MenuObjects[pimoidx].bUseUserDefinedItems=(BOOL)lpop->Value;

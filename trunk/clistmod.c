@@ -651,6 +651,7 @@ int GetWindowVisibleState(HWND hWnd, int iStepX, int iStepY) {
 				if (po||(!rgn&&ptr==0))
 				{
 					BOOL hWndFound=FALSE;
+          HWND hAuxOld=NULL;
 					hAux = WindowFromPoint(pt);
 					do
 					{
@@ -659,8 +660,20 @@ int GetWindowVisibleState(HWND hWnd, int iStepX, int iStepY) {
 							hWndFound=TRUE;
 							break;
 						}
-						hAux = GetParent(hAux);
-					}while(hAux!= NULL);
+						//hAux = GetParent(hAux);
+            hAuxOld=hAux;
+            hAux = GetAncestor(hAux,GA_ROOTOWNER);
+            if (hAuxOld==hAux)
+            {
+              TCHAR buf[255];
+              GetClassName(hAux,buf,SIZEOF(buf));
+              if (!lstrcmp(buf,_T(CLUIFrameSubContainerClassName)))
+              {
+                hWndFound=TRUE;
+							  break;
+              }
+            }
+					}while(hAux!= NULL &&hAuxOld!=hAux);
 
 					if (hWndFound) //There's  window!
             iNotCoveredDots++; //Let's count the not covered dots.			

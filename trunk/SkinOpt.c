@@ -611,8 +611,15 @@ static BOOL CALLBACK DlgSkinOpts(HWND hwndDlg, UINT msg, WPARAM wParam, LPARAM l
 					if (!sd) return 0;
 					LoadSkinFromIniFile(sd->File);
 					LoadSkinFromDB();				
-					CLUIFramesOnClistResize(0,0);
-					RedrawCompleteWindow();
+					CLUIFramesOnClistResize2(0,0,0);
+					RedrawCompleteWindow();        
+          CLUIFramesOnClistResize2(0,0,0);
+          {
+            HWND hwnd=(HWND)CallService(MS_CLUI_GETHWND,0,0);
+            RECT rc={0};
+            GetWindowRect(hwnd, &rc);
+            OnMoving(hwnd,&rc);
+          }
 					hDlg=hwndDlg;
 					OptLoadObjectList();
 					if (hCLUIwnd)

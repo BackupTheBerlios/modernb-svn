@@ -128,12 +128,11 @@ static TCHAR *TrayIconMakeTooltip(const TCHAR *szPrefix,const char *szProto) //T
 
 			if(protos[i]->type!=PROTOTYPE_PROTOCOL || (GetProtocolVisibility(protos[i]->szName)==0)) continue;
 			CallProtoService(protos[i]->szName,PS_GETNAME,sizeof(szProtoNameTemp),(LPARAM)szProtoNameTemp);
+
 #ifdef UNICODE
-			{
-				wchar_t * szProtoName2=a2u(szProtoNameTemp);
-				lstrcpyn(szProtoName,szProtoName2,sizeof(szProtoName)/sizeof(TCHAR));
-				mir_free(szProtoName2);
-			}
+		szProtoName=a2u(szProtoNameTemp);
+#else
+		szProtoName=szProtoNameTemp;
 #endif
 
 			szStatus=(TCHAR*)CallService(MS_CLIST_GETSTATUSMODEDESCRIPTION,CallProtoService(protos[i]->szName,PS_GETSTATUS,0,0),CNF_UNICODET); //TODO:UNICODE
@@ -1069,7 +1068,7 @@ void InitTray(void)
 		DLLGETVERSIONPROC proc;
 		dviShell.cbSize=sizeof(dviShell);
 		proc=(DLLGETVERSIONPROC)GetProcAddress(hLib,"DllGetVersion");
-		if (proc) {
+		if (!IsBadCodePtr(proc)) {
 			proc(&dviShell);
 		}
 		FreeLibrary(hLib);

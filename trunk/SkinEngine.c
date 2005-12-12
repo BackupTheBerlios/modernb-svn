@@ -1805,10 +1805,11 @@ int AlphaTextOut (HDC hDC, LPCTSTR lpString, int nCount, RECT * lpRect, UINT for
       BYTE * BufScanLine;
       BYTE * pix;
       BYTE * bufpix;
-
-      BYTE r=GetRValue(ARGBcolor);
-      BYTE g=GetGValue(ARGBcolor);
-      BYTE b=GetBValue(ARGBcolor);
+      BYTE r,g,b;
+      BYTE al=255-((BYTE)(ARGBcolor>>24));
+      r=GetRValue(ARGBcolor);
+      g=GetGValue(ARGBcolor);
+      b=GetBValue(ARGBcolor);      
       for (y=0; y<heigh;y++)
       {
         int a=y*(width<<2);
@@ -1819,10 +1820,18 @@ int AlphaTextOut (HDC hDC, LPCTSTR lpString, int nCount, RECT * lpRect, UINT for
           BYTE bx,rx,gx,mx;
           pix=ScanLine+x*4;
           bufpix=BufScanLine+(x<<2);
-          
-		  bx=weight2[pix[0]];
-          gx=weight2[pix[1]];
-          rx=weight2[pix[2]];
+          if (al!=255)
+          {
+		        bx=weight2[pix[0]]*al/255;
+            gx=weight2[pix[1]]*al/255;
+            rx=weight2[pix[2]]*al/255;
+          }
+          else
+          {
+            bx=weight2[pix[0]];
+            gx=weight2[pix[1]];
+            rx=weight2[pix[2]];
+          }
 
 		  bx=(weight[bx]*(255-b)+bx*(b))/255;
 		  gx=(weight[gx]*(255-g)+gx*(g))/255;
@@ -1871,6 +1880,7 @@ int AlphaTextOut (HDC hDC, LPCTSTR lpString, int nCount, RECT * lpRect, UINT for
       BitBlt(hDC,workRect.left,workRect.top,sz.cx,sz.cy,bufDC,0,0,SRCCOPY);
     }
     //free resources
+
     {
       SelectObject(memdc,holdbmp);
       DeleteObject(hbmp);
@@ -1880,7 +1890,8 @@ int AlphaTextOut (HDC hDC, LPCTSTR lpString, int nCount, RECT * lpRect, UINT for
     }	
   }
   SelectObject(memdc,holdfnt);
-  DeleteDC(memdc);
+  DeleteDC(memdc); 
+  if (noDIB) free(destBits);
   return 0;
 }
 //int AlphaTextOutOld (HDC hDC, LPCTSTR lpString, int nCount, RECT * lpRect, UINT format, DWORD ARGBcolor)

@@ -502,6 +502,7 @@ static int BuildSubGroupMenu(WPARAM wParam,LPARAM lParam)
 	param.MenuObjectHandle=(int)hSubGroupMenuObject;
 	param.rootlevel=-1;
 	param.wParam=wParam;
+  param.lParam=lParam;
 	
 
 	//hMenu=hMainMenu;
@@ -571,7 +572,20 @@ static int AddSubGroupMenuItem(WPARAM wParam,LPARAM lParam)
 
 int SubGroupMenuCheckService(WPARAM wParam,LPARAM lParam) {
 //not used
-	return(0);
+  //TODO ADD 
+  lpSubGroupMenuExecParam mmep;
+  TCheckProcParam * CParam=(TCheckProcParam*)wParam;
+  if (CParam)
+  {
+    
+    mmep=(lpSubGroupMenuExecParam)(CParam->MenuItemOwnerData);
+    if (mmep)
+    {
+      mmep->Param2=CParam->lParam;
+    }
+
+  }
+	return(1);
 };
 
 int SubGroupMenuonAddService(WPARAM wParam,LPARAM lParam) {
@@ -665,9 +679,10 @@ SendMessage(
 };
 */
 //wparam menu handle to pass to clc.c
+//lparam WM_COMMAND HWND
 int GroupMenuExecProxy(WPARAM wParam,LPARAM lParam)
 {
-	SendMessage((HWND)CallService(MS_CLUI_GETHWNDTREE,0,0),WM_COMMAND,wParam,0);
+  SendMessage(lParam?(HWND)lParam:(HWND)CallService(MS_CLUI_GETHWNDTREE,0,0),WM_COMMAND,wParam,0);
 	return 0;
 };
 
@@ -679,6 +694,7 @@ void InitSubGroupMenus(void)
 	CreateServiceFunction("CLISTMENUSSubGroup/ExecService",SubGroupMenuExecService);
 	CreateServiceFunction("CLISTMENUSSubGroup/FreeOwnerDataSubGroupMenu",FreeOwnerDataSubGroupMenu);
 	CreateServiceFunction("CLISTMENUSSubGroup/SubGroupMenuonAddService",SubGroupMenuonAddService);
+  CreateServiceFunction("CLISTMENUSSubGroup/SubGroupMenuCheckService",SubGroupMenuCheckService);
 	CreateServiceFunction("CLISTMENUSSubGroup/GroupMenuExecProxy",GroupMenuExecProxy);
 
 	//CreateServiceFunction("CLISTMENUSSubGroup/HideSubGroupsHelper",HideSubGroupsHelper);
@@ -716,6 +732,12 @@ void InitSubGroupMenus(void)
 	op.Value=(int)"CLISTMENUSSubGroup/SubGroupMenuonAddService";
 	CallService(MO_SETOPTIONSMENUOBJECT,(WPARAM)0,(LPARAM)&op);
 
+  op.Handle=(int)hSubGroupMenuObject;
+	op.Setting=OPT_MENUOBJECT_SET_CHECK_SERVICE;
+	op.Value=(int)"CLISTMENUSSubGroup/SubGroupMenuCheckService";
+	CallService(MO_SETOPTIONSMENUOBJECT,(WPARAM)0,(LPARAM)&op);
+
+  
 	{	
 	//add  exit command to menu
 	CLISTMENUITEM mi;
@@ -736,7 +758,8 @@ void InitSubGroupMenus(void)
 	mi.hIcon=NULL;
 	mi.pszService="CLISTMENUSSubGroup/GroupMenuExecProxy";
 	mi.pszName=Translate("&Hide Offline Users in here");	
-	gmp.lParam=0;gmp.wParam=POPUP_GROUPHIDEOFFLINE;
+	gmp.lParam=0;
+  gmp.wParam=POPUP_GROUPHIDEOFFLINE;
 	hHideOfflineUsersHereMenuItem=(HANDLE)AddSubGroupMenuItem((WPARAM)&gmp,(LPARAM)&mi);
 
 	memset(&mi,0,sizeof(mi));
