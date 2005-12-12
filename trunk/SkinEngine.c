@@ -1468,130 +1468,254 @@ int GetSkinFolder(char * szFileName, char * t2)
   CallService(MS_UTILS_PATHTORELATIVE, (WPARAM)t2, (LPARAM)t2);
   return 0;
 }
+#include "stdio.h"
+char * iniCurrentSection=NULL;
+char *_szFileName=NULL;
+void WriteParamToDatabase(char *cKey, char* cName, char* cVal, BOOL SecCheck)
+{
+	if (SecCheck)
+	{
+		//TODO check security here
+	}
+	if (strlen(cVal)>0 && cVal[strlen(cVal)-1]==10) cVal[strlen(cVal)-1]='\0';  //kill linefeed at the end  
+	switch(cVal[0]) 
+	{
+	case 'b':
+		{
+			BYTE P;
+			P=(BYTE)atoi(cVal+1);
+			DBWriteContactSettingByte(NULL,cKey,cName,P);
+		}
+		break;
+	case 'w':
+		{
+			WORD P;
+			P=(WORD)atoi(cVal+1);
+			DBWriteContactSettingWord(NULL,cKey,cName,P);
+		}
+		break;
+	case 'd':
+		{
+			DWORD P;
+			P=(DWORD)atoi(cVal+1);
+			DBWriteContactSettingDword(NULL,cKey,cName,P);
+		}
+		break;
+	case 's':
+		DBWriteContactSettingString(NULL,cKey,cName,cVal+1);
+		break;
+	case 'f':
+		if (_szFileName)
+		{
+			char fn[MAX_PATH]={0};
+			char bb[MAX_PATH*2]={0};
+			int pp, i;
+			pp=-1;
+			CallService(MS_UTILS_PATHTORELATIVE, (WPARAM)_szFileName, (LPARAM)fn);
+			{
+				for (i=strlen(fn); i>=0; i--)  if (fn[i]=='.') break;
+				if (i>0) fn[i]='\0';
+			}                      
+			_snprintf(bb,SIZEOF(bb),"%s\\%s",fn,cVal+1);
+			DBWriteContactSettingString(NULL,cKey,cName,bb);
+		}
+		break;
+	}
+}
+
+BOOL ParseLineOfIniFile(char * Line)
+{
+	DWORD i=0;
+	DWORD len=strlen(Line);
+	while (i<len && Line[i]==' ') i++;
+	if (i>=len) return FALSE; //only spaces
+	if (len>0 && Line[len-1]==10) Line[len-1]='\0';
+	switch(Line[i])
+	{
+	case ';':
+		return FALSE; // start of comment is found
+	case '[':
+		//New section start here
+		if (iniCurrentSection) mir_free(iniCurrentSection);
+		{
+			char *tbuf=Line+i+1;		
+			DWORD len2=strlen(tbuf);
+			DWORD k=len2;
+			while (k>0 && tbuf[k]!=']') k--; //searching close bracket
+			tbuf[k]='\0';   //closing string
+			if (k==0) return FALSE;
+			iniCurrentSection=mir_strdup(tbuf);
+		}
+		return TRUE;
+	default:
+		if (!iniCurrentSection) return FALSE;  //param found out of section
+		{
+			char *keyName=Line+i;
+			char *keyValue=Line+i;
+			
+			DWORD eqPlace=0;
+			DWORD len2=strlen(keyName);
+			while (eqPlace<len2 && keyName[eqPlace]!='=') eqPlace++; //find '='
+			if (eqPlace==0 || eqPlace==len2) return FALSE; //= not found or no key name
+			keyName[eqPlace]='\0';
+			keyValue=keyName+eqPlace+1;
+			WriteParamToDatabase(iniCurrentSection,keyName,keyValue,TRUE);
+		}
+	}
+	return FALSE;
+}
 //Load data from ini file
 int LoadSkinFromIniFile(char * szFileName)
 {
-  char bsn[MAXSN_BUFF_SIZE];
-  char * Buff;
-
-  int i=0;
-  int f=0;
-  int ReadingSection=0;
-  char AllowedSection[260];
-  int AllowedAll=0;
-  char t2[MAX_PATH];
-  char t3[MAX_PATH];
-
-  DWORD retu=GetPrivateProfileSectionNamesA(bsn,MAXSN_BUFF_SIZE,szFileName);
-  DeleteAllSettingInSection("ModernSkin");
-  GetSkinFolder(szFileName,t2);
-  DBWriteContactSettingString(NULL,SKIN,"SkinFolder",t2);
-  CallService(MS_UTILS_PATHTORELATIVE, (WPARAM)szFileName, (LPARAM)t3);
-  DBWriteContactSettingString(NULL,SKIN,"SkinFile",t3);
-  Buff=bsn;
-  AllowedSection[0]=0;
-  do         
-  {
-    f=MyStrLen(Buff);
-    if (f>0 && !boolstrcmpi(Buff,"Skin_Description_Section"))
-    {
-      char b3[MAX_BUFF_SIZE];
-      DWORD ret=0;
-      ret=GetPrivateProfileSectionA(Buff,b3,MAX_BUFF_SIZE,szFileName);
-      if (ret>MAX_BUFF_SIZE-3) continue;
-      if (ret==0) continue;
-      {
-        DWORD p=0;
-        char *s1;
-        char *s2;
-        char *s3;
-        {
-          DWORD t;
-          BOOL LOCK=FALSE;
-          for (t=0; t<ret-1;t++)
-          {
-            if (b3[t]=='\0') LOCK=FALSE;
-            if (b3[t]=='=' && !LOCK) 
-            {
-              b3[t]='\0';
-              LOCK=TRUE;
-            }
-          }
-        }
-        do
-        {
-          s1=b3+p;
-
-          s2=s1+MyStrLen(s1)+1;
-          switch (s2[0])
-          {
-          case 'b':
-            {
-              BYTE P;
-              //                            char ba[255];
-              s3=s2+1;
-              P=(BYTE)atoi(s3);
-              DBWriteContactSettingByte(NULL,Buff,s1,P);
-            }
-            break;
-          case 'w':
-            {
-              WORD P;
-              //                           char ba[255];
-              s3=s2+1;
-              P=(WORD)atoi(s3);
-              DBWriteContactSettingWord(NULL,Buff,s1,P);
-            }break;
-          case 'd':
-            {
-              DWORD P;
-
-              s3=s2+1;
-              P=(DWORD)atoi(s3);
-              DBWriteContactSettingDword(NULL,Buff,s1,P);
-            }break;
-          case 's':
-            {
-              //                          char ba[255];
-              char bb[255];
-              s3=s2+1;
-              strncpy(bb,s3,sizeof(bb));
-              DBWriteContactSettingString(NULL,Buff,s1,s3);
-            }break;
-          case 'f': //file
-            {
-              //                         char ba[255];
-              char bb[255];
-
-              s3=s2+1;
-              {
-                char fn[MAX_PATH];
-                int pp, i;
-                pp=-1;
-                CallService(MS_UTILS_PATHTORELATIVE, (WPARAM)szFileName, (LPARAM)fn);
-                {
-                  for (i=0; i<MyStrLen(fn); i++)  if (fn[i]=='.') pp=i;
-                  if (pp!=-1)
-                  {
-                    fn[pp]='\0';
-                  }
-                }                      
-                sprintf(bb,"%s\\%s",fn,s3);
-                DBWriteContactSettingString(NULL,Buff,s1,bb);
-              }
-            }break;
-          }
-          p=p+MyStrLen(s1)+MyStrLen(s2)+2;
-        } while (p<ret);
-
-      }
-    }
-    Buff+=MyStrLen(Buff)+1;
-  }while (((DWORD)Buff-(DWORD)bsn)<retu);
-  return 0;
+	FILE *stream=NULL;
+	char line[512]={0};
+	char skinFolder[MAX_PATH]={0};
+	char skinFile[MAX_PATH]={0};
+	DeleteAllSettingInSection("ModernSkin");
+	GetSkinFolder(szFileName,skinFolder);
+	DBWriteContactSettingString(NULL,SKIN,"SkinFolder",skinFolder);
+	CallService(MS_UTILS_PATHTORELATIVE, (WPARAM)szFileName, (LPARAM)skinFile);
+	DBWriteContactSettingString(NULL,SKIN,"SkinFile",skinFile);
+	
+	if( (stream = fopen( szFileName, "r" )) != NULL )
+	{
+		_szFileName=szFileName;
+		while (fgets( line, SIZEOF(line),stream ) != NULL)
+		{
+			ParseLineOfIniFile(line);
+		}
+		fclose( stream );
+		_szFileName=NULL;
+	}
+	return 0;
 }
 
 
+
+
+//int LoadSkinFromIniFileOld(char * szFileName)
+//{
+//  char bsn[MAXSN_BUFF_SIZE];
+//  char * Buff;
+//
+//  int i=0;
+//  int f=0;
+//  int ReadingSection=0;
+//  char AllowedSection[260];
+//  int AllowedAll=0;
+//  char t2[MAX_PATH];
+//  char t3[MAX_PATH];
+//
+//  DWORD retu=GetPrivateProfileSectionNamesA(bsn,MAXSN_BUFF_SIZE,szFileName);
+//  DeleteAllSettingInSection("ModernSkin");
+//  GetSkinFolder(szFileName,t2);
+//  DBWriteContactSettingString(NULL,SKIN,"SkinFolder",t2);
+//  CallService(MS_UTILS_PATHTORELATIVE, (WPARAM)szFileName, (LPARAM)t3);
+//  DBWriteContactSettingString(NULL,SKIN,"SkinFile",t3);
+//  Buff=bsn;
+//  AllowedSection[0]=0;
+//  do         
+//  {
+//    f=MyStrLen(Buff);
+//    if (f>0 && !boolstrcmpi(Buff,"Skin_Description_Section"))
+//    {
+//      char b3[MAX_BUFF_SIZE];
+//      DWORD ret=0;
+//      ret=GetPrivateProfileSectionA(Buff,b3,MAX_BUFF_SIZE,szFileName);
+//      if (ret>MAX_BUFF_SIZE-3) continue;
+//      if (ret==0) continue;
+//      {
+//        DWORD p=0;
+//        char *s1;
+//        char *s2;
+//        char *s3;
+//        {
+//          DWORD t;
+//          BOOL LOCK=FALSE;
+//          for (t=0; t<ret-1;t++)
+//          {
+//            if (b3[t]=='\0') LOCK=FALSE;
+//            if (b3[t]=='=' && !LOCK) 
+//            {
+//              b3[t]='\0';
+//              LOCK=TRUE;
+//            }
+//          }
+//        }
+//        do
+//        {
+//          s1=b3+p;
+//
+//          s2=s1+MyStrLen(s1)+1;
+//          switch (s2[0])
+//          {
+//          case 'b':
+//            {
+//              BYTE P;
+//              //                            char ba[255];
+//              s3=s2+1;
+//              P=(BYTE)atoi(s3);
+//              DBWriteContactSettingByte(NULL,Buff,s1,P);
+//            }
+//            break;
+//          case 'w':
+//            {
+//              WORD P;
+//              //                           char ba[255];
+//              s3=s2+1;
+//              P=(WORD)atoi(s3);
+//              DBWriteContactSettingWord(NULL,Buff,s1,P);
+//            }break;
+//          case 'd':
+//            {
+//              DWORD P;
+//
+//              s3=s2+1;
+//              P=(DWORD)atoi(s3);
+//              DBWriteContactSettingDword(NULL,Buff,s1,P);
+//            }break;
+//          case 's':
+//            {
+//              //                          char ba[255];
+//              char bb[255];
+//              s3=s2+1;
+//              strncpy(bb,s3,sizeof(bb));
+//              DBWriteContactSettingString(NULL,Buff,s1,s3);
+//            }break;
+//          case 'f': //file
+//            {
+//              //                         char ba[255];
+//              char bb[255];
+//
+//              s3=s2+1;
+//              {
+//                char fn[MAX_PATH];
+//                int pp, i;
+//                pp=-1;
+//                CallService(MS_UTILS_PATHTORELATIVE, (WPARAM)szFileName, (LPARAM)fn);
+//                {
+//                  for (i=0; i<MyStrLen(fn); i++)  if (fn[i]=='.') pp=i;
+//                  if (pp!=-1)
+//                  {
+//                    fn[pp]='\0';
+//                  }
+//                }                      
+//                sprintf(bb,"%s\\%s",fn,s3);
+//                DBWriteContactSettingString(NULL,Buff,s1,bb);
+//              }
+//            }break;
+//          }
+//          p=p+MyStrLen(s1)+MyStrLen(s2)+2;
+//        } while (p<ret);
+//
+//      }
+//    }
+//    Buff+=MyStrLen(Buff)+1;
+//  }while (((DWORD)Buff-(DWORD)bsn)<retu);
+//  return 0;
+//}
+//
+//
 int EnumDeletionProc (const char *szSetting,LPARAM lParam)
 {
 

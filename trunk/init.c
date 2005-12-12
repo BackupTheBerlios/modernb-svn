@@ -135,31 +135,16 @@ int __declspec(dllexport) CListInitialise(PLUGINLINK * link)
 #ifdef _DEBUG
 	_CrtSetDbgFlag( _CRTDBG_ALLOC_MEM_DF | _CRTDBG_LEAK_CHECK_DF);
 #endif	
-	// get the internal malloc/free()
-	//__try
   {
-	/*  {
-		SYSTEMTIME utime,ctime;
-		TIME_ZONE_INFORMATION timezone={0},tzi={0};
-		DWORD tz=GetTimeZoneInformation(&tzi);			
-		int a=(tz==TIME_ZONE_ID_STANDARD)?0:1;	
-		char tim[256];
-		char bu[255];
-		int hour=-3;
-		GetLocaleInfo(LOCALE_USER_DEFAULT,LOCALE_STIMEFORMAT,bu,sizeof(bu));
-		timezone.Bias=(hour-a)*60;
-		GetSystemTime(&utime);
-		SystemTimeToTzSpecificLocalTime(&timezone,&utime,&ctime);
-		GetTimeFormat((LCID)LOCALE_USER_DEFAULT,TIME_NOSECONDS,&ctime,bu,&tim,sizeof(tim));
-		a=a;
 
-	  }*/
+
 	TRACE("CListInitialise ClistMW\r\n");
     memset(&memoryManagerInterface,0,sizeof(memoryManagerInterface));
 	memoryManagerInterface.cbSize = sizeof(memoryManagerInterface);
 	CallService(MS_SYSTEM_GET_MMI, 0, (LPARAM)&memoryManagerInterface);
 	
 	memset(&SED,0,sizeof(SED));
+
 	CreateServiceFunction(CLUI_SetDrawerService,SetDrawer);
 	
     ///test///
@@ -175,13 +160,6 @@ int __declspec(dllexport) CListInitialise(PLUGINLINK * link)
     TRACE("CListInitialise ClistMW...Done\r\n");
 
 }
-
-//
-//__except (exceptFunction(GetExceptionInformation()) ) 
-//{ 
-//		return 0; 
-//} 
-
 	return rc;
 }
 
