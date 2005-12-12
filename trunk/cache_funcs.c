@@ -260,7 +260,7 @@ void Cache_ReplaceSmileys(struct ClcData *dat, struct ClcContact *contact, TCHAR
 	int last_pos=0;
         *max_smiley_height = 0;
 
-	if (!dat->text_replace_smileys || !replace_smileys || text == NULL || !ServiceExists(MS_SMILEYADD_PARSE))
+	if (!dat->text_replace_smileys || !replace_smileys || text == NULL || !ServiceExists(MS_SMILEYADD_PARSET))
 	{
 		Cache_DestroySmileyList(*plText);
 		*plText = NULL;

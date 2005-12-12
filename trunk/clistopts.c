@@ -657,9 +657,9 @@ static BOOL CALLBACK DlgProcItemTextOpts(HWND hwndDlg, UINT msg, WPARAM wParam, 
 			CheckDlgButton(hwndDlg, IDC_DRAW_SMILEYS_ON_FIRST_LINE, DBGetContactSettingByte(NULL,"CList","FirstLineDrawSmileys",1) == 1 ? BST_CHECKED : BST_UNCHECKED );
 
 			ShowWindowNew(GetDlgItem(hwndDlg,IDC_REPLACE_SMILEYS), ServiceExists(MS_SMILEYADD_PARSE) ? SW_SHOW : SW_HIDE);
-			ShowWindowNew(GetDlgItem(hwndDlg,IDC_USE_PROTOCOL_SMILEYS), ServiceExists(MS_SMILEYADD_PARSE) ? SW_SHOW : SW_HIDE);
-			ShowWindowNew(GetDlgItem(hwndDlg,IDC_RESIZE_SMILEYS), ServiceExists(MS_SMILEYADD_PARSE) ? SW_SHOW : SW_HIDE);
-			ShowWindowNew(GetDlgItem(hwndDlg,IDC_DRAW_SMILEYS_ON_FIRST_LINE), ServiceExists(MS_SMILEYADD_PARSE) ? SW_SHOW : SW_HIDE);
+			ShowWindowNew(GetDlgItem(hwndDlg,IDC_USE_PROTOCOL_SMILEYS), ServiceExists(MS_SMILEYADD_PARSET) ? SW_SHOW : SW_HIDE);
+			ShowWindowNew(GetDlgItem(hwndDlg,IDC_RESIZE_SMILEYS), ServiceExists(MS_SMILEYADD_PARSET) ? SW_SHOW : SW_HIDE);
+			ShowWindowNew(GetDlgItem(hwndDlg,IDC_DRAW_SMILEYS_ON_FIRST_LINE), ServiceExists(MS_SMILEYADD_PARSET) ? SW_SHOW : SW_HIDE);
 
 			if (!IsDlgButtonChecked(hwndDlg,IDC_REPLACE_SMILEYS))
 			{
@@ -790,7 +790,7 @@ static BOOL CALLBACK DlgProcItemSecondLineOpts(HWND hwndDlg, UINT msg, WPARAM wP
 					EnableWindow(GetDlgItem(hwndDlg,IDC_SHOW_STATUS_IF_NOAWAY),FALSE);
 			}
 
-			ShowWindowNew(GetDlgItem(hwndDlg,IDC_DRAW_SMILEYS), ServiceExists(MS_SMILEYADD_PARSE) ? SW_SHOW : SW_HIDE);
+			ShowWindowNew(GetDlgItem(hwndDlg,IDC_DRAW_SMILEYS), ServiceExists(MS_SMILEYADD_PARSET) ? SW_SHOW : SW_HIDE);
 			ShowWindowNew(GetDlgItem(hwndDlg,IDC_VARIABLES_L), ServiceExists(MS_VARS_FORMATSTRING) ? SW_SHOW : SW_HIDE);
 
 			break;
@@ -974,7 +974,7 @@ static BOOL CALLBACK DlgProcItemThirdLineOpts(HWND hwndDlg, UINT msg, WPARAM wPa
 					EnableWindow(GetDlgItem(hwndDlg,IDC_SHOW_STATUS_IF_NOAWAY),FALSE);
 			}
 
-			ShowWindowNew(GetDlgItem(hwndDlg,IDC_DRAW_SMILEYS), ServiceExists(MS_SMILEYADD_PARSE) ? SW_SHOW : SW_HIDE);
+			ShowWindowNew(GetDlgItem(hwndDlg,IDC_DRAW_SMILEYS), ServiceExists(MS_SMILEYADD_PARSET) ? SW_SHOW : SW_HIDE);
 			ShowWindowNew(GetDlgItem(hwndDlg,IDC_VARIABLES_L), ServiceExists(MS_VARS_FORMATSTRING) ? SW_SHOW : SW_HIDE);
 
 			break;
