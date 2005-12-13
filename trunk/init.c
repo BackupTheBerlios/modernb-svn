@@ -146,9 +146,11 @@ int __declspec(dllexport) CListInitialise(PLUGINLINK * link)
 	memset(&SED,0,sizeof(SED));
 
 	CreateServiceFunction(CLUI_SetDrawerService,SetDrawer);
-	
+
     ///test///
-    LoadSkinModule();
+//	LoadSkinFromIniFile("C:\\test.ini");
+    
+	LoadSkinModule();
 	rc=LoadContactListModule();
 	if (rc==0) rc=LoadCLCModule();
 

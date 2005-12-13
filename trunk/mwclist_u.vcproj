@@ -3,6 +3,7 @@
 	ProjectType="Visual C++"
 	Version="7.10"
 	Name="modern_b_u"
+	ProjectGUID="{45316D83-6E60-4542-8051-CAEC3ECF2738}"
 	RootNamespace="mwclist"
 	SccProjectName=""
 	SccLocalPath="">

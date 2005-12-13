@@ -1338,7 +1338,6 @@ int UnloadSkin(SKINOBJECTSLIST * Skin)
   DeleteCriticalSection(&skin);
   return 0;
 }
-
 int EnumGetProc (const char *szSetting,LPARAM lParam)
 {   
   if (WildCompare((char *)szSetting,"$*",0))
@@ -1357,7 +1356,34 @@ int EnumGetProc (const char *szSetting,LPARAM lParam)
   }
   return 1;
 }
+int EnumGetMasksProc(const char *szSetting,LPARAM lParam)
+{
+	if (WildCompare((char *)szSetting,"@*",0) && CURRENTSKIN)
+	{
+		DWORD ID=atoi(szSetting+1);
+		int i=0;
+		char * value;
+		value=DBGetStringA(NULL,SKIN,szSetting);
+		if (value)
+		{
+			for (i=0; i<MyStrLen(value); i++)	  if (value[i]==':') break;
+			if (i<MyStrLen(value))
+			{
+				char * Obj, *Mask;
+				int res;
+				Mask=value+i+1;
+				Obj=mir_alloc(i+1);
+				strncpy(Obj,value,i);
+				Obj[i]='\0';
+				res=AddStrModernMaskToList(ID,Mask,Obj,CURRENTSKIN->MaskList,CURRENTSKIN);
+				mir_free(Obj);
+			}
+			mir_free(value);
+		}
 
+	}
+	return 1;
+}
 // Getting skin objects and masks from DB
 int GetSkinFromDB(char * szSection, SKINOBJECTSLIST * Skin)
 {
@@ -1381,8 +1407,8 @@ int GetSkinFromDB(char * szSection, SKINOBJECTSLIST * Skin)
     _snprintf(buf,sizeof(buf),"Glyph,Solid,%d,%d,%d,%d",GetRValue(col),GetGValue(col),GetBValue(col),255);
     RegisterObjectByParce("$DefSkinSelObj",buf);
 
-    AddStrModernMaskToList("CL,ID=Selection","$DefSkinSelObj",Skin->MaskList,Skin);	
-    AddStrModernMaskToList("*,ID^Ovl,ID^Row,ID^Hot*","$DefaultSkinObj",Skin->MaskList,Skin);	
+    AddStrModernMaskToList(0,"CL,ID=Selection","$DefSkinSelObj",Skin->MaskList,Skin);	
+    AddStrModernMaskToList(0,"*,ID^Ovl,ID^Row,ID^Hot*","$DefaultSkinObj",Skin->MaskList,Skin);	
     return 1;
   }
   //Load objects
@@ -1393,41 +1419,14 @@ int GetSkinFromDB(char * szSection, SKINOBJECTSLIST * Skin)
     dbces.szModule=SKIN;
     dbces.ofsSettings=0;
     CallService(MS_DB_CONTACT_ENUMSETTINGS,0,(LPARAM)&dbces);
+
+	dbces.pfnEnumProc=EnumGetMasksProc;
+	dbces.ofsSettings=0;
+	CallService(MS_DB_CONTACT_ENUMSETTINGS,0,(LPARAM)&dbces);
+	SortMaskList(Skin->MaskList);
     CURRENTSKIN=NULL;
   }
-  //Load Masks
-  {
-    DWORD n=0;
-    while (TRUE)
-    {
-      char buf[260];
-      DWORD Param=0;
-      char * Mask=NULL;
-      char * value=NULL;
-      _snprintf(buf,sizeof(buf),"@%d",n);
-      if (value=DBGetStringA(NULL,SKIN,buf))
-      {
-        int i=0;
-        for (i=0; i<MyStrLen(value); i++)
-          if (value[i]==':') break;
-        if (i<MyStrLen(value))
-        {
-          char * Obj, *Mask;
-          int res;
-          Mask=value+i+1;
-          Obj=mir_alloc(i+1);
-          strncpy(Obj,value,i);
-          Obj[i]='\0';
-          res=AddStrModernMaskToList(Mask,Obj,Skin->MaskList,Skin);
-          mir_free(Obj);
-        }
-        mir_free(value);
-        value=NULL;
-        n++;
-      }
-      else break;
-    }
-  }
+
   return 0;
 }
 
@@ -1476,6 +1475,7 @@ void WriteParamToDatabase(char *cKey, char* cName, char* cVal, BOOL SecCheck)
 	if (SecCheck)
 	{
 		//TODO check security here
+		if (WildCompare(cKey,"Skin_Description_Section",1)) return;
 	}
 	if (strlen(cVal)>0 && cVal[strlen(cVal)-1]==10) cVal[strlen(cVal)-1]='\0';  //kill linefeed at the end  
 	switch(cVal[0]) 
@@ -1527,8 +1527,8 @@ BOOL ParseLineOfIniFile(char * Line)
 {
 	DWORD i=0;
 	DWORD len=strlen(Line);
-	while (i<len && Line[i]==' ') i++;
-	if (i>=len) return FALSE; //only spaces
+	while (i<len && (Line[i]==' ' || Line[i]=='\t')) i++; //skip spaces&tabs
+	if (i>=len) return FALSE; //only spaces (or tabs)
 	if (len>0 && Line[len-1]==10) Line[len-1]='\0';
 	switch(Line[i])
 	{
@@ -1559,6 +1559,27 @@ BOOL ParseLineOfIniFile(char * Line)
 			if (eqPlace==0 || eqPlace==len2) return FALSE; //= not found or no key name
 			keyName[eqPlace]='\0';
 			keyValue=keyName+eqPlace+1;
+			//remove tail spaces in Name
+			{
+				DWORD len3=strlen(keyName);
+				int j=len3-1;
+				while (j>0 && (keyName[j]==' ' || keyName[j]=='\t')) j--;
+				if (j>=0) keyName[j+1]='\0';
+			}		
+			//remove start spaces in Value
+			{
+				DWORD len3=strlen(keyValue);
+				DWORD j=0;
+				while (j<len3 && (keyValue[j]==' ' || keyValue[j]=='\t')) j++;
+				if (j<len3) keyValue+=j;
+			}
+			//remove tail spaces in Value
+			{
+				DWORD len3=strlen(keyValue);
+				int j=len3-1;
+				while (j>0 && (keyValue[j]==' ' || keyValue[j]=='\t')) j--;
+				if (j>=0) keyValue[j+1]='\0';
+			}
 			WriteParamToDatabase(iniCurrentSection,keyName,keyValue,TRUE);
 		}
 	}
