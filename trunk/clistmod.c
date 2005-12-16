@@ -332,7 +332,7 @@ static BOOL CALLBACK AskForConfirmationDlgProc(HWND hWnd, UINT msg, WPARAM wPara
 			{
 				TCHAR szFormat[256];
 				TCHAR szFinal[256];
-				TCHAR * ch=(TCHAR*)CallService(MS_CLIST_GETCONTACTDISPLAYNAME, lParam, 0); //TODO UNICODE
+				TCHAR * ch=(TCHAR*)CallService(MS_CLIST_GETCONTACTDISPLAYNAME, lParam, GCDNF_UNICODE); //TODO UNICODE
 				GetDlgItemText(hWnd, IDC_TOPLINE, szFormat, sizeof(szFormat));
 				_sntprintf(szFinal, sizeof(szFinal), szFormat, ch);
 				SetDlgItemText(hWnd, IDC_TOPLINE, szFinal);

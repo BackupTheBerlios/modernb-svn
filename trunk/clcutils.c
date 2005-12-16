@@ -516,7 +516,7 @@ void BeginRenameSelection(HWND hwnd,struct ClcData *dat)
       if (dat->row_align_group_mode==1) a|=ES_CENTER;
       else if (dat->row_align_group_mode==2) a|=ES_RIGHT;
     }
-    //if (dat->text_rtl) a|=EN_ALIGN_RTL_EC;
+    if (dat->text_rtl) a|=EN_ALIGN_RTL_EC;
 	  dat->hwndRenameEdit=CreateWindow(TEXT("EDIT"),contact->szText,WS_POPUP|WS_BORDER|ES_AUTOHSCROLL|a,x,y,w,h,hwnd,NULL,g_hInst,NULL);
   }
     SetWindowLong(dat->hwndRenameEdit,GWL_STYLE,GetWindowLong(dat->hwndRenameEdit,GWL_STYLE)&(~WS_CAPTION)|WS_BORDER);

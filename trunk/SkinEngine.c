@@ -287,7 +287,7 @@ BOOL FillRect255Alpha(HDC memdc,RECT *fr)
   int sx,sy,ex,ey;
   int f=0;
   BYTE * bits;
-  BITMAP bmp;
+  BITMAP bmp={0};
   HBITMAP hbmp=GetCurrentObject(memdc,OBJ_BITMAP);  
   GetObject(hbmp, sizeof(bmp),&bmp);
   sx=(fr->left>0)?fr->left:0;

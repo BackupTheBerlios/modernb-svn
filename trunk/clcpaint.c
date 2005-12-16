@@ -1267,6 +1267,7 @@ void InternalPaintRowItems(HWND hwnd, HDC hdcMem, struct ClcData *dat, struct Cl
 			x=l+row_rc.left+((row_rc.right-row_rc.left-full_text_width-l-r)>>1);
 			text_rc.left=x;
 			text_rc.right=x+full_text_width;
+			//Drawing->pos_label=text_rc;
 			}
 			else if (dat->row_align_group_mode==2) //right
 			{
@@ -1380,6 +1381,10 @@ void InternalPaintRowItems(HWND hwnd, HDC hdcMem, struct ClcData *dat, struct Cl
 		}
 
 		// Store pos
+		//
+		selection_text_rc.left=text_rc.left;
+		selection_text_rc.right=text_rc.right;
+
 		Drawing->pos_label = selection_text_rc;
 
 		// Selection background
@@ -1440,7 +1445,8 @@ void InternalPaintRowItems(HWND hwnd, HDC hdcMem, struct ClcData *dat, struct Cl
 
 				rc.left = rc.right + 6 + text_size.cx;
 				rc.right = free_row_rc.right;
-				DrawEdge(hdcMem,&rc,BDR_SUNKENOUTER,BF_RECT);
+				if (!LayeredFlag)
+					DrawEdge(hdcMem,&rc,BDR_SUNKENOUTER,BF_RECT);
 				break;
 			}
 		case CLCIT_GROUP:
@@ -1475,7 +1481,9 @@ void InternalPaintRowItems(HWND hwnd, HDC hdcMem, struct ClcData *dat, struct Cl
 					RECT counts_rc = text_rc;
 
 					if (dat->text_align_right) 
-						counts_rc.right = text_rc.left + counts_size.cx;
+					{
+						counts_rc.right = text_rc.left + counts_size.cx+1;
+					}
 					else
 						counts_rc.left = text_rc.right - counts_size.cx;
 
@@ -1497,24 +1505,31 @@ void InternalPaintRowItems(HWND hwnd, HDC hdcMem, struct ClcData *dat, struct Cl
 				}
 
 				// Update free
-				if (dat->exStyle&CLS_EX_LINEWITHGROUPS) 
+				if (!LayeredFlag &&dat->exStyle&CLS_EX_LINEWITHGROUPS) 
 				{
-					if (dat->text_align_right)
-						free_row_rc.right -= text_rc.right - text_rc.left;
-					else
-						free_row_rc.left += text_rc.right - text_rc.left;
-
-					if (free_row_rc.right > free_row_rc.left + 6)
+					//if (dat->text_align_right)
+					//	free_row_rc.right -= text_rc.right - text_rc.left;
+					//else
+					//  free_row_rc.left += text_rc.right - text_rc.left;
+					//if (free_row_rc.right > free_row_rc.left + 6)
 					{
-						RECT rc = free_row_rc;
-						rc.top += (rc.bottom - rc.top) >> 1;
-						rc.bottom = rc.top + 2;
-						if (dat->text_align_right)
-							rc.right -= 6;
-						else
-							rc.left += 6;
+						RECT rc1 = free_row_rc;
+						RECT rc2 = free_row_rc;
+						rc1.right=text_rc.left-3;
+						rc2.left=text_rc.right+3;
+						rc1.top += (rc1.bottom - rc1.top) >> 1;
+						rc1.bottom = rc1.top + 2;
+						rc2.top += (rc2.bottom - rc2.top) >> 1;
+						rc2.bottom = rc2.top + 2;
 
-						DrawEdge(hdcMem,&rc,BDR_SUNKENOUTER,BF_RECT);
+						//if (dat->text_align_right)
+						//	rc.right -= 6;
+						//else
+						//	rc.left += 6;
+						if (rc1.right-rc1.left>=6)
+ 							DrawEdge(hdcMem,&rc1,BDR_SUNKENOUTER,BF_RECT);
+						if (rc2.right-rc2.left>=6)
+							DrawEdge(hdcMem,&rc2,BDR_SUNKENOUTER,BF_RECT);
 					}
 				}
 				break;
