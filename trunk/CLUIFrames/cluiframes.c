@@ -2284,7 +2284,7 @@ int CLUIFramesGetMinHeight()
   //TODO minsize
   sumheight+=DBGetContactSettingByte(NULL,"CLUI","TopClientMargin",0);
   sumheight+=DBGetContactSettingByte(NULL,"CLUI","BottomClientMargin",0); //$$ BOTTOM border
-  return  max(DBGetContactSettingWord(NULL,"CLUI","MinHeight",0),
+  return  max(DBGetContactSettingWord(NULL,DEFAULTSKINSECTION,"MinHeight",0),
         (sumheight+border.top+border.bottom+allbord+tbh+3)       );
 }
 
