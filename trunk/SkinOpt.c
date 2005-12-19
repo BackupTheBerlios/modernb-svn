@@ -44,8 +44,6 @@ int styleIndex[]={ST_SKIP,ST_BRUSH,ST_IMAGE};//,ST_SOLARIZE};
 char *fitMode[]={"Stretch both directions", "Stretch Vertical, Tile Horizontal", "Tile Vertical, Stretch Horizontal", "Tile both directions"};
 int fitIndex[]={FM_STRETCH,FM_TILE_HORZ,FM_TILE_VERT,FM_TILE_BOTH};
 //extern int ImageList_AddIcon_FixAlpha(HIMAGELIST himl,HICON hicon);
-extern HWND hwndContactTree; // nasty
-extern HANDLE hClcWindowList;
 extern HWND DialogWnd;
 extern int LoadSkinFromIniFile(char*);
 extern int RedrawCompleteWindow();
@@ -674,9 +672,9 @@ static BOOL CALLBACK DlgSkinOpts(HWND hwndDlg, UINT msg, WPARAM wParam, LPARAM l
 							/*DialogWnd=hwndDlg;
 							LoadSkinFromIniFile(ofn.lpstrFile);
 							LoadSkinFromDB();
-							SendMessage(hwndContactTree,WM_SIZE,0,0);	//forces it to send a cln_listsizechanged
+							SendMessage(pcli->hwndContactTree,WM_SIZE,0,0);	//forces it to send a cln_listsizechanged
 							RedrawCompleteWindow();
-							SendMessage(hwndContactTree,WM_SIZE,0,0);	//forces it to send a cln_listsizechanged
+							SendMessage(pcli->hwndContactTree,WM_SIZE,0,0);	//forces it to send a cln_listsizechanged
 							SendMessage(GetParent(hwndDlg), PSM_CHANGED, (WPARAM)hwndDlg, 0);
 							*/
 
@@ -900,17 +898,17 @@ static BOOL CALLBACK DlgSkinOpts(HWND hwndDlg, UINT msg, WPARAM wParam, LPARAM l
 							DBWriteContactSettingDword(NULL,"StatusBar", "TextColour", c4);
 							/* End of Text colors */
 						}
-						WindowList_Broadcast(hClcWindowList,INTM_RELOADOPTIONS,0,0);
+						pcli->pfnClcBroadcast( INTM_RELOADOPTIONS,0,0);
 						NotifyEventHooks(ME_BACKGROUNDCONFIG_CHANGED,0,0);
 						//{
 						//	RECT r;
-						//	GetWindowRect(hwndContactTree,&r);
-						//	SetWindowPos(hwndContactTree,NULL,r.left,r.top,r.right-r.left-1,r.bottom-r.top,SWP_NOACTIVATE|SWP_NOZORDER);
-						//	SetWindowPos(hwndContactTree,NULL,r.left,r.top,r.right-r.left,r.bottom-r.top,SWP_NOACTIVATE|SWP_NOZORDER);
+						//	GetWindowRect(pcli->hwndContactTree,&r);
+						//	SetWindowPos(pcli->hwndContactTree,NULL,r.left,r.top,r.right-r.left-1,r.bottom-r.top,SWP_NOACTIVATE|SWP_NOZORDER);
+						//	SetWindowPos(pcli->hwndContactTree,NULL,r.left,r.top,r.right-r.left,r.bottom-r.top,SWP_NOACTIVATE|SWP_NOZORDER);
 						//}
 
-						WindowList_Broadcast(hClcWindowList,INTM_INVALIDATE,0,0);	
-						RedrawWindow(GetParent(hwndContactTree),NULL,NULL,RDW_INVALIDATE|RDW_FRAME|RDW_ALLCHILDREN);
+						pcli->pfnClcBroadcast( INTM_INVALIDATE,0,0);	
+						RedrawWindow(GetParent(pcli->hwndContactTree),NULL,NULL,RDW_INVALIDATE|RDW_FRAME|RDW_ALLCHILDREN);
 						//TreeView_DeleteAllItems(GetDlgItem(hwndDlg,IDC_OBJECTSTREE));
 						//ShowAppropriateControls(hwndDlg,0);
 						//FillObjectsTree(GetDlgItem(hwndDlg,IDC_OBJECTSTREE));

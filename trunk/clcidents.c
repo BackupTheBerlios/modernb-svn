@@ -50,7 +50,7 @@ int GetRowsPriorTo(struct ClcGroup *group,struct ClcGroup *subgroup,int contactI
 	k=DBGetContactSettingByte(NULL,"CLC","MetaExpanding",1);
 	group->scanIndex=0;
 	for(;;) {
-		if(group->scanIndex==group->contactCount) {
+		if(group->scanIndex==group->cl.count) {
 			group=group->parent;
 			if(group==NULL) break;
 			group->scanIndex++;
@@ -58,62 +58,26 @@ int GetRowsPriorTo(struct ClcGroup *group,struct ClcGroup *subgroup,int contactI
 		}
 		if(group==subgroup && contactIndex==group->scanIndex) return count;
 		count++;
-		/*		if ((group->contact[group->scanIndex].type==CLCIT_CONTACT) && (group->contact[group->scanIndex].flags & CONTACTF_STATUSMSG)) {
+		/*		if ((group->cl.items[group->scanIndex]->type==CLCIT_CONTACT) && (group->cl.items[group->scanIndex].flags & CONTACTF_STATUSMSG)) {
 		count++;
 		}
 		*/
-		if(group->contact[group->scanIndex].type==CLCIT_GROUP) {
-			if(group->contact[group->scanIndex].group==subgroup && contactIndex==-1)
+		if(group->cl.items[group->scanIndex]->type==CLCIT_GROUP) {
+			if(group->cl.items[group->scanIndex]->group==subgroup && contactIndex==-1)
 				return count-1;
-			if(group->contact[group->scanIndex].group->expanded) {
-				group=group->contact[group->scanIndex].group;
+			if(group->cl.items[group->scanIndex]->group->expanded) {
+				group=group->cl.items[group->scanIndex]->group;
 				group->scanIndex=0;
 				continue;
 			}
 		}
-		if(group->contact[group->scanIndex].type==CLCIT_CONTACT)
+		if(group->cl.items[group->scanIndex]->type==CLCIT_CONTACT)
 		{
-			count+=(group->contact[group->scanIndex].SubAllocated*group->contact[group->scanIndex].SubExpanded*k);
+			count+=(group->cl.items[group->scanIndex]->SubAllocated*group->cl.items[group->scanIndex]->SubExpanded*k);
 		}
 		group->scanIndex++;
 	}
 	return -1;
-}
-
-pdisplayNameCacheEntry GetCLCFullCacheEntry(struct ClcData *dat,HANDLE hContact)
-{
-	{
-		displayNameCacheEntry dnce, *pdnce,*pdnce2;
-
-		if (hContact==0) return NULL;
-		dnce.hContact=hContact;
-
-		pdnce=List_Find(&dat->lCLCContactsCache,&dnce);
-
-		if (pdnce==NULL)
-		{
-			pdnce=mir_calloc(1,sizeof(displayNameCacheEntry));
-			pdnce->hContact=hContact;
-			List_Insert(&dat->lCLCContactsCache,pdnce,0);
-			//List_Dump(&lContactsCache);
-			List_Sort(&dat->lCLCContactsCache);
-			//List_Dump(&lContactsCache);
-			pdnce2=List_Find(&dat->lCLCContactsCache,&dnce);//for check
-			if (pdnce2->hContact!=pdnce->hContact)
-			{
-				return (NULL);
-			};
-
-			if (pdnce2!=pdnce)
-			{
-				return (NULL);
-			}
-		};
-
-		if (pdnce!=NULL) CheckPDNCE(pdnce);
-		return (pdnce);
-
-	}
 }
 
 void ClearClcContactCache(struct ClcData *dat,HANDLE hContact)
@@ -185,7 +149,7 @@ int FindItem(HWND hwnd,struct ClcData *dat,HANDLE hItem,struct ClcContact **cont
 	group=&dat->list;
 
 	for(;;) {
-		if(group->scanIndex==group->contactCount) {
+		if(group->scanIndex==group->cl.count) {
 			struct ClcGroup *tgroup;
 			group=group->parent;
 			if(group==NULL) break;
@@ -202,14 +166,14 @@ int FindItem(HWND hwnd,struct ClcData *dat,HANDLE hItem,struct ClcContact **cont
 			continue;
 		}
 		if(nowVisible) index++;
-		if((IsHContactGroup(hItem) && group->contact[group->scanIndex].type==CLCIT_GROUP && ((unsigned)hItem&~HCONTACT_ISGROUP)==group->contact[group->scanIndex].groupId) ||
-			(IsHContactContact(hItem) && group->contact[group->scanIndex].type==CLCIT_CONTACT && group->contact[group->scanIndex].hContact==hItem) ||
-			(IsHContactInfo(hItem) && group->contact[group->scanIndex].type==CLCIT_INFO && group->contact[group->scanIndex].hContact==(HANDLE)((unsigned)hItem&~HCONTACT_ISINFO))) 
+		if((IsHContactGroup(hItem) && group->cl.items[group->scanIndex]->type==CLCIT_GROUP && ((unsigned)hItem&~HCONTACT_ISGROUP)==group->cl.items[group->scanIndex]->groupId) ||
+			(IsHContactContact(hItem) && group->cl.items[group->scanIndex]->type==CLCIT_CONTACT && group->cl.items[group->scanIndex]->hContact==hItem) ||
+			(IsHContactInfo(hItem) && group->cl.items[group->scanIndex]->type==CLCIT_INFO && group->cl.items[group->scanIndex]->hContact==(HANDLE)((unsigned)hItem&~HCONTACT_ISINFO))) 
 		{
 #ifdef _DEBUG
-			if (IsBadWritePtr(&group->contact[group->scanIndex], sizeof(struct ClcContact)))
+			if (IsBadWritePtr(&group->cl.items[group->scanIndex], sizeof(struct ClcContact)))
 			{
-				log1("FindIltem->IsBadWritePtr | 1o  [%08x]", &group->contact[group->scanIndex]);
+				log1("FindIltem->IsBadWritePtr | 1o  [%08x]", &group->cl.items[group->scanIndex]);
 				PostMessage(hwnd,CLM_AUTOREBUILD,0,0);
 				return 0;
 			}
@@ -228,36 +192,36 @@ int FindItem(HWND hwnd,struct ClcData *dat,HANDLE hItem,struct ClcContact **cont
 					}
 				}
 			}
-			if(contact) *contact=&group->contact[group->scanIndex];
+			if(contact) *contact=group->cl.items[group->scanIndex];
 			if(subgroup) *subgroup=group;
 			return 1;
 		}
 		if (!isIgnoreSubcontacts && 
 			IsHContactContact(hItem) &&
-			group->contact[group->scanIndex].type == CLCIT_CONTACT &&
-			group->contact[group->scanIndex].SubAllocated > 0)
+			group->cl.items[group->scanIndex]->type == CLCIT_CONTACT &&
+			group->cl.items[group->scanIndex]->SubAllocated > 0)
 		{
-			for (i=0; i<group->contact[group->scanIndex].SubAllocated; i++)
+			for (i=0; i<group->cl.items[group->scanIndex]->SubAllocated; i++)
 			{
-				if (group->contact[group->scanIndex].subcontacts[i].hContact == hItem)
+				if (group->cl.items[group->scanIndex]->subcontacts[i].hContact == hItem)
 				{	
 #ifdef _DEBUG
-					if (IsBadWritePtr(&group->contact[group->scanIndex].subcontacts[i], sizeof(struct ClcContact)))
+					if (IsBadWritePtr(&group->cl.items[group->scanIndex]->subcontacts[i], sizeof(struct ClcContact)))
 					{
-						log1("FindIltem->IsBadWritePtr | 2o  [%08x]", &group->contact[group->scanIndex].subcontacts[i]);
+						log1("FindIltem->IsBadWritePtr | 2o  [%08x]", &group->cl.items[group->scanIndex]->subcontacts[i]);
 						PostMessage(hwnd,CLM_AUTOREBUILD,0,0);
 						return 0;
 					}
 #endif
-					if(contact) *contact=&group->contact[group->scanIndex].subcontacts[i];
+					if(contact) *contact=&group->cl.items[group->scanIndex]->subcontacts[i];
 					if(subgroup) *subgroup=group;
 					return 1;
 				}
 			}
 		}
 
-		if(group->contact[group->scanIndex].type==CLCIT_GROUP) {
-			group=group->contact[group->scanIndex].group;
+		if(group->cl.items[group->scanIndex]->type==CLCIT_GROUP) {
+			group=group->cl.items[group->scanIndex]->group;
 			group->scanIndex=0;
 			nowVisible&=group->expanded;
 			continue;
@@ -287,14 +251,14 @@ int GetRowByIndex(struct ClcData *dat,int testindex,struct ClcContact **contact,
 	if (testindex<0) return (-1);
 	//	if (FALSE&&(testindex>0)&&testindex<CacheArrSize&&CacheIndex[testindex]!=NULL)
 	//	{
-	//					if(contact) *contact=&(CacheIndex[testindex])->contact[group->scanIndex];
+	//					if(contact) *contact=&(CacheIndex[testindex])->cl.items[group->scanIndex];
 	//					if(subgroup) *subgroup=(CacheIndex[testindex]);
 	//					return (testindex);
 	//	}else
 	{
 		group->scanIndex=0;
 		for(;;) {
-			if(group->scanIndex==group->contactCount) {
+			if(group->scanIndex==group->cl.count) {
 				group=group->parent;
 				if(group==NULL) break;
 				group->scanIndex++;
@@ -307,16 +271,16 @@ int GetRowByIndex(struct ClcData *dat,int testindex,struct ClcContact **contact,
 			};
 
 			if(testindex==index) {
-				if(contact) *contact=&group->contact[group->scanIndex];
+				if(contact) *contact=group->cl.items[group->scanIndex];
 				if(subgroup) *subgroup=group;
 				return index;
 			}
 
-			if (group->contact[group->scanIndex].type==CLCIT_CONTACT)
-				if (group->contact[group->scanIndex].SubAllocated)
-					if (group->contact[group->scanIndex].SubExpanded && dat->expandMeta)
+			if (group->cl.items[group->scanIndex]->type==CLCIT_CONTACT)
+				if (group->cl.items[group->scanIndex]->SubAllocated)
+					if (group->cl.items[group->scanIndex]->SubExpanded && dat->expandMeta)
 					{
-						for (i=0;i<group->contact[group->scanIndex].SubAllocated;i++)
+						for (i=0;i<group->cl.items[group->scanIndex]->SubAllocated;i++)
 						{
 							if ((index>0) && (index<CacheArrSize)) 
 							{
@@ -327,8 +291,8 @@ int GetRowByIndex(struct ClcData *dat,int testindex,struct ClcContact **contact,
 							if(testindex==index) {
 								if(contact) 
 								{
-									*contact=&group->contact[group->scanIndex].subcontacts[i];
-									(*contact)->subcontacts=&(group->contact[group->scanIndex]);
+									*contact=&group->cl.items[group->scanIndex]->subcontacts[i];
+									(*contact)->subcontacts=group->cl.items[group->scanIndex];
 								}
 
 								if(subgroup) *subgroup=group;
@@ -338,12 +302,12 @@ int GetRowByIndex(struct ClcData *dat,int testindex,struct ClcContact **contact,
 
 					}
 					index++;
-					/*			if ((group->contact[group->scanIndex].type==CLCIT_CONTACT) && (group->contact[group->scanIndex].flags & CONTACTF_STATUSMSG)) {
+					/*			if ((group->cl.items[group->scanIndex]->type==CLCIT_CONTACT) && (group->cl.items[group->scanIndex].flags & CONTACTF_STATUSMSG)) {
 					index++;
 					}
 					*/
-					if(group->contact[group->scanIndex].type==CLCIT_GROUP && group->contact[group->scanIndex].group->expanded) {
-						group=group->contact[group->scanIndex].group;
+					if(group->cl.items[group->scanIndex]->type==CLCIT_GROUP && group->cl.items[group->scanIndex]->group->expanded) {
+						group=group->cl.items[group->scanIndex]->group;
 						group->scanIndex=0;
 						continue;
 					}

@@ -530,9 +530,9 @@ _inline char * GetCLCContactRowBackObject(struct ClcGroup * group, struct ClcCon
 		}
 		break;
 	}
-	if (group->scanIndex==0 && group->contactCount==1) AppendChar(buf,BUFSIZE,",GroupPos=First-Single");
+	if (group->scanIndex==0 && group->cl.count==1) AppendChar(buf,BUFSIZE,",GroupPos=First-Single");
 	else if (group->scanIndex==0) AppendChar(buf,BUFSIZE,",GroupPos=First");
-	else if (group->scanIndex+1==group->contactCount) AppendChar(buf,BUFSIZE,",GroupPos=Last");
+	else if (group->scanIndex+1==group->cl.count) AppendChar(buf,BUFSIZE,",GroupPos=Last");
 	else AppendChar(buf,BUFSIZE,",GroupPos=Mid");
 
 	AppendChar(buf,BUFSIZE,",Selected=");
@@ -568,7 +568,7 @@ _inline char * GetCLCContactRowBackObject(struct ClcGroup * group, struct ClcCon
 	}
 	if (group->parent)
 	{
-		TCHAR * b2=mir_strdupT(group->parent->contact->szText);
+		TCHAR * b2=mir_strdupT(group->parent->cl.items[0]->szText);
 		int i,m;
 		m=lstrlen(b2);	
 		for (i=0; i<m;i++)
@@ -584,7 +584,7 @@ _inline char * GetCLCContactRowBackObject(struct ClcGroup * group, struct ClcCon
 #else
 		AppendChar(buf,BUFSIZE,b2);
 #endif
-		
+		free(b2);		
 	}
 	return mir_strdup(buf);  
 }
@@ -1205,7 +1205,7 @@ void InternalPaintRowItems(HWND hwnd, HDC hdcMem, struct ClcData *dat, struct Cl
 		{
 			int full_text_width=text_size.cx;
 			// Group conts?
-			szCounts = GetGroupCountsText(dat, Drawing);
+			szCounts = pcli->pfnGetGroupCountsText(dat, Drawing);
 
 			// Has to draw the count?
 			if(szCounts) 
@@ -1267,7 +1267,6 @@ void InternalPaintRowItems(HWND hwnd, HDC hdcMem, struct ClcData *dat, struct Cl
 			x=l+row_rc.left+((row_rc.right-row_rc.left-full_text_width-l-r)>>1);
 			text_rc.left=x;
 			text_rc.right=x+full_text_width;
-			//Drawing->pos_label=text_rc;
 			}
 			else if (dat->row_align_group_mode==2) //right
 			{
@@ -1381,10 +1380,6 @@ void InternalPaintRowItems(HWND hwnd, HDC hdcMem, struct ClcData *dat, struct Cl
 		}
 
 		// Store pos
-		//
-		selection_text_rc.left=text_rc.left;
-		selection_text_rc.right=text_rc.right;
-
 		Drawing->pos_label = selection_text_rc;
 
 		// Selection background
@@ -1445,8 +1440,7 @@ void InternalPaintRowItems(HWND hwnd, HDC hdcMem, struct ClcData *dat, struct Cl
 
 				rc.left = rc.right + 6 + text_size.cx;
 				rc.right = free_row_rc.right;
-				if (!LayeredFlag)
-					DrawEdge(hdcMem,&rc,BDR_SUNKENOUTER,BF_RECT);
+				DrawEdge(hdcMem,&rc,BDR_SUNKENOUTER,BF_RECT);
 				break;
 			}
 		case CLCIT_GROUP:
@@ -1481,9 +1475,7 @@ void InternalPaintRowItems(HWND hwnd, HDC hdcMem, struct ClcData *dat, struct Cl
 					RECT counts_rc = text_rc;
 
 					if (dat->text_align_right) 
-					{
-						counts_rc.right = text_rc.left + counts_size.cx+1;
-					}
+						counts_rc.right = text_rc.left + counts_size.cx;
 					else
 						counts_rc.left = text_rc.right - counts_size.cx;
 
@@ -1501,35 +1493,27 @@ void InternalPaintRowItems(HWND hwnd, HDC hdcMem, struct ClcData *dat, struct Cl
 
 					// Draw counts
 					DrawTextSA(hdcMem,szCounts,lstrlenA(szCounts),&counts_rc,uTextFormat);
-					if (szCounts) mir_free(szCounts);
 				}
 
 				// Update free
-				if (!LayeredFlag &&dat->exStyle&CLS_EX_LINEWITHGROUPS) 
+				if (dat->exStyle&CLS_EX_LINEWITHGROUPS) 
 				{
-					//if (dat->text_align_right)
-					//	free_row_rc.right -= text_rc.right - text_rc.left;
-					//else
-					//  free_row_rc.left += text_rc.right - text_rc.left;
-					//if (free_row_rc.right > free_row_rc.left + 6)
-					{
-						RECT rc1 = free_row_rc;
-						RECT rc2 = free_row_rc;
-						rc1.right=text_rc.left-3;
-						rc2.left=text_rc.right+3;
-						rc1.top += (rc1.bottom - rc1.top) >> 1;
-						rc1.bottom = rc1.top + 2;
-						rc2.top += (rc2.bottom - rc2.top) >> 1;
-						rc2.bottom = rc2.top + 2;
+					if (dat->text_align_right)
+						free_row_rc.right -= text_rc.right - text_rc.left;
+					else
+						free_row_rc.left += text_rc.right - text_rc.left;
 
-						//if (dat->text_align_right)
-						//	rc.right -= 6;
-						//else
-						//	rc.left += 6;
-						if (rc1.right-rc1.left>=6)
- 							DrawEdge(hdcMem,&rc1,BDR_SUNKENOUTER,BF_RECT);
-						if (rc2.right-rc2.left>=6)
-							DrawEdge(hdcMem,&rc2,BDR_SUNKENOUTER,BF_RECT);
+					if (free_row_rc.right > free_row_rc.left + 6)
+					{
+						RECT rc = free_row_rc;
+						rc.top += (rc.bottom - rc.top) >> 1;
+						rc.bottom = rc.top + 2;
+						if (dat->text_align_right)
+							rc.right -= 6;
+						else
+							rc.left += 6;
+
+						DrawEdge(hdcMem,&rc,BDR_SUNKENOUTER,BF_RECT);
 					}
 				}
 				break;
@@ -1660,7 +1644,7 @@ void InternalPaintClc(HWND hwnd,struct ClcData *dat,HDC hdc,RECT *rcPaint)
 	#endif
 	*/
 
-	if(dat->greyoutFlags&ClcStatusToPf2(status) || style&WS_DISABLED) grey=1;
+	if(dat->greyoutFlags&pcli->pfnClcStatusToPf2(status) || style&WS_DISABLED) grey=1;
 	else if(GetFocus()!=hwnd && dat->greyoutFlags&GREYF_UNFOCUS) grey=1;
 	GetClientRect(hwnd,&clRect);
 	if(rcPaint==NULL) rcPaint=&clRect;
@@ -1750,7 +1734,7 @@ void InternalPaintClc(HWND hwnd,struct ClcData *dat,HDC hdc,RECT *rcPaint)
 	{
 		if (subindex==-1)
 		{
-			if (group->scanIndex==group->contactCount) 
+			if (group->scanIndex==group->cl.count) 
 			{
 				group=group->parent;
 				indent--;
@@ -1785,12 +1769,12 @@ void InternalPaintClc(HWND hwnd,struct ClcData *dat,HDC hdc,RECT *rcPaint)
 			// Get item to draw
 			if (subindex==-1)
 			{
-				Drawing = &(group->contact[group->scanIndex]);
+				Drawing = group->cl.items[group->scanIndex];
 				subident = 0;
 			}
 			else
 			{
-				Drawing = &(group->contact[group->scanIndex].subcontacts[subindex]);
+				Drawing = &(group->cl.items[group->scanIndex]->subcontacts[subindex]);
 				subident = dat->subIndent;
 			}
 			if (request) mir_free(request);
@@ -1962,11 +1946,11 @@ void InternalPaintClc(HWND hwnd,struct ClcData *dat,HDC hdc,RECT *rcPaint)
 		y += dat->row_heights[line_num];
 
 		//increment by subcontacts
-		if (group->contact && group->contact[group->scanIndex].subcontacts!=NULL && group->contact[group->scanIndex].type!=CLCIT_GROUP)
+		if (group->cl.items && group->cl.items[group->scanIndex]->subcontacts!=NULL && group->cl.items[group->scanIndex]->type!=CLCIT_GROUP)
 		{
-			if (group->contact[group->scanIndex].SubExpanded && dat->expandMeta)
+			if (group->cl.items[group->scanIndex]->SubExpanded && dat->expandMeta)
 			{
-				if (subindex<group->contact[group->scanIndex].SubAllocated-1)
+				if (subindex<group->cl.items[group->scanIndex]->SubAllocated-1)
 				{
 					subindex++;
 				}
@@ -1979,9 +1963,9 @@ void InternalPaintClc(HWND hwnd,struct ClcData *dat,HDC hdc,RECT *rcPaint)
 
 		if(subindex==-1)
 		{
-			if(group->contact[group->scanIndex].type==CLCIT_GROUP && group->contact[group->scanIndex].group->expanded) 
+			if(group->cl.items[group->scanIndex]->type==CLCIT_GROUP && group->cl.items[group->scanIndex]->group->expanded) 
 			{
-				group=group->contact[group->scanIndex].group;
+				group=group->cl.items[group->scanIndex]->group;
 				indent++;
 				group->scanIndex=0;
 				subindex=-1;

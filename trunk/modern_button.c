@@ -31,7 +31,6 @@ This file contains code related to new modern free positioned skinned buttons
 
 static LRESULT CALLBACK ModernButtonWndProc(HWND hwndDlg, UINT msg,  WPARAM wParam, LPARAM lParam);
 int UnloadModernButtonModule(WPARAM wParam, LPARAM lParam);
-extern HWND hwndContactList;
 extern int SkinDrawImageAt(HDC hdc, RECT *rc);
 int SetToolTip(HWND hwnd, TCHAR * tip);
 typedef struct _ModernButtonCtrl
@@ -560,7 +559,7 @@ int EraseButton(int l,int t,int r, int b)
   {
     for(i=0; i<ButtonsCount; i++)
     {
-      if (hwndContactList && Buttons[i].hwnd!=NULL)      
+      if (pcli->hwndContactList && Buttons[i].hwnd!=NULL)      
       {
         //TODO: Erase button
         BitBlt(cachedWindow->hImageDC,Buttons[i].bct->Left,Buttons[i].bct->Top,Buttons[i].bct->Right-Buttons[i].bct->Left,Buttons[i].bct->Bottom-Buttons[i].bct->Top,
@@ -592,8 +591,8 @@ int RedrawButtons(HDC hdc)
   DWORD i;
   for(i=0; i<ButtonsCount; i++)
   {
-    if (hwndContactList && Buttons[i].hwnd==NULL)
-      Buttons[i].hwnd=CreateButtonWindow(Buttons[i].bct,hwndContactList);
+    if (pcli->hwndContactList && Buttons[i].hwnd==NULL)
+      Buttons[i].hwnd=CreateButtonWindow(Buttons[i].bct,pcli->hwndContactList);
     PaintWorker(Buttons[i].hwnd,0); 
   }
   return 0;

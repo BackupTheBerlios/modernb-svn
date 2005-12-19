@@ -2,8 +2,8 @@
 
 Miranda IM: the free IM client for Microsoft* Windows*
 
-Copyright 2000-2003 Miranda ICQ/IM project, 
-all portions of this codebase are copyrighted to the people 
+Copyright 2000-2003 Miranda ICQ/IM project,
+all portions of this codebase are copyrighted to the people
 listed in contributors.txt.
 
 This program is free software; you can redistribute it and/or
@@ -28,14 +28,14 @@ Changes:
 
 28-04-2003
 Moved all general stuff to genmenu.c(m_genmenu.h,genmenu.h),
-so removed all frames stuff. 
+so removed all frames stuff.
 
 
 Changes:
 
 28-12-2002
 
-Contact menu item service called with wparam=hcontact,lparam=popupPosition - 
+Contact menu item service called with wparam=hcontact,lparam=popupPosition -
 plugin may add different menu items with some service.
 (old behavior wparam=hcontact lparam=0)
 
@@ -46,21 +46,21 @@ plugin may add different menu items with some service.
 								MS_CLIST_REMOVECONTACTMENUITEM
 								MS_CLIST_MENUBUILDCONTACT
 								ME_CLIST_PREBUILDCONTACTMENU
-				
+
 				MainMenu		MS_CLIST_ADDMAINMENUITEM
 								MS_CLIST_REMOVEMAINMENUITEM
 								MS_CLIST_MENUBUILDMAIN
 								ME_CLIST_PREBUILDMAINMENU
-				
-				FrameMenu		MS_CLIST_ADDCONTEXTFRAMEMENUITEM 
+
+				FrameMenu		MS_CLIST_ADDCONTEXTFRAMEMENUITEM
 								MS_CLIST_REMOVECONTEXTFRAMEMENUITEM
 								MS_CLIST_MENUBUILDFRAMECONTEXT
 								ME_CLIST_PREBUILDFRAMEMENU
-				
+
 				For All menus may be used
 								MS_CLIST_MODIFYMENUITEM
-				
-				All menus supported any level of popups 
+
+				All menus supported any level of popups
 				(pszPopupName=(char *)hMenuItem - for make child of popup)
 */
 
@@ -141,7 +141,7 @@ int lParam;
 //wParam=lParam=0
 #define ME_CLIST_PREBUILDTRAYMENU					"CList/PreBuildTrayMenu"
 
-	
+
 
 // TRAY MENU
 
@@ -219,13 +219,13 @@ int lParam;
 //lParam=(LPARAM)(CLISTMENUITEM*)&mi
 //returns a handle to the new item, or NULL on failure
 //the service that is called when the item is clicked is called with
-//wParam=0, lParam=hwndContactList
+//wParam=0, lParam=pcli->hwndContactList
 //dividers are inserted every 100000 positions
 //pszContactOwner is ignored for this service.
 //there is a #define PUTPOSITIONSINMENU in clistmenus.c which, when set, will
 //cause the position numbers to be placed in brackets after the menu items
 typedef struct {
-	int cbSize;			//size in bytes of this structure 
+	int cbSize;			//size in bytes of this structure
 	union {
 	char *pszName;		//text of the menu item
 		TCHAR* ptszName;     //Unicode text of the menu item
@@ -362,7 +362,7 @@ sense to store all this information in memory, etc.
 //a system message). szServiceName will be called when the user double clicks
 //the icon, at which point the event will be removed from the contact list's
 //queue automatically
-//pszService is called with wParam=(WPARAM)(HWND)hwndContactList,
+//pszService is called with wParam=(WPARAM)(HWND)pcli->hwndContactList,
 //lParam=(LPARAM)(CLISTEVENT*)cle. Its return value is ignored. cle is
 //invalidated when your service returns, so take copies of any important
 //information in it.
@@ -671,47 +671,3 @@ typedef struct {
 	UINT uTimeout;		// how long to show the tip for
 } MIRANDASYSTRAYNOTIFY;
 #define MS_CLIST_SYSTRAY_NOTIFY "Miranda/Systray/Notify"
-
-#define SETTING_TOOLWINDOW_DEFAULT   1
-#define SETTING_SHOWMAINMENU_DEFAULT 1
-#define SETTING_SHOWCAPTION_DEFAULT  1
-#define SETTING_CLIENTDRAG_DEFAULT   1
-#define SETTING_ONTOP_DEFAULT        0
-#define SETTING_MIN2TRAY_DEFAULT     1
-#define SETTING_TRAY1CLICK_DEFAULT   0
-#define SETTING_HIDEOFFLINE_DEFAULT  0
-#define SETTING_HIDEEMPTYGROUPS_DEFAULT  0
-#define SETTING_USEGROUPS_DEFAULT    1
-
-#define SETTING_SORTBY1_DEFAULT      2
-#define SETTING_SORTBY2_DEFAULT      1
-#define SETTING_SORTBY3_DEFAULT      0
-
-#define SETTING_NOOFFLINEBOTTOM_DEFAULT 0
-
-#define SETTING_TRANSPARENT_DEFAULT  0
-#define SETTING_ALPHA_DEFAULT        255
-#define SETTING_AUTOALPHA_DEFAULT    150
-#define SETTING_CONFIRMDELETE_DEFAULT 1
-#define SETTING_AUTOHIDE_DEFAULT     0
-#define SETTING_HIDETIME_DEFAULT     30
-#define SETTING_CYCLETIME_DEFAULT    4
-#define SETTING_TRAYICON_DEFAULT     SETTING_TRAYICON_SINGLE
-#define SETTING_ALWAYSSTATUS_DEFAULT 0
-#define SETTING_ALWAYSMULTI_DEFAULT  0
-
-#define SETTING_TRAYICON_SINGLE   0
-#define SETTING_TRAYICON_CYCLE    1
-#define SETTING_TRAYICON_MULTI    2
-
-#define SETTING_STATE_HIDDEN      0
-#define SETTING_STATE_MINIMIZED   1
-#define SETTING_STATE_NORMAL      2
-
-#define SETTING_BRINGTOFRONT_DEFAULT 0
-
-
-#define SETTING_AVATAR_OVERLAY_TYPE_NORMAL 0
-#define SETTING_AVATAR_OVERLAY_TYPE_PROTOCOL 1
-#define SETTING_AVATAR_OVERLAY_TYPE_CONTACT 2
-

@@ -25,13 +25,9 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #include "clist.h"
 #include "m_clc.h"
 
-extern HWND hwndContactTree; // nasty
-
 int HotKeysRegister(HWND hwnd);
 void HotKeysUnregister(HWND hwnd);
 void LoadContactTree(void);
-void SortContacts(HWND hwnd);
-void TrayIconIconsChanged(void);
 
 static BOOL CALLBACK DlgProcItemsOpts(HWND hwndDlg, UINT msg, WPARAM wParam, LPARAM lParam);
 static BOOL CALLBACK DlgProcGenOpts(HWND hwndDlg, UINT msg, WPARAM wParam, LPARAM lParam);
@@ -208,27 +204,27 @@ static BOOL CALLBACK DlgProcItemRowOpts(HWND hwndDlg, UINT msg, WPARAM wParam, L
 						{
 						case ITEM_AVATAR:
 							{
-								pos = SendMessage(hwndList, LB_INSERTSTRING, pos-1, (LPARAM) TranslateT("Avatar"));
+								pos = SendMessage(hwndList, LB_INSERTSTRING, pos-1, (LPARAM) Translate("Avatar"));
 								break;
 							}
 						case ITEM_ICON:
 							{
-								pos = SendMessage(hwndList, LB_INSERTSTRING, pos-1, (LPARAM) TranslateT("Icon"));
+								pos = SendMessage(hwndList, LB_INSERTSTRING, pos-1, (LPARAM) Translate("Icon"));
 								break;
 							}
 						case ITEM_TEXT:
 							{
-								pos = SendMessage(hwndList, LB_INSERTSTRING, pos-1, (LPARAM) TranslateT("Text"));
+								pos = SendMessage(hwndList, LB_INSERTSTRING, pos-1, (LPARAM) Translate("Text"));
 								break;
 							}
 						case ITEM_EXTRA_ICONS:
 							{
-								pos = SendMessage(hwndList, LB_INSERTSTRING, pos-1, (LPARAM) TranslateT("Extra icons"));
+								pos = SendMessage(hwndList, LB_INSERTSTRING, pos-1, (LPARAM) Translate("Extra icons"));
 								break;
 							}
 						case ITEM_CONTACT_TIME:
 							{
-								pos = SendMessage(hwndList, LB_INSERTSTRING, pos-1, (LPARAM) TranslateT("Contact time"));
+								pos = SendMessage(hwndList, LB_INSERTSTRING, pos-1, (LPARAM) Translate("Contact time"));
 								break;
 							}
 						}
@@ -260,27 +256,27 @@ static BOOL CALLBACK DlgProcItemRowOpts(HWND hwndDlg, UINT msg, WPARAM wParam, L
 						{
 						case ITEM_AVATAR:
 							{
-								pos = SendMessage(hwndList, LB_INSERTSTRING, pos+1, (LPARAM) TranslateT("Avatar"));
+								pos = SendMessage(hwndList, LB_INSERTSTRING, pos+1, (LPARAM) Translate("Avatar"));
 								break;
 							}
 						case ITEM_ICON:
 							{
-								pos = SendMessage(hwndList, LB_INSERTSTRING, pos+1, (LPARAM) TranslateT("Icon"));
+								pos = SendMessage(hwndList, LB_INSERTSTRING, pos+1, (LPARAM) Translate("Icon"));
 								break;
 							}
 						case ITEM_TEXT:
 							{
-								pos = SendMessage(hwndList, LB_INSERTSTRING, pos+1, (LPARAM) TranslateT("Text"));
+								pos = SendMessage(hwndList, LB_INSERTSTRING, pos+1, (LPARAM) Translate("Text"));
 								break;
 							}
 						case ITEM_EXTRA_ICONS:
 							{
-								pos = SendMessage(hwndList, LB_INSERTSTRING, pos+1, (LPARAM) TranslateT("Extra icons"));
+								pos = SendMessage(hwndList, LB_INSERTSTRING, pos+1, (LPARAM) Translate("Extra icons"));
 								break;
 							}
 						case ITEM_CONTACT_TIME:
 							{
-								pos = SendMessage(hwndList, LB_INSERTSTRING, pos+1, (LPARAM) TranslateT("Contact time"));
+								pos = SendMessage(hwndList, LB_INSERTSTRING, pos+1, (LPARAM) Translate("Contact time"));
 								break;
 							}
 						}
@@ -657,9 +653,9 @@ static BOOL CALLBACK DlgProcItemTextOpts(HWND hwndDlg, UINT msg, WPARAM wParam, 
 			CheckDlgButton(hwndDlg, IDC_DRAW_SMILEYS_ON_FIRST_LINE, DBGetContactSettingByte(NULL,"CList","FirstLineDrawSmileys",1) == 1 ? BST_CHECKED : BST_UNCHECKED );
 
 			ShowWindowNew(GetDlgItem(hwndDlg,IDC_REPLACE_SMILEYS), ServiceExists(MS_SMILEYADD_PARSE) ? SW_SHOW : SW_HIDE);
-			ShowWindowNew(GetDlgItem(hwndDlg,IDC_USE_PROTOCOL_SMILEYS), ServiceExists(MS_SMILEYADD_PARSET) ? SW_SHOW : SW_HIDE);
-			ShowWindowNew(GetDlgItem(hwndDlg,IDC_RESIZE_SMILEYS), ServiceExists(MS_SMILEYADD_PARSET) ? SW_SHOW : SW_HIDE);
-			ShowWindowNew(GetDlgItem(hwndDlg,IDC_DRAW_SMILEYS_ON_FIRST_LINE), ServiceExists(MS_SMILEYADD_PARSET) ? SW_SHOW : SW_HIDE);
+			ShowWindowNew(GetDlgItem(hwndDlg,IDC_USE_PROTOCOL_SMILEYS), ServiceExists(MS_SMILEYADD_PARSE) ? SW_SHOW : SW_HIDE);
+			ShowWindowNew(GetDlgItem(hwndDlg,IDC_RESIZE_SMILEYS), ServiceExists(MS_SMILEYADD_PARSE) ? SW_SHOW : SW_HIDE);
+			ShowWindowNew(GetDlgItem(hwndDlg,IDC_DRAW_SMILEYS_ON_FIRST_LINE), ServiceExists(MS_SMILEYADD_PARSE) ? SW_SHOW : SW_HIDE);
 
 			if (!IsDlgButtonChecked(hwndDlg,IDC_REPLACE_SMILEYS))
 			{
@@ -790,7 +786,7 @@ static BOOL CALLBACK DlgProcItemSecondLineOpts(HWND hwndDlg, UINT msg, WPARAM wP
 					EnableWindow(GetDlgItem(hwndDlg,IDC_SHOW_STATUS_IF_NOAWAY),FALSE);
 			}
 
-			ShowWindowNew(GetDlgItem(hwndDlg,IDC_DRAW_SMILEYS), ServiceExists(MS_SMILEYADD_PARSET) ? SW_SHOW : SW_HIDE);
+			ShowWindowNew(GetDlgItem(hwndDlg,IDC_DRAW_SMILEYS), ServiceExists(MS_SMILEYADD_PARSE) ? SW_SHOW : SW_HIDE);
 			ShowWindowNew(GetDlgItem(hwndDlg,IDC_VARIABLES_L), ServiceExists(MS_VARS_FORMATSTRING) ? SW_SHOW : SW_HIDE);
 
 			break;
@@ -974,7 +970,7 @@ static BOOL CALLBACK DlgProcItemThirdLineOpts(HWND hwndDlg, UINT msg, WPARAM wPa
 					EnableWindow(GetDlgItem(hwndDlg,IDC_SHOW_STATUS_IF_NOAWAY),FALSE);
 			}
 
-			ShowWindowNew(GetDlgItem(hwndDlg,IDC_DRAW_SMILEYS), ServiceExists(MS_SMILEYADD_PARSET) ? SW_SHOW : SW_HIDE);
+			ShowWindowNew(GetDlgItem(hwndDlg,IDC_DRAW_SMILEYS), ServiceExists(MS_SMILEYADD_PARSE) ? SW_SHOW : SW_HIDE);
 			ShowWindowNew(GetDlgItem(hwndDlg,IDC_VARIABLES_L), ServiceExists(MS_VARS_FORMATSTRING) ? SW_SHOW : SW_HIDE);
 
 			break;
@@ -1264,7 +1260,7 @@ static BOOL CALLBACK DlgProcItemsOpts(HWND hwndDlg, UINT msg, WPARAM wParam, LPA
 
 						LoadContactTree(); /* this won't do job properly since it only really works when changes happen */
 						ClcOptionsChanged(); // Used to force loading avatar an list height related options
-						SendMessage(hwndContactTree,CLM_AUTOREBUILD,0,0); /* force reshuffle */
+						SendMessage(pcli->hwndContactTree,CLM_AUTOREBUILD,0,0); /* force reshuffle */
 						return TRUE;
 					}
 					break;
@@ -1524,9 +1520,9 @@ static BOOL CALLBACK DlgProcGenOpts(HWND hwndDlg, UINT msg, WPARAM wParam, LPARA
 			if (!SendDlgItemMessage(hwndDlg,IDC_PRIMARYSTATUS,CB_GETITEMDATA,SendDlgItemMessage(hwndDlg,IDC_PRIMARYSTATUS,CB_GETCURSEL,0,0),0)) 
 				DBDeleteContactSetting(NULL, "CList","PrimaryStatus");
 			else DBWriteContactSettingString(NULL,"CList","PrimaryStatus",((PROTOCOLDESCRIPTOR*)SendDlgItemMessage(hwndDlg,IDC_PRIMARYSTATUS,CB_GETITEMDATA,SendDlgItemMessage(hwndDlg,IDC_PRIMARYSTATUS,CB_GETCURSEL,0,0),0))->szName);
-			TrayIconIconsChanged();
+			pcli->pfnTrayIconIconsChanged();
 			LoadContactTree(); /* this won't do job properly since it only really works when changes happen */
-			SendMessage(hwndContactTree,CLM_AUTOREBUILD,0,0); /* force reshuffle */
+			SendMessage(pcli->hwndContactTree,CLM_AUTOREBUILD,0,0); /* force reshuffle */
 			ClcOptionsChanged(); // Used to force loading avatar an list height related options
 			return TRUE;
 		}

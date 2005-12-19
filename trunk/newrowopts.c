@@ -35,8 +35,6 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #include "clist.h"
 #include "m_clc.h"
 
-extern HWND hwndContactTree; // nasty
-
 #define EMPTY_PLACE 255
 #define COLUMNS_PLACE 254
 #define ROWS_PLACE 253

@@ -43,7 +43,6 @@ static BOOL CALLBACK DlgProcClcMainOpts(HWND hwndDlg, UINT msg, WPARAM wParam, L
 static BOOL CALLBACK DlgProcClcMetaOpts(HWND hwndDlg, UINT msg, WPARAM wParam, LPARAM lParam);
 static BOOL CALLBACK DlgProcClcBkgOpts(HWND hwndDlg, UINT msg, WPARAM wParam, LPARAM lParam);
 static BOOL CALLBACK DlgProcClcTextOpts(HWND hwndDlg, UINT msg, WPARAM wParam, LPARAM lParam);
-extern HWND hwndContactList,hwndContactTree,hwndStatus;
 static BOOL CALLBACK DlgProcStatusBarBkgOpts(HWND hwndDlg, UINT msg, WPARAM wParam, LPARAM lParam);
 //extern void OnStatusBarBackgroundChange();
 extern int CluiProtocolStatusChanged(WPARAM,LPARAM);
@@ -370,7 +369,7 @@ struct CheckBoxValues_t {
 
               DBWriteContactSettingByte(NULL,"CLC","SubIndent",(BYTE)SendDlgItemMessage(hwndDlg,IDC_SUBINDENTSPIN,UDM_GETPOS,0,0));
               ClcOptionsChanged();
-              PostMessage(hwndContactList,WM_SIZE,0,0);
+              PostMessage(pcli->hwndContactList,WM_SIZE,0,0);
 
               return TRUE;
             }
@@ -818,10 +817,10 @@ struct CheckBoxValues_t {
             */
             ClcOptionsChanged();
             CluiProtocolStatusChanged(0,0);
-            if (IsWindowVisible(hwndContactList))
+            if (IsWindowVisible(pcli->hwndContactList))
             {
-              ShowWindowNew(hwndContactList,SW_HIDE);
-              ShowWindowNew(hwndContactList,SW_SHOW);
+              ShowWindowNew(pcli->hwndContactList,SW_HIDE);
+              ShowWindowNew(pcli->hwndContactList,SW_SHOW);
             }
 
             return TRUE;

@@ -287,7 +287,7 @@ BOOL FillRect255Alpha(HDC memdc,RECT *fr)
   int sx,sy,ex,ey;
   int f=0;
   BYTE * bits;
-  BITMAP bmp={0};
+  BITMAP bmp;
   HBITMAP hbmp=GetCurrentObject(memdc,OBJ_BITMAP);  
   GetObject(hbmp, sizeof(bmp),&bmp);
   sx=(fr->left>0)?fr->left:0;
@@ -1338,6 +1338,7 @@ int UnloadSkin(SKINOBJECTSLIST * Skin)
   DeleteCriticalSection(&skin);
   return 0;
 }
+
 int EnumGetProc (const char *szSetting,LPARAM lParam)
 {   
   if (WildCompare((char *)szSetting,"$*",0))
@@ -1356,34 +1357,7 @@ int EnumGetProc (const char *szSetting,LPARAM lParam)
   }
   return 1;
 }
-int EnumGetMasksProc(const char *szSetting,LPARAM lParam)
-{
-	if (WildCompare((char *)szSetting,"@*",0) && CURRENTSKIN)
-	{
-		DWORD ID=atoi(szSetting+1);
-		int i=0;
-		char * value;
-		value=DBGetStringA(NULL,SKIN,szSetting);
-		if (value)
-		{
-			for (i=0; i<MyStrLen(value); i++)	  if (value[i]==':') break;
-			if (i<MyStrLen(value))
-			{
-				char * Obj, *Mask;
-				int res;
-				Mask=value+i+1;
-				Obj=mir_alloc(i+1);
-				strncpy(Obj,value,i);
-				Obj[i]='\0';
-				res=AddStrModernMaskToList(ID,Mask,Obj,CURRENTSKIN->MaskList,CURRENTSKIN);
-				mir_free(Obj);
-			}
-			mir_free(value);
-		}
 
-	}
-	return 1;
-}
 // Getting skin objects and masks from DB
 int GetSkinFromDB(char * szSection, SKINOBJECTSLIST * Skin)
 {
@@ -1407,8 +1381,8 @@ int GetSkinFromDB(char * szSection, SKINOBJECTSLIST * Skin)
     _snprintf(buf,sizeof(buf),"Glyph,Solid,%d,%d,%d,%d",GetRValue(col),GetGValue(col),GetBValue(col),255);
     RegisterObjectByParce("$DefSkinSelObj",buf);
 
-    AddStrModernMaskToList(0,"CL,ID=Selection","$DefSkinSelObj",Skin->MaskList,Skin);	
-    AddStrModernMaskToList(0,"*,ID^Ovl,ID^Row,ID^Hot*","$DefaultSkinObj",Skin->MaskList,Skin);	
+    AddStrModernMaskToList("CL,ID=Selection","$DefSkinSelObj",Skin->MaskList,Skin);	
+    AddStrModernMaskToList("*,ID^Ovl,ID^Row,ID^Hot*","$DefaultSkinObj",Skin->MaskList,Skin);	
     return 1;
   }
   //Load objects
@@ -1419,14 +1393,41 @@ int GetSkinFromDB(char * szSection, SKINOBJECTSLIST * Skin)
     dbces.szModule=SKIN;
     dbces.ofsSettings=0;
     CallService(MS_DB_CONTACT_ENUMSETTINGS,0,(LPARAM)&dbces);
-
-	dbces.pfnEnumProc=EnumGetMasksProc;
-	dbces.ofsSettings=0;
-	CallService(MS_DB_CONTACT_ENUMSETTINGS,0,(LPARAM)&dbces);
-	SortMaskList(Skin->MaskList);
     CURRENTSKIN=NULL;
   }
-
+  //Load Masks
+  {
+    DWORD n=0;
+    while (TRUE)
+    {
+      char buf[260];
+      DWORD Param=0;
+      char * Mask=NULL;
+      char * value=NULL;
+      _snprintf(buf,sizeof(buf),"@%d",n);
+      if (value=DBGetStringA(NULL,SKIN,buf))
+      {
+        int i=0;
+        for (i=0; i<MyStrLen(value); i++)
+          if (value[i]==':') break;
+        if (i<MyStrLen(value))
+        {
+          char * Obj, *Mask;
+          int res;
+          Mask=value+i+1;
+          Obj=mir_alloc(i+1);
+          strncpy(Obj,value,i);
+          Obj[i]='\0';
+          res=AddStrModernMaskToList(Mask,Obj,Skin->MaskList,Skin);
+          mir_free(Obj);
+        }
+        mir_free(value);
+        value=NULL;
+        n++;
+      }
+      else break;
+    }
+  }
   return 0;
 }
 
@@ -1467,276 +1468,130 @@ int GetSkinFolder(char * szFileName, char * t2)
   CallService(MS_UTILS_PATHTORELATIVE, (WPARAM)t2, (LPARAM)t2);
   return 0;
 }
-#include "stdio.h"
-char * iniCurrentSection=NULL;
-char *_szFileName=NULL;
-void WriteParamToDatabase(char *cKey, char* cName, char* cVal, BOOL SecCheck)
-{
-	if (SecCheck)
-	{
-		//TODO check security here
-		if (WildCompare(cKey,"Skin_Description_Section",1)) return;
-	}
-	if (strlen(cVal)>0 && cVal[strlen(cVal)-1]==10) cVal[strlen(cVal)-1]='\0';  //kill linefeed at the end  
-	switch(cVal[0]) 
-	{
-	case 'b':
-		{
-			BYTE P;
-			P=(BYTE)atoi(cVal+1);
-			DBWriteContactSettingByte(NULL,cKey,cName,P);
-		}
-		break;
-	case 'w':
-		{
-			WORD P;
-			P=(WORD)atoi(cVal+1);
-			DBWriteContactSettingWord(NULL,cKey,cName,P);
-		}
-		break;
-	case 'd':
-		{
-			DWORD P;
-			P=(DWORD)atoi(cVal+1);
-			DBWriteContactSettingDword(NULL,cKey,cName,P);
-		}
-		break;
-	case 's':
-		DBWriteContactSettingString(NULL,cKey,cName,cVal+1);
-		break;
-	case 'f':
-		if (_szFileName)
-		{
-			char fn[MAX_PATH]={0};
-			char bb[MAX_PATH*2]={0};
-			int pp, i;
-			pp=-1;
-			CallService(MS_UTILS_PATHTORELATIVE, (WPARAM)_szFileName, (LPARAM)fn);
-			{
-				for (i=strlen(fn); i>=0; i--)  if (fn[i]=='.') break;
-				if (i>0) fn[i]='\0';
-			}                      
-			_snprintf(bb,SIZEOF(bb),"%s\\%s",fn,cVal+1);
-			DBWriteContactSettingString(NULL,cKey,cName,bb);
-		}
-		break;
-	}
-}
-
-BOOL ParseLineOfIniFile(char * Line)
-{
-	DWORD i=0;
-	DWORD len=strlen(Line);
-	while (i<len && (Line[i]==' ' || Line[i]=='\t')) i++; //skip spaces&tabs
-	if (i>=len) return FALSE; //only spaces (or tabs)
-	if (len>0 && Line[len-1]==10) Line[len-1]='\0';
-	switch(Line[i])
-	{
-	case ';':
-		return FALSE; // start of comment is found
-	case '[':
-		//New section start here
-		if (iniCurrentSection) mir_free(iniCurrentSection);
-		{
-			char *tbuf=Line+i+1;		
-			DWORD len2=strlen(tbuf);
-			DWORD k=len2;
-			while (k>0 && tbuf[k]!=']') k--; //searching close bracket
-			tbuf[k]='\0';   //closing string
-			if (k==0) return FALSE;
-			iniCurrentSection=mir_strdup(tbuf);
-		}
-		return TRUE;
-	default:
-		if (!iniCurrentSection) return FALSE;  //param found out of section
-		{
-			char *keyName=Line+i;
-			char *keyValue=Line+i;
-			
-			DWORD eqPlace=0;
-			DWORD len2=strlen(keyName);
-			while (eqPlace<len2 && keyName[eqPlace]!='=') eqPlace++; //find '='
-			if (eqPlace==0 || eqPlace==len2) return FALSE; //= not found or no key name
-			keyName[eqPlace]='\0';
-			keyValue=keyName+eqPlace+1;
-			//remove tail spaces in Name
-			{
-				DWORD len3=strlen(keyName);
-				int j=len3-1;
-				while (j>0 && (keyName[j]==' ' || keyName[j]=='\t')) j--;
-				if (j>=0) keyName[j+1]='\0';
-			}		
-			//remove start spaces in Value
-			{
-				DWORD len3=strlen(keyValue);
-				DWORD j=0;
-				while (j<len3 && (keyValue[j]==' ' || keyValue[j]=='\t')) j++;
-				if (j<len3) keyValue+=j;
-			}
-			//remove tail spaces in Value
-			{
-				DWORD len3=strlen(keyValue);
-				int j=len3-1;
-				while (j>0 && (keyValue[j]==' ' || keyValue[j]=='\t')) j--;
-				if (j>=0) keyValue[j+1]='\0';
-			}
-			WriteParamToDatabase(iniCurrentSection,keyName,keyValue,TRUE);
-		}
-	}
-	return FALSE;
-}
 //Load data from ini file
 int LoadSkinFromIniFile(char * szFileName)
 {
-	FILE *stream=NULL;
-	char line[512]={0};
-	char skinFolder[MAX_PATH]={0};
-	char skinFile[MAX_PATH]={0};
-	DeleteAllSettingInSection("ModernSkin");
-	GetSkinFolder(szFileName,skinFolder);
-	DBWriteContactSettingString(NULL,SKIN,"SkinFolder",skinFolder);
-	CallService(MS_UTILS_PATHTORELATIVE, (WPARAM)szFileName, (LPARAM)skinFile);
-	DBWriteContactSettingString(NULL,SKIN,"SkinFile",skinFile);
-	
-	if( (stream = fopen( szFileName, "r" )) != NULL )
-	{
-		_szFileName=szFileName;
-		while (fgets( line, SIZEOF(line),stream ) != NULL)
-		{
-			ParseLineOfIniFile(line);
-		}
-		fclose( stream );
-		_szFileName=NULL;
-	}
-	return 0;
+  char bsn[MAXSN_BUFF_SIZE];
+  char * Buff;
+
+  int i=0;
+  int f=0;
+  int ReadingSection=0;
+  char AllowedSection[260];
+  int AllowedAll=0;
+  char t2[MAX_PATH];
+  char t3[MAX_PATH];
+
+  DWORD retu=GetPrivateProfileSectionNamesA(bsn,MAXSN_BUFF_SIZE,szFileName);
+  DeleteAllSettingInSection("ModernSkin");
+  GetSkinFolder(szFileName,t2);
+  DBWriteContactSettingString(NULL,SKIN,"SkinFolder",t2);
+  CallService(MS_UTILS_PATHTORELATIVE, (WPARAM)szFileName, (LPARAM)t3);
+  DBWriteContactSettingString(NULL,SKIN,"SkinFile",t3);
+  Buff=bsn;
+  AllowedSection[0]=0;
+  do         
+  {
+    f=MyStrLen(Buff);
+    if (f>0 && !boolstrcmpi(Buff,"Skin_Description_Section"))
+    {
+      char b3[MAX_BUFF_SIZE];
+      DWORD ret=0;
+      ret=GetPrivateProfileSectionA(Buff,b3,MAX_BUFF_SIZE,szFileName);
+      if (ret>MAX_BUFF_SIZE-3) continue;
+      if (ret==0) continue;
+      {
+        DWORD p=0;
+        char *s1;
+        char *s2;
+        char *s3;
+        {
+          DWORD t;
+          BOOL LOCK=FALSE;
+          for (t=0; t<ret-1;t++)
+          {
+            if (b3[t]=='\0') LOCK=FALSE;
+            if (b3[t]=='=' && !LOCK) 
+            {
+              b3[t]='\0';
+              LOCK=TRUE;
+            }
+          }
+        }
+        do
+        {
+          s1=b3+p;
+
+          s2=s1+MyStrLen(s1)+1;
+          switch (s2[0])
+          {
+          case 'b':
+            {
+              BYTE P;
+              //                            char ba[255];
+              s3=s2+1;
+              P=(BYTE)atoi(s3);
+              DBWriteContactSettingByte(NULL,Buff,s1,P);
+            }
+            break;
+          case 'w':
+            {
+              WORD P;
+              //                           char ba[255];
+              s3=s2+1;
+              P=(WORD)atoi(s3);
+              DBWriteContactSettingWord(NULL,Buff,s1,P);
+            }break;
+          case 'd':
+            {
+              DWORD P;
+
+              s3=s2+1;
+              P=(DWORD)atoi(s3);
+              DBWriteContactSettingDword(NULL,Buff,s1,P);
+            }break;
+          case 's':
+            {
+              //                          char ba[255];
+              char bb[255];
+              s3=s2+1;
+              strncpy(bb,s3,sizeof(bb));
+              DBWriteContactSettingString(NULL,Buff,s1,s3);
+            }break;
+          case 'f': //file
+            {
+              //                         char ba[255];
+              char bb[255];
+
+              s3=s2+1;
+              {
+                char fn[MAX_PATH];
+                int pp, i;
+                pp=-1;
+                CallService(MS_UTILS_PATHTORELATIVE, (WPARAM)szFileName, (LPARAM)fn);
+                {
+                  for (i=0; i<MyStrLen(fn); i++)  if (fn[i]=='.') pp=i;
+                  if (pp!=-1)
+                  {
+                    fn[pp]='\0';
+                  }
+                }                      
+                sprintf(bb,"%s\\%s",fn,s3);
+                DBWriteContactSettingString(NULL,Buff,s1,bb);
+              }
+            }break;
+          }
+          p=p+MyStrLen(s1)+MyStrLen(s2)+2;
+        } while (p<ret);
+
+      }
+    }
+    Buff+=MyStrLen(Buff)+1;
+  }while (((DWORD)Buff-(DWORD)bsn)<retu);
+  return 0;
 }
 
 
-
-
-//int LoadSkinFromIniFileOld(char * szFileName)
-//{
-//  char bsn[MAXSN_BUFF_SIZE];
-//  char * Buff;
-//
-//  int i=0;
-//  int f=0;
-//  int ReadingSection=0;
-//  char AllowedSection[260];
-//  int AllowedAll=0;
-//  char t2[MAX_PATH];
-//  char t3[MAX_PATH];
-//
-//  DWORD retu=GetPrivateProfileSectionNamesA(bsn,MAXSN_BUFF_SIZE,szFileName);
-//  DeleteAllSettingInSection("ModernSkin");
-//  GetSkinFolder(szFileName,t2);
-//  DBWriteContactSettingString(NULL,SKIN,"SkinFolder",t2);
-//  CallService(MS_UTILS_PATHTORELATIVE, (WPARAM)szFileName, (LPARAM)t3);
-//  DBWriteContactSettingString(NULL,SKIN,"SkinFile",t3);
-//  Buff=bsn;
-//  AllowedSection[0]=0;
-//  do         
-//  {
-//    f=MyStrLen(Buff);
-//    if (f>0 && !boolstrcmpi(Buff,"Skin_Description_Section"))
-//    {
-//      char b3[MAX_BUFF_SIZE];
-//      DWORD ret=0;
-//      ret=GetPrivateProfileSectionA(Buff,b3,MAX_BUFF_SIZE,szFileName);
-//      if (ret>MAX_BUFF_SIZE-3) continue;
-//      if (ret==0) continue;
-//      {
-//        DWORD p=0;
-//        char *s1;
-//        char *s2;
-//        char *s3;
-//        {
-//          DWORD t;
-//          BOOL LOCK=FALSE;
-//          for (t=0; t<ret-1;t++)
-//          {
-//            if (b3[t]=='\0') LOCK=FALSE;
-//            if (b3[t]=='=' && !LOCK) 
-//            {
-//              b3[t]='\0';
-//              LOCK=TRUE;
-//            }
-//          }
-//        }
-//        do
-//        {
-//          s1=b3+p;
-//
-//          s2=s1+MyStrLen(s1)+1;
-//          switch (s2[0])
-//          {
-//          case 'b':
-//            {
-//              BYTE P;
-//              //                            char ba[255];
-//              s3=s2+1;
-//              P=(BYTE)atoi(s3);
-//              DBWriteContactSettingByte(NULL,Buff,s1,P);
-//            }
-//            break;
-//          case 'w':
-//            {
-//              WORD P;
-//              //                           char ba[255];
-//              s3=s2+1;
-//              P=(WORD)atoi(s3);
-//              DBWriteContactSettingWord(NULL,Buff,s1,P);
-//            }break;
-//          case 'd':
-//            {
-//              DWORD P;
-//
-//              s3=s2+1;
-//              P=(DWORD)atoi(s3);
-//              DBWriteContactSettingDword(NULL,Buff,s1,P);
-//            }break;
-//          case 's':
-//            {
-//              //                          char ba[255];
-//              char bb[255];
-//              s3=s2+1;
-//              strncpy(bb,s3,sizeof(bb));
-//              DBWriteContactSettingString(NULL,Buff,s1,s3);
-//            }break;
-//          case 'f': //file
-//            {
-//              //                         char ba[255];
-//              char bb[255];
-//
-//              s3=s2+1;
-//              {
-//                char fn[MAX_PATH];
-//                int pp, i;
-//                pp=-1;
-//                CallService(MS_UTILS_PATHTORELATIVE, (WPARAM)szFileName, (LPARAM)fn);
-//                {
-//                  for (i=0; i<MyStrLen(fn); i++)  if (fn[i]=='.') pp=i;
-//                  if (pp!=-1)
-//                  {
-//                    fn[pp]='\0';
-//                  }
-//                }                      
-//                sprintf(bb,"%s\\%s",fn,s3);
-//                DBWriteContactSettingString(NULL,Buff,s1,bb);
-//              }
-//            }break;
-//          }
-//          p=p+MyStrLen(s1)+MyStrLen(s2)+2;
-//        } while (p<ret);
-//
-//      }
-//    }
-//    Buff+=MyStrLen(Buff)+1;
-//  }while (((DWORD)Buff-(DWORD)bsn)<retu);
-//  return 0;
-//}
-//
-//
 int EnumDeletionProc (const char *szSetting,LPARAM lParam)
 {
 
@@ -2839,7 +2694,7 @@ int RedrawCompleteWindow()
   }
   else
   {
-	  RedrawWindow(hwndContactList,NULL,NULL,RDW_ALLCHILDREN|RDW_ERASE|RDW_INVALIDATE|RDW_FRAME);
+	  RedrawWindow(pcli->hwndContactList,NULL,NULL,RDW_ALLCHILDREN|RDW_ERASE|RDW_INVALIDATE|RDW_FRAME);
   }
   return 0;
 }
@@ -2855,10 +2710,10 @@ int UpdateFrameImage(WPARAM wParam, LPARAM lParam)           // Immideately reca
   BOOL NoCancelPost=0;
   BOOL IsAnyQueued=0;
   if (!ON_EDGE_SIZING)
-    GetWindowRect(hwndContactList,&wnd);
+    GetWindowRect(pcli->hwndContactList,&wnd);
   else
     wnd=ON_EDGE_SIZING_POS;
-  //   GetWindowRect(hwndContactList,&wnd);
+  //   GetWindowRect(pcli->hwndContactList,&wnd);
   //#ifdef _DEBUG
   //    {
   //        char deb[100];
@@ -2958,7 +2813,7 @@ int InvalidateFrameImage(WPARAM wParam, LPARAM lParam)       // Post request for
   }
   else QueueAllFramesUpdating(1);
   if (!UPDATE_ALLREADY_QUEUED||POST_WAS_CANCELED)
-    if (PostMessage(hwndContactList,UM_UPDATE,0,0))
+    if (PostMessage(pcli->hwndContactList,UM_UPDATE,0,0))
     {            
       UPDATE_ALLREADY_QUEUED=1;
       POST_WAS_CANCELED=0;
@@ -2992,7 +2847,7 @@ int ValidateSingleFrameImage(wndFrame * Frame, BOOL SkipBkgBlitting)            
     int w,h,x,y;
     int w1,h1,x1,y1;
 
-    SizingGetWindowRect(hwndContactList,&wnd);
+    SizingGetWindowRect(pcli->hwndContactList,&wnd);
     rcPaint=Frame->wndSize;
     //OffsetRect(&rcPaint,wnd.left,wnd.top);
     //GetWindowRect(Frame->hWnd,&rcPaint);
@@ -3175,7 +3030,7 @@ int BltBackImage (HWND destHWND, HDC destDC, RECT * BltClientRect)
 	ptChildWnd.x=w.left;
 	ptChildWnd.y=w.top;
 	ClientToScreen(destHWND,&ptChildWnd);
-	ClientToScreen(hwndContactList,&ptMainWnd);
+	ClientToScreen(pcli->hwndContactList,&ptMainWnd);
 	//TODO if main not relative to client area
 	return BitBlt(destDC,w.left,w.top,(w.right-w.left),(w.bottom-w.top),cachedWindow->hBackDC,(ptChildWnd.x-ptMainWnd.x),(ptChildWnd.y-ptMainWnd.y),SRCCOPY);
 	
@@ -3185,7 +3040,7 @@ int ReCreateBackImage(BOOL Erase,RECT *w)
 	HBITMAP hb2;
 	RECT wnd={0};
 	BOOL IsNewCache=0;
-	GetClientRect(hwndContactList,&wnd);
+	GetClientRect(pcli->hwndContactList,&wnd);
 	if (w) wnd=*w;
 	//-- Check cached.
 	if (cachedWindow==NULL)
@@ -3244,7 +3099,7 @@ int DrawNonFramedObjects(BOOL Erase,RECT *r)
 {
   RECT w,wnd;
   if (r) w=*r;
-  else SizingGetWindowRect(hwndContactList,&w);
+  else SizingGetWindowRect(pcli->hwndContactList,&w);
   if (!LayeredFlag) return ReCreateBackImage(FALSE,0);
   if (cachedWindow==NULL)
     return ValidateFrameImageProc(&w);
@@ -3293,7 +3148,7 @@ int ValidateFrameImageProc(RECT * r)                                // Calling q
   //    }
   //#endif
   if (r) wnd=*r;
-  else GetWindowRect(hwndContactList,&wnd);
+  else GetWindowRect(pcli->hwndContactList,&wnd);
   LOCK_UPDATING=1;
   //-- Check cached.
   if (cachedWindow==NULL)
@@ -3386,7 +3241,7 @@ int UpdateWindowImage()
   if (LayeredFlag)
   {
 	  RECT r;
-	  GetWindowRect(hwndContactList,&r);
+	  GetWindowRect(pcli->hwndContactList,&r);
 	  return UpdateWindowImageRect(&r);
   }
   else
@@ -3449,7 +3304,7 @@ int JustUpdateWindowImage()
 	  ApplyTransluency();
 	  return 0;
   }
-  GetWindowRect(hwndContactList,&r);
+  GetWindowRect(pcli->hwndContactList,&r);
   return JustUpdateWindowImageRect(&r);
 }
 int JustUpdateWindowImageRect(RECT * rty)
@@ -3468,7 +3323,7 @@ int JustUpdateWindowImageRect(RECT * rty)
 	  return 0;
   }
   LOCK_IMAGE_UPDATING=1;
-  if (!hwndContactList) return 0;
+  if (!pcli->hwndContactList) return 0;
   rect=wnd;
   dest.x=rect.left;
   dest.y=rect.top;
@@ -3483,13 +3338,13 @@ int JustUpdateWindowImageRect(RECT * rty)
   //#endif
   if (MyUpdateLayeredWindow && LayeredFlag)
   {
-    if (!(GetWindowLong(hwndContactList, GWL_EXSTYLE)&WS_EX_LAYERED))
-      SetWindowLong(hwndContactList,GWL_EXSTYLE, GetWindowLong(hwndContactList, GWL_EXSTYLE) |WS_EX_LAYERED);
+    if (!(GetWindowLong(pcli->hwndContactList, GWL_EXSTYLE)&WS_EX_LAYERED))
+      SetWindowLong(pcli->hwndContactList,GWL_EXSTYLE, GetWindowLong(pcli->hwndContactList, GWL_EXSTYLE) |WS_EX_LAYERED);
     SetAlpha(CURRENT_ALPHA);
 
-    res=MyUpdateLayeredWindow(hwndContactList,cachedWindow->hScreenDC,&dest,&sz,cachedWindow->hImageDC,&src,0,&bf,ULW_ALPHA);
+    res=MyUpdateLayeredWindow(pcli->hwndContactList,cachedWindow->hScreenDC,&dest,&sz,cachedWindow->hImageDC,&src,0,&bf,ULW_ALPHA);
   }
-  else InvalidateRect(hwndContactList,NULL,TRUE);
+  else InvalidateRect(pcli->hwndContactList,NULL,TRUE);
   //{
   //  //		PAINTSTRUCT ps;
   //  HDC hdcWin;
@@ -3498,14 +3353,14 @@ int JustUpdateWindowImageRect(RECT * rty)
   //  HRGN rgn;	
   //  //
   //  {
-  //    if ((GetWindowLong(hwndContactList, GWL_EXSTYLE)&WS_EX_LAYERED))
-  //      SetWindowLong(hwndContactList,GWL_EXSTYLE, GetWindowLong(hwndContactList, GWL_EXSTYLE) & ~WS_EX_LAYERED);
+  //    if ((GetWindowLong(pcli->hwndContactList, GWL_EXSTYLE)&WS_EX_LAYERED))
+  //      SetWindowLong(pcli->hwndContactList,GWL_EXSTYLE, GetWindowLong(pcli->hwndContactList, GWL_EXSTYLE) & ~WS_EX_LAYERED);
   //  }
   //  TRACE("DRAWING\n");
 
-  //  hdcWin=GetWindowDC(hwndContactList);//DCEx(hwndContactList,rgn,DCX_VALIDATE);		
+  //  hdcWin=GetWindowDC(pcli->hwndContactList);//DCEx(pcli->hwndContactList,rgn,DCX_VALIDATE);		
   //  {
-  //    GetClientRect(hwndContactList,&rc);
+  //    GetClientRect(pcli->hwndContactList,&rc);
   //    rgn=CreateRectRgn(rc.left,rc.top,rc.right,rc.bottom);
   //    {
   //      int i;
@@ -3532,7 +3387,7 @@ int JustUpdateWindowImageRect(RECT * rty)
 
   //  }
   //  DeleteObject(rgn);
-  //  ReleaseDC(hwndContactList,hdcWin);
+  //  ReleaseDC(pcli->hwndContactList,hdcWin);
   //}
   LOCK_IMAGE_UPDATING=0;
   return 0;

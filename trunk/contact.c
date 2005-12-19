@@ -24,7 +24,6 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #include "m_clui.h"
 #include "clist.h"
 
-int GetContactDisplayName(WPARAM wParam,LPARAM lParam);
 extern HANDLE hContactIconChangedEvent;
 extern int GetContactCachedStatus(HANDLE hContact);
 extern char *GetContactCachedProtocol(HANDLE hContact);
@@ -83,7 +82,7 @@ void LoadContactTree(void)
 	tick=GetTickCount();
 	CallService(MS_CLUI_LISTBEGINREBUILD,0,0);
 	for(i=1;;i++) {
-		if((char*)CallService(MS_CLIST_GROUPGETNAMET,i,(LPARAM)(int*)NULL)==NULL) break;
+		if ( pcli->pfnGetGroupName(i, NULL) == NULL) break;
 		CallService(MS_CLUI_GROUPADDED,i,0);
 	}
 
@@ -91,7 +90,7 @@ void LoadContactTree(void)
 	hContact=(HANDLE)CallService(MS_DB_CONTACT_FINDFIRST,0,0);
 
 	while(hContact!=NULL) {
-		cacheEntry=GetContactFullCacheEntry(hContact);
+		cacheEntry=(pdisplayNameCacheEntry)pcli->pfnGetCacheEntry(hContact);
 		if (cacheEntry==NULL)
 		{
 			MessageBoxA(0,"Fail To Get CacheEntry for hContact","!!!!!",0);
@@ -232,40 +231,18 @@ static VOID CALLBACK SortContactsTimer(HWND hwnd,UINT message,UINT idEvent,DWORD
 	}
 }
 
-void SortContacts(HWND hwnd)
-{
-	//avoid doing lots of resorts in quick succession
-	sortBy[0]=DBGetContactSettingByte(NULL,"CList","SortBy1",SETTING_SORTBY1_DEFAULT);
-	sortBy[1]=DBGetContactSettingByte(NULL,"CList","SortBy2",SETTING_SORTBY2_DEFAULT);
-	sortBy[2]=DBGetContactSettingByte(NULL,"CList","SortBy3",SETTING_SORTBY3_DEFAULT); 
-	if(resortTimerId) KillTimer(NULL,resortTimerId);
-	resortTimerId=SetTimer(NULL,0,100,SortContactsTimer);
-}
-
 int ContactChangeGroup(WPARAM wParam,LPARAM lParam)
 {
 	CallService(MS_CLUI_CONTACTDELETED,wParam,0);
 	if((HANDLE)lParam==NULL)
 		DBDeleteContactSetting((HANDLE)wParam,"CList","Group");
 	else
-		DBWriteContactSettingString((HANDLE)wParam,"CList","Group",(char*)CallService(MS_CLIST_GROUPGETNAMET,lParam,(LPARAM)(int*)NULL));
+		DBWriteContactSettingTString((HANDLE)wParam,"CList","Group",pcli->pfnGetGroupName(lParam, NULL));
 	CallService(MS_CLUI_CONTACTADDED,wParam,ExtIconFromStatusMode((HANDLE)wParam,(char*)CallService(MS_PROTO_GETCONTACTBASEPROTO,wParam,0),GetContactStatus((HANDLE)wParam)));
 	return 0;
 }
 
-int SetHideOffline(WPARAM wParam,LPARAM lParam)
-{
-	switch((int)wParam) {
-		case 0: DBWriteContactSettingByte(NULL,"CList","HideOffline",0); break;
-		case 1: DBWriteContactSettingByte(NULL,"CList","HideOffline",1); break;
-		case -1: DBWriteContactSettingByte(NULL,"CList","HideOffline",(BYTE)!DBGetContactSettingByte(NULL,"CList","HideOffline",SETTING_HIDEOFFLINE_DEFAULT)); break;
-	}
-	TRACE("PRE-LoadTree");
-	LoadContactTree();
-	TRACE("SetHideOffline Done\r\n");
-	return 0;
-}
 int ToggleHideOffline(WPARAM wParam,LPARAM lParam)
 {
-  return SetHideOffline((WPARAM)-1,0);
+	return pcli->pfnSetHideOffline((WPARAM)-1,0);
 }

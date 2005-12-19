@@ -1,4 +1,4 @@
-
+#include "commonheaders.h"
 #include "modern_statusbar.h"
 #include "m_skin_eng.h"
 
@@ -10,7 +10,6 @@ POINT lastpnt;
 #define TM_STATUSBAR 23435234
 #define TM_STATUSBARHIDE 23435235
 
-extern HWND hwndContactList;
 extern int BehindEdgeSettings;
 HWND hModernStatusBar=NULL;
 HANDLE hFramehModernStatusBar=NULL;
@@ -135,7 +134,7 @@ int LoadStatusBarData()
     };
     CallService(MS_CLIST_FRAMES_SETFRAMEOPTIONS,MAKEWPARAM(FO_FLAGS,frameID),frameopt);
   }
-  SendMessage(hwndContactList,WM_SIZE,0,0);        
+  SendMessage(pcli->hwndContactList,WM_SIZE,0,0);        
   return 1;
 }                                                           
 
@@ -148,7 +147,7 @@ int NewStatusPaintCallbackProc(HWND hWnd, HDC hDC, RECT * rcPaint, HRGN rgn, DWO
 extern HFONT TitleBarFont;
 int ModernDrawStatusBar(HWND hwnd, HDC hDC)
 {
-  if (GetParent(hwnd)==hwndContactList)
+  if (GetParent(hwnd)==pcli->hwndContactList)
     return ModernDrawStatusBarWorker(hwnd,hDC);
   else
     InvalidateRectZ(hwnd,NULL,FALSE);
@@ -409,9 +408,9 @@ LRESULT CALLBACK ModernStatusProc(HWND hwnd,UINT msg,WPARAM wParam,LPARAM lParam
   case WM_ERASEBKGND:
 	  return 0;
   case WM_PAINT:
-    if (GetParent(hwnd)==hwndContactList && LayeredFlag)
+    if (GetParent(hwnd)==pcli->hwndContactList && LayeredFlag)
       InvalidateFrameImage((WPARAM)hwnd,0);
-    else if (GetParent(hwnd)==hwndContactList && !LayeredFlag)
+    else if (GetParent(hwnd)==pcli->hwndContactList && !LayeredFlag)
 	{	
 		HDC hdc, hdc2;
 		HBITMAP hbmp,hbmpo;
@@ -583,7 +582,7 @@ LRESULT CALLBACK ModernStatusProc(HWND hwnd,UINT msg,WPARAM wParam,LPARAM lParam
           ClientToScreen(hwnd,&pt);              
           { 
             HWND parent=GetParent(hwnd);
-            if (parent!=hwndContactList) parent=GetParent(parent);         
+            if (parent!=pcli->hwndContactList) parent=GetParent(parent);         
             TrackPopupMenu(hMenu,TPM_TOPALIGN|TPM_LEFTALIGN|TPM_LEFTBUTTON,pt.x,pt.y,0,parent,NULL);
           }
           return 0;

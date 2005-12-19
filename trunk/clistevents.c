@@ -27,8 +27,6 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 void TrayIconSetToBase(char *szPreferredProto);
 static int RemoveEvent(WPARAM wParam,LPARAM lParam);
 
-extern HWND hwndContactTree;
-
 struct CListEvent {
 	int imlIconIndex;
 	int flashesDone;
@@ -101,17 +99,7 @@ static int AddEvent(WPARAM wParam,LPARAM lParam)
 	event[i].imlIconIndex=GetImlIconIndex(event[i].cle.hIcon);
 	event[i].flashesDone=12;
 	event[i].cle.pszService=mir_strdup(event[i].cle.pszService);  
-	{  
-#ifdef UNICODE
-	if (event[i].cle.flags&CLEF_UNICODE)
-		event[i].cle.pszTooltip=mir_strdupT(event[i].cle.pszTooltip);
-	else
-		event[i].cle.pszTooltip=a2u((char*)event[i].cle.pszTooltip); //if no flag defined it handled as unicode
-#else
 	event[i].cle.pszTooltip=mir_strdupT(event[i].cle.pszTooltip);//TODO convert from utf to mb
-#endif
-	
-	}
 	eventCount++;
 	if(eventCount==1) {
 		char *szProto;
@@ -123,7 +111,7 @@ static int AddEvent(WPARAM wParam,LPARAM lParam)
 	}
 	TRACE("Called ChangeContactIcon event\n");
 	ChangeContactIcon(cle->hContact,event[eventCount-1].imlIconIndex,1);
-	SortContacts(NULL);
+	pcli->pfnSortContacts();
 	return 0;
 }
 

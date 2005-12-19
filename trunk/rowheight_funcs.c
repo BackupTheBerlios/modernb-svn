@@ -206,7 +206,7 @@ void RowHeights_CalcRowHeights(struct ClcData *dat, HWND hwnd)
 	{
 		if (subindex==-1)
 		{
-			if (group->scanIndex==group->contactCount) 
+			if (group->scanIndex==group->cl.count) 
 			{
 				group=group->parent;
 				indent--;
@@ -216,13 +216,13 @@ void RowHeights_CalcRowHeights(struct ClcData *dat, HWND hwnd)
 			}
 
 			// Get item to draw
-			Drawing = &(group->contact[group->scanIndex]);
+			Drawing = group->cl.items[group->scanIndex];
 			subident = 0;
 		}
 		else
 		{
 			// Get item to draw
-			Drawing = &(group->contact[group->scanIndex].subcontacts[subindex]);
+			Drawing = &(group->cl.items[group->scanIndex]->subcontacts[subindex]);
 			subident = dat->subIndent;
 		}
 
@@ -232,11 +232,11 @@ void RowHeights_CalcRowHeights(struct ClcData *dat, HWND hwnd)
 		RowHeights_GetRowHeight(dat, hwnd, Drawing, line_num);
 
 		//increment by subcontacts
-		if (group->contact[group->scanIndex].subcontacts!=NULL && group->contact[group->scanIndex].type!=CLCIT_GROUP)
+		if (group->cl.items[group->scanIndex]->subcontacts!=NULL && group->cl.items[group->scanIndex]->type!=CLCIT_GROUP)
 		{
-			if (group->contact[group->scanIndex].SubExpanded && dat->expandMeta)
+			if (group->cl.items[group->scanIndex]->SubExpanded && dat->expandMeta)
 			{
-				if (subindex<group->contact[group->scanIndex].SubAllocated-1)
+				if (subindex<group->cl.items[group->scanIndex]->SubAllocated-1)
 				{
 					subindex++;
 				}
@@ -249,9 +249,9 @@ void RowHeights_CalcRowHeights(struct ClcData *dat, HWND hwnd)
 
 		if(subindex==-1)
 		{
-			if(group->contact[group->scanIndex].type==CLCIT_GROUP && group->contact[group->scanIndex].group->expanded) 
+			if(group->cl.items[group->scanIndex]->type==CLCIT_GROUP && group->cl.items[group->scanIndex]->group->expanded) 
 			{
-				group=group->contact[group->scanIndex].group;
+				group=group->cl.items[group->scanIndex]->group;
 				indent++;
 				group->scanIndex=0;
 				subindex=-1;
@@ -423,4 +423,12 @@ int RowHeights_HitTest(struct ClcData *dat, int pos_y)
 	}
 
 	return -1;
+}
+
+int RowHeights_GetHeight(struct ClcData *dat, int item)
+{	
+	if ( item >= dat->row_heights_size)
+		return dat->max_row_height;
+
+	return dat->row_heights[ item ];
 }

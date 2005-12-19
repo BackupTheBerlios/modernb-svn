@@ -129,7 +129,7 @@ int AskStatusMessageThread(HWND hwnd)
     }
 
 	{
-		pdnce = GetDisplayNameCacheEntry((HANDLE)h);
+		pdnce = (pdisplayNameCacheEntry)pcli->pfnGetCacheEntry((HANDLE)h);
 		if (pdnce->ApparentMode!=ID_STATUS_OFFLINE) //don't ask if contact is always invisible (should be done with protocol)
 			ACK=(HANDLE)CallContactService(h,PSS_GETAWAYMSG,0,0);
 	}   
@@ -175,7 +175,7 @@ void ReAskStatusMessage(HANDLE wParam)
   res=AddHandleToChain(wParam); 
   //if (res) {
 		//char buf[256];
-		//pdisplayNameCacheEntry pdnce = GetDisplayNameCacheEntry((HANDLE)wParam);
+		//pdisplayNameCacheEntry pdnce = pcli->pfnGetCacheEntry((HANDLE)wParam);
 		//_snprintf(buf,sizeof(buf),"XXXXX Asked PSS_GETAWAYMSG for %s(%x)\n",pdnce->name,wParam);
 		//TRACE(buf);
   //}
@@ -249,7 +249,7 @@ void Cache_DestroySmileyList( SortedList* p_list )
 		}
 	}
 
-	List_Destroy( p_list );
+	li.List_Destroy( p_list );
 }
 
 // Generate the list of smileys / text to be drawn
@@ -260,7 +260,7 @@ void Cache_ReplaceSmileys(struct ClcData *dat, struct ClcContact *contact, TCHAR
 	int last_pos=0;
         *max_smiley_height = 0;
 
-	if (!dat->text_replace_smileys || !replace_smileys || text == NULL || !ServiceExists(MS_SMILEYADD_PARSET))
+	if (!dat->text_replace_smileys || !replace_smileys || text == NULL || !ServiceExists(MS_SMILEYADD_PARSE))
 	{
 		Cache_DestroySmileyList(*plText);
 		*plText = NULL;
@@ -307,7 +307,7 @@ void Cache_ReplaceSmileys(struct ClcData *dat, struct ClcContact *contact, TCHAR
 	}
 
 	// Lets add smileys
-	*plText = List_Create( 10, 10 );
+	*plText = li.List_Create( 10, 10 );
 
 	do
 	{
@@ -321,7 +321,7 @@ void Cache_ReplaceSmileys(struct ClcData *dat, struct ClcContact *contact, TCHAR
 			piece->type = TEXT_PIECE_TYPE_TEXT;
 			piece->start_pos = last_pos ;//sp.str - text;
 			piece->len = sp.startChar-last_pos;
-			List_Append(*plText, piece);
+			li.List_Insert(*plText, piece, plText[0]->realCount);
 		}
 
 		// Add smiley
@@ -348,7 +348,7 @@ void Cache_ReplaceSmileys(struct ClcData *dat, struct ClcContact *contact, TCHAR
 				dat->text_smiley_height = max(piece->smiley_height, dat->text_smiley_height);
 				*max_smiley_height = max(piece->smiley_height, *max_smiley_height);
 
-			List_Append(*plText, piece);
+			li.List_Insert(*plText, piece, plText[0]->realCount);
 		}
 }
 		/*
@@ -378,7 +378,7 @@ void Cache_ReplaceSmileys(struct ClcData *dat, struct ClcContact *contact, TCHAR
 		piece->start_pos = last_pos;
 		piece->len = text_size-last_pos;
 
-		List_Append(*plText, piece);
+		li.List_Insert(*plText, piece, plText[0]->realCount);
 	}
 }
 
@@ -413,7 +413,7 @@ int GetStatusName(TCHAR *text, int text_size, struct ClcContact *contact, BOOL x
 
 	// Get Status name
 	{
-		TCHAR *tmp = (TCHAR *)CallService(MS_CLIST_GETSTATUSMODEDESCRIPTION, (WPARAM)contact->status, CNF_UNICODET);
+		TCHAR *tmp = (TCHAR *)CallService(MS_CLIST_GETSTATUSMODEDESCRIPTION, (WPARAM)contact->status, 0);
 		lstrcpyn(text, tmp, text_size);
 		//CopySkipUnPrintableChars(text, dbv.pszVal, text_size-1);
 		if (text[0] != '\0')
@@ -608,11 +608,7 @@ void Cache_GetLineText(struct ClcContact *contact, int type, LPTSTR text, int te
 
 void Cache_GetFirstLineText(struct ClcData *dat, struct ClcContact *contact)
 {
-  TCHAR *ch;
-  if (contact->szText) mir_free(contact->szText);
-  ch=(TCHAR*)CallService(MS_CLIST_GETCONTACTDISPLAYNAME,(WPARAM)contact->hContact,GCDNF_UNICODE/*TODO UNICODE*/);
-  contact->szText=mir_strdupT(ch);
-	
+	lstrcpyn(contact->szText, pcli->pfnGetContactDisplayName(contact->hContact,0),sizeof(contact->szText));
 	Cache_ReplaceSmileys(dat, contact, contact->szText, lstrlen(contact->szText)+1, &(contact->plText),
 		&contact->iTextMaxSmileyHeight,dat->first_line_draw_smileys);
 }
@@ -662,29 +658,29 @@ BOOL ExecuteOnAllContactsOfGroup(struct ClcGroup *group, ExecuteOnAllContactsFun
 {
 	int scanIndex, i;
 
-	for(scanIndex = 0 ; scanIndex < group->contactCount ; scanIndex++)
+	for(scanIndex = 0 ; scanIndex < group->cl.count ; scanIndex++)
 	{
-		if (group->contact[scanIndex].type == CLCIT_CONTACT)
+		if (group->cl.items[scanIndex]->type == CLCIT_CONTACT)
 		{
-			if (!func(&group->contact[scanIndex], FALSE, param))
+			if (!func(group->cl.items[scanIndex], FALSE, param))
 			{
 				return FALSE;
 			}
 
-			if (group->contact[scanIndex].SubAllocated > 0)
+			if (group->cl.items[scanIndex]->SubAllocated > 0)
 			{
-				for (i = 0 ; i < group->contact[scanIndex].SubAllocated ; i++)
+				for (i = 0 ; i < group->cl.items[scanIndex]->SubAllocated ; i++)
 				{
-					if (!func(&group->contact[scanIndex].subcontacts[i], TRUE, param))
+					if (!func(&group->cl.items[scanIndex]->subcontacts[i], TRUE, param))
 					{
 						return FALSE;
 					}
 				}
 			}
 		}
-		else if (group->contact[scanIndex].type == CLCIT_GROUP) 
+		else if (group->cl.items[scanIndex]->type == CLCIT_GROUP) 
 		{
-			if (!ExecuteOnAllContactsOfGroup(group->contact[scanIndex].group, func, param))
+			if (!ExecuteOnAllContactsOfGroup(group->cl.items[scanIndex]->group, func, param))
 			{
 				return FALSE;
 			}

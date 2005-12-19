@@ -2,8 +2,8 @@
 
 Miranda IM: the free IM client for Microsoft* Windows*
 
-Copyright 2000-2004 Miranda ICQ/IM project, 
-all portions of this codebase are copyrighted to the people 
+Copyright 2000-2004 Miranda ICQ/IM project,
+all portions of this codebase are copyrighted to the people
 listed in contributors.txt.
 
 This program is free software; you can redistribute it and/or
@@ -44,13 +44,13 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #if defined (_DEBUG)
   #define TRACE(str) OutputDebugStringA(str)
 #else
-  #define TRACE(str) 
+  #define TRACE(str)
 #endif
 
 #if defined (_DEBUG)
 #define TRACET(str) OutputDebugString(str)
 #else
-#define TRACET(str) 
+#define TRACET(str)
 #endif
 
 //   OutputDebugString(str)
@@ -66,7 +66,6 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #include <io.h>
 #include <string.h>
 #include <direct.h>
-#include "m_clist.h"
 #include "resource.h"
 #include "forkthread.h"
 #include <win2k.h>
@@ -78,6 +77,8 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #include <m_button.h>
 #include <m_options.h>
 #include <m_protosvc.h>
+#include <m_clist.h>
+#include <m_clistint.h>
 #include <m_utils.h>
 #include <m_skin.h>
 #include <m_contacts.h>
@@ -89,7 +90,6 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #include "clc.h"
 #include "clist.h"
 #include "icolib.h"
-#include "dblists.h"
 #include <m_userinfo.h>
 #include ".\CLUIFrames\cluiframes.h"
 #include ".\CLUIFrames\m_cluiframes.h"
@@ -109,9 +109,6 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #include "m_avatars.h"
 #include "m_smileyadd.h"
 
-
-#define CLS_CONTACTLIST 1
-
 // shared vars
 extern HINSTANCE g_hInst;
 
@@ -125,6 +122,7 @@ extern HINSTANCE g_hInst;
 
 */
 
+extern struct LIST_INTERFACE li;
 extern struct MM_INTERFACE memoryManagerInterface;
 
 #define alloc(n) mir_alloc(n)
@@ -137,7 +135,7 @@ extern struct MM_INTERFACE memoryManagerInterface;
 #define mir_realloc(ptr,size) memoryManagerInterface.mmi_realloc(ptr,size)
 
 #ifndef CS_DROPSHADOW
-#define CS_DROPSHADOW 0x00020000	
+#define CS_DROPSHADOW 0x00020000
 #endif
 
 extern int mir_realloc_proxy(void *ptr,int size);
@@ -174,7 +172,7 @@ extern int UnhookAll();
 
 #ifndef MYCMP
 #define MYCMP 1
-#define strcmp(a,b) MyStrCmp(a,b)	 
+#define strcmp(a,b) MyStrCmp(a,b)
 #define strlen(a) MyStrLen(a)
 #endif
 

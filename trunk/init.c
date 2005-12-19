@@ -22,23 +22,51 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 #include "commonheaders.h"
+
+#include <time.h>
+
 #include "skinEngine.h"
 extern HANDLE hSkinLoaded;
 #include "version.h"
 
 HINSTANCE g_hInst = 0;
 PLUGINLINK * pluginLink;
+CLIST_INTERFACE *pcli;
 struct MM_INTERFACE memoryManagerInterface;
+struct LIST_INTERFACE li;
 static HANDLE hCListShutdown = 0;
-extern HWND hwndContactList;
 extern int LoadMoveToGroup();
 int OnSkinLoad(WPARAM wParam, LPARAM lParam);
 void UninitSkinHotKeys();
 
-//from bgrcfg
-//extern int BGModuleLoad();
-//extern int BGModuleUnload();
+void CheckPDNCE(pdisplayNameCacheEntry pdnce);
+void FreeDisplayNameCacheItem( pdisplayNameCacheEntry p );
 
+struct ClcGroup* ( *saveAddGroup )(HWND hwnd,struct ClcData *dat,const TCHAR *szName,DWORD flags,int groupId,int calcTotalMembers);
+
+int ( *saveAddItemToGroup )( struct ClcGroup *group, int iAboveItem );
+int AddItemToGroup(struct ClcGroup *group, int iAboveItem);
+
+int ( *saveAddInfoItemToGroup)(struct ClcGroup *group,int flags,const TCHAR *pszText);
+int AddInfoItemToGroup(struct ClcGroup *group,int flags,const TCHAR *pszText);
+
+LRESULT ( CALLBACK *saveContactListControlWndProc )( HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam );
+LRESULT CALLBACK ContactListControlWndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam);
+
+LRESULT ( CALLBACK *saveContactListWndProc )(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam);
+LRESULT CALLBACK ContactListWndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam);
+
+void ( *saveDeleteItemFromTree )(HWND hwnd, HANDLE hItem);
+void DeleteItemFromTree(HWND hwnd, HANDLE hItem);
+
+void ( *saveFreeContact )( struct ClcContact* );
+void FreeContact( struct ClcContact* );
+
+void ( *saveFreeGroup )( struct ClcGroup* );
+void FreeGroup( struct ClcGroup* );
+
+LRESULT ( *saveProcessExternalMessages )(HWND hwnd,struct ClcData *dat,UINT msg,WPARAM wParam,LPARAM lParam);
+LRESULT ProcessExternalMessages(HWND hwnd,struct ClcData *dat,UINT msg,WPARAM wParam,LPARAM lParam);
 
 PLUGININFO pluginInfo = {
 	sizeof(PLUGININFO),
@@ -61,13 +89,8 @@ PLUGININFO pluginInfo = {
 	"Artem Shpynov and Ricardo Pescuma Domenecci, based on clist_mw by Bethoven",
 	"shpynov@nm.ru" ,
 	"Copyright 2000-2005 Miranda-IM project ["__DATE__" "__TIME__"]",	
-#ifdef UNICODE
 	"http://miranda-im.org/download/details.php?action=viewfile&id=2103",
 	UNICODE_AWARE,
-#else
-	"http://miranda-im.org/download/details.php?action=viewfile&id=2103",
-	0,
-#endif		
 	DEFMOD_CLISTALL
 };
 
@@ -94,24 +117,8 @@ __declspec(dllexport) PLUGININFO* MirandaPluginInfo(DWORD mirandaVersion)
 int LoadContactListModule(void);
 //int UnLoadContactListModule(void);
 int LoadCLCModule(void); 
-int LoadCLUIModule(); 
+void LoadCLUIModule(void); 
 
-static int systemModulesLoaded(WPARAM wParam, LPARAM lParam)
-{
-
-//__try	
-	{
-	int *disableDefaultModule = 0;
-	disableDefaultModule=(int*)CallService(MS_PLUGINS_GETDISABLEDEFAULTARRAY,0,0);
-	if(!disableDefaultModule[DEFMOD_UICLUI]) if( LoadCLUIModule()) return 1;
-	}
-//__except (exceptFunction(GetExceptionInformation()) ) 
-//{ 
-//		return 0; 
-//} 
-
-	return 0;
-}
 int SetDrawer(WPARAM wParam,LPARAM lParam)
 {
 	pDrawerServiceStruct DSS=(pDrawerServiceStruct)wParam;
@@ -127,7 +134,19 @@ int SetDrawer(WPARAM wParam,LPARAM lParam)
 	return 0;
 }
 
-#include "time.h"
+static struct ClcContact* fnCreateClcContact( void )
+{
+	return (struct ClcContact*)calloc( sizeof( struct ClcContact ), 1 );
+}
+
+static ClcCacheEntryBase* fnCreateCacheItem( HANDLE hContact )
+{
+	pdisplayNameCacheEntry p = (pdisplayNameCacheEntry)calloc( sizeof( displayNameCacheEntry ), 1 );
+	if ( p )
+		p->hContact = hContact;
+	return (ClcCacheEntryBase*)p;
+}
+
 int __declspec(dllexport) CListInitialise(PLUGINLINK * link)
 {
 	int rc=0;
@@ -135,33 +154,58 @@ int __declspec(dllexport) CListInitialise(PLUGINLINK * link)
 #ifdef _DEBUG
 	_CrtSetDbgFlag( _CRTDBG_ALLOC_MEM_DF | _CRTDBG_LEAK_CHECK_DF);
 #endif	
-  {
-
-
+	// get the internal malloc/free()
 	TRACE("CListInitialise ClistMW\r\n");
-    memset(&memoryManagerInterface,0,sizeof(memoryManagerInterface));
+	memset(&memoryManagerInterface,0,sizeof(memoryManagerInterface));
 	memoryManagerInterface.cbSize = sizeof(memoryManagerInterface);
 	CallService(MS_SYSTEM_GET_MMI, 0, (LPARAM)&memoryManagerInterface);
-	
-	memset(&SED,0,sizeof(SED));
 
+	// get the lists manager interface
+	li.cbSize = sizeof(li);
+	CallService(MS_SYSTEM_GET_LI, 0, (LPARAM)&li);
+
+	// get the contact list interface
+	pcli = ( CLIST_INTERFACE* )CallService(MS_CLIST_RETRIEVE_INTERFACE, 0, (LPARAM)g_hInst);
+	pcli->pfnCheckCacheItem = CheckPDNCE;
+	pcli->pfnCreateClcContact = fnCreateClcContact;
+	pcli->pfnCreateCacheItem = fnCreateCacheItem;
+	pcli->pfnFreeCacheItem = FreeDisplayNameCacheItem;
+	pcli->pfnGetRowBottomY = RowHeights_GetItemBottomY;
+	pcli->pfnGetRowHeight = RowHeights_GetHeight;
+	pcli->pfnGetRowTopY = RowHeights_GetItemTopY;
+	pcli->pfnGetRowTotalHeight = RowHeights_GetTotalHeight;
+	pcli->pfnInvalidateRect = InvalidateRectZ;
+	pcli->pfnOnCreateClc = LoadCLUIModule;
+	pcli->pfnPaintClc = PaintClc;
+	pcli->pfnRebuildEntireList = RebuildEntireList;
+	pcli->pfnRecalcScrollBar = RecalcScrollBar;
+	pcli->pfnRowHitTest = RowHeights_HitTest;
+	pcli->pfnScrollTo = ScrollTo;
+	pcli->pfnShowHide = ShowHide;
+
+	saveAddGroup = pcli->pfnAddGroup; pcli->pfnAddGroup = AddGroup;
+	saveAddInfoItemToGroup = pcli->pfnAddInfoItemToGroup; pcli->pfnAddInfoItemToGroup = AddInfoItemToGroup;
+	saveAddItemToGroup = pcli->pfnAddItemToGroup; pcli->pfnAddItemToGroup = AddItemToGroup;
+	saveContactListControlWndProc = pcli->pfnContactListControlWndProc; pcli->pfnContactListControlWndProc = ContactListControlWndProc;
+	saveContactListWndProc = pcli->pfnContactListWndProc; pcli->pfnContactListWndProc = ContactListWndProc;
+	saveDeleteItemFromTree = pcli->pfnDeleteItemFromTree; pcli->pfnDeleteItemFromTree = DeleteItemFromTree;
+	saveFreeContact = pcli->pfnFreeContact; pcli->pfnFreeContact = FreeContact;
+	saveFreeGroup = pcli->pfnFreeGroup; pcli->pfnFreeGroup = FreeGroup;
+	saveProcessExternalMessages = pcli->pfnProcessExternalMessages; pcli->pfnProcessExternalMessages = ProcessExternalMessages;
+
+	memset(&SED,0,sizeof(SED));
 	CreateServiceFunction(CLUI_SetDrawerService,SetDrawer);
 
-    ///test///
-//	LoadSkinFromIniFile("C:\\test.ini");
-    
+	///test///
 	LoadSkinModule();
 	rc=LoadContactListModule();
 	if (rc==0) rc=LoadCLCModule();
 
-	HookEvent(ME_SYSTEM_MODULESLOADED, systemModulesLoaded);
 	LoadMoveToGroup();
 	//BGModuleLoad();	
-   
-    //CallTest();
-    TRACE("CListInitialise ClistMW...Done\r\n");
 
-}
+	//CallTest();
+	TRACE("CListInitialise ClistMW...Done\r\n");
 	return rc;
 }
 
@@ -177,21 +221,20 @@ int __declspec(dllexport) Load(PLUGINLINK * link)
 int __declspec(dllexport) Unload(void)
 {
 	TRACE("Unloading ClistMW\r\n");
-    if (IsWindow(hwndContactList)) DestroyWindow(hwndContactList);
+	if (IsWindow(pcli->hwndContactList)) DestroyWindow(pcli->hwndContactList);
 	//BGModuleUnload();
-//    UnLoadContactListModule();
-    UninitSkinHotKeys();
-    UnhookEvent(hSkinLoaded);
-    UnloadSkinModule();
+	//    UnLoadContactListModule();
+	UninitSkinHotKeys();
+	UnhookEvent(hSkinLoaded);
+	UnloadSkinModule();
 
-   	hwndContactList=0;
-  TRACE("***&&& NEED TO UNHOOK ALL EVENTS &&&***\r\n");
-  UnhookAll();
+	pcli->hwndContactList=0;
+	TRACE("***&&& NEED TO UNHOOK ALL EVENTS &&&***\r\n");
+	UnhookAll();
 	TRACE("Unloading ClistMW COMPLETE\r\n");
-
-    
 	return 0;
 }
+
 typedef struct _HookRec
 {
   HANDLE hHook;
@@ -202,80 +245,77 @@ typedef struct _HookRec
 HookRec * hooksrec=NULL;
 DWORD hooksRecAlloced=0;
     
-    
 #undef HookEvent
 #undef UnhookEvent
 
 HANDLE MyHookEvent(char *EventID,MIRANDAHOOK HookProc)
 {
-  HookRec * hr=NULL;
-  DWORD i;
-  //1. Find free
-  for (i=0;i<hooksRecAlloced;i++)
-  {
-    if (hooksrec[i].hHook==NULL) 
-    {
-      hr=&(hooksrec[i]);
-      break;
-    }
-  }
-  if (hr==NULL)
-  {
-    //2. Need realloc
-    hooksrec=(HookRec*)mir_realloc(hooksrec,sizeof(HookRec)*(hooksRecAlloced+1));
-    hr=&(hooksrec[hooksRecAlloced]);
-    hooksRecAlloced++;
-  }
-  //3. Hook and rec
-  hr->hHook=pluginLink->HookEvent(EventID,HookProc);
-  hr->HookStr=NULL;
+	HookRec * hr=NULL;
+	DWORD i;
+	//1. Find free
+	for (i=0;i<hooksRecAlloced;i++)
+	{
+		if (hooksrec[i].hHook==NULL) 
+		{
+			hr=&(hooksrec[i]);
+			break;
+		}
+	}
+	if (hr==NULL)
+	{
+		//2. Need realloc
+		hooksrec=(HookRec*)mir_realloc(hooksrec,sizeof(HookRec)*(hooksRecAlloced+1));
+		hr=&(hooksrec[hooksRecAlloced]);
+		hooksRecAlloced++;
+	}
+	//3. Hook and rec
+	hr->hHook=pluginLink->HookEvent(EventID,HookProc);
+	hr->HookStr=NULL;
 #ifdef _DEBUG
-  if (hr->hHook) hr->HookStr=mir_strdup(EventID);
+	if (hr->hHook) hr->HookStr=mir_strdup(EventID);
 #endif
-  //3. Hook and rec
-  return hr->hHook;
+	//3. Hook and rec
+	return hr->hHook;
 }
 
 int MyUnhookEvent(HANDLE hHook)
 {
-  DWORD i;
-  //1. Find free
-  for (i=0;i<hooksRecAlloced;i++)
-  {
-    if (hooksrec[i].hHook==hHook) 
-    {
-      pluginLink->UnhookEvent(hHook);
-      hooksrec[i].hHook=NULL;
-      if (hooksrec[i].HookStr) mir_free(hooksrec[i].HookStr);
-      return 1;
-    }
-  }
+	DWORD i;
+	//1. Find free
+	for (i=0;i<hooksRecAlloced;i++)
+	{
+		if (hooksrec[i].hHook==hHook) 
+		{
+			pluginLink->UnhookEvent(hHook);
+			hooksrec[i].hHook=NULL;
+			if (hooksrec[i].HookStr) mir_free(hooksrec[i].HookStr);
+			return 1;
+		}
+	}
 	return 0;
 }
 
 int UnhookAll()
 {
-  DWORD i;
-  TRACE("Unhooked Events:\n");
-  for (i=0;i<hooksRecAlloced;i++)
-  {
-    if (hooksrec[i].hHook!=NULL) 
-    {
-      pluginLink->UnhookEvent(hooksrec[i].hHook);
-      hooksrec[i].hHook=NULL;
-      if (hooksrec[i].HookStr) 
-      {
-        TRACE(hooksrec[i].HookStr);
-        TRACE("\n");
-        mir_free(hooksrec[i].HookStr);
-      }
-    }
-  }  
-  mir_free(hooksrec);
-  return 1;
+	DWORD i;
+	TRACE("Unhooked Events:\n");
+	for (i=0;i<hooksRecAlloced;i++)
+	{
+		if (hooksrec[i].hHook!=NULL) 
+		{
+			pluginLink->UnhookEvent(hooksrec[i].hHook);
+			hooksrec[i].hHook=NULL;
+			if (hooksrec[i].HookStr) 
+			{
+				TRACE(hooksrec[i].HookStr);
+				TRACE("\n");
+				mir_free(hooksrec[i].HookStr);
+			}
+		}
+	}  
+	mir_free(hooksrec);
+	return 1;
 }
 
 #define HookEvent(a,b)  MyHookEvent(a,b)
 #define UnhookEvent(a)  MyUnhookEvent(a)
-
- 

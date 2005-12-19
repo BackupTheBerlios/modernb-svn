@@ -1,4 +1,3 @@
-#include "commonheaders.h"
 #include "clist.h"
 #include "CLUIFRAMES\cluiframes.h"
 extern int BltBackImage (HWND destHWND, HDC destDC, RECT * BltClientRect);
@@ -34,7 +33,6 @@ extern BOOL MyAlphaBlend(HDC hdcDest,int nXOriginDest,int nYOriginDest,int nWidt
 extern int GetProtoIndexByPos(PROTOCOLDESCRIPTOR ** proto, int protoCnt, int Pos);
 extern int BehindEdge_Show();
 extern int UpdateTimer(BYTE BringIn);
-extern pdisplayNameCacheEntry GetDisplayNameCacheEntry(HANDLE hContact);
 extern int ClcProtoAck(WPARAM wParam,LPARAM lParam);
 extern BOOL FillRect255Alpha(HDC memdc,RECT *fr);
 extern int ShowHide(WPARAM wParam,LPARAM lParam);
@@ -47,7 +45,6 @@ extern int ReloadCLUIOptions();
 
 //External
 
-extern HWND hwndContactList;
 extern HANDLE hSkinLoaded;                        
 extern struct ModernMaskList *MainModernMaskList;
 extern wndFrame * FindFrameByItsHWND(HWND FrameHwnd);
@@ -74,8 +71,6 @@ extern BOOL FillRgn255Alpha(HDC memdc,HRGN hrgn);
 
 extern int ReposButtons(HWND parent, BOOL draw, RECT * r);
 
-extern HWND hwndContactTree,hwndContactList,hwndStatus;
-extern HANDLE hClcWindowList;
 extern char *DBGetStringA(HANDLE hContact,const char *szModule,const char *szSetting);
 extern int CreateTimerForConnectingIcon(WPARAM,LPARAM);
 extern BOOL ImageList_DrawEx_New( HIMAGELIST himl,int i,HDC hdcDst,int x,int y,int dx,int dy,COLORREF rgbBk,COLORREF rgbFg,UINT fStyle);
