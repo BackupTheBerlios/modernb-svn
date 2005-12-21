@@ -202,10 +202,15 @@ extern int ShowWindowNew(HWND hwnd, int cmd);
 
 #ifdef UNICODE
 	#define DBGetStringT(a,b,c) DBGetStringW(a,b,c)
+	#define GCMDF_TCHAR_MY GCMDF_TCHAR|CNF_UNICODE
 #else
 	#define DBGetStringT(a,b,c) DBGetStringA(a,b,c)
+	#define GCMDF_TCHAR_MY 0
 #endif
 
 extern char* Utf8EncodeUcs2( const wchar_t* src );
 extern void Utf8Decode( char* str, wchar_t** ucs2 );
+
+
+
 #endif

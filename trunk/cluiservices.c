@@ -33,12 +33,8 @@ int CluiProtocolStatusChanged(WPARAM wParam,LPARAM lParam)
 
 int SortList(WPARAM wParam,LPARAM lParam)
 {
-	//unnecessary: CLC does this automatically
-  //  SortClcByTimer(pcli->hwndContactList);
- //   HANDLE hClcWindowList1=(HANDLE)CallService(MS_UTILS_ALLOCWINDOWLIST,0,0);
     pcli->pfnClcBroadcast( WM_TIMER,TIMERID_DELAYEDRESORTCLC,0);
-    pcli->pfnClcBroadcast( INTM_SCROLLBARCHANGED,0,0);
-    
+    pcli->pfnClcBroadcast( INTM_SCROLLBARCHANGED,0,0);  
 	return 0;
 }
 

@@ -22,7 +22,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 #include "commonheaders.h"
 
-int EventsProcessTrayDoubleClick(void);
+//int EventsProcessTrayDoubleClick(void);
 int ShowHide(WPARAM wParam,LPARAM lParam);
 int InitSkinHotKeys(void);
 int RegistersAllHotkey(HWND hwnd); 
@@ -77,7 +77,7 @@ int hkSearch(WPARAM wParam,LPARAM lParam)
 
 int hkRead(WPARAM wParam,LPARAM lParam)
 {
-	if(EventsProcessTrayDoubleClick()==0) return TRUE;
+	if(pcli->pfnEventsProcessTrayDoubleClick()==0) return TRUE;
 	SetForegroundWindow((HWND)CallService(MS_CLUI_GETHWND,0,0));
 	SetFocus((HWND)CallService(MS_CLUI_GETHWND,0,0));
 	return 0;
@@ -247,25 +247,6 @@ int UnRegistersAllHotkey(HWND hwnd)
 
 int HotKeysProcess(HWND hwnd,WPARAM wParam,LPARAM lParam)
 {
-	/*
-	if (wParam==aHide)
-	ShowHide(0,0);
-	else if (wParam==aSearch) {
-	DBVARIANT dbv;
-	if(!DBGetContactSetting(NULL,"CList","SearchUrl",&dbv)) {
-	CallService(MS_UTILS_OPENURL,DBGetContactSettingByte(NULL,"CList","HKSearchNewWnd",0),(LPARAM)dbv.pszVal);
-	mir_free(dbv.pszVal);
-	}
-	}
-	else if (wParam==aRead) {
-	if(EventsProcessTrayDoubleClick()==0) return TRUE;
-	SetForegroundWindow(hwnd);
-	SetFocus(hwnd);
-	}
-	else if (wParam==aOpts) {
-	CallService("Options/OptionsCommand",0, 0);
-	}
-	*/
 	return TRUE;
 } 
 
@@ -661,7 +642,7 @@ BOOL CALLBACK DlgProcHotKeyOpts2(HWND hwndDlg, UINT msg, WPARAM wParam, LPARAM l
 			break;
 		case IDC_HOTKEYTREE:
 			switch(((NMHDR*)lParam)->code) {
-			case TVN_SELCHANGED:
+			case TVN_SELCHANGEDA:
 				{
 					NMTREEVIEWA *pnmtv = (NMTREEVIEWA*)lParam;
 					TVITEMA tvi = pnmtv->itemNew;
