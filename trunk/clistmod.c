@@ -165,7 +165,10 @@ static int ContactListShutdownProc(WPARAM wParam,LPARAM lParam)
 //	UninitCListEvents();
 	return 0;
 }
-
+extern int ToggleHideOffline(WPARAM wParam,LPARAM lParam);
+//{
+//	return CallService(MS_CLIST_SETHIDEOFFLINE,(WPARAM)(-1),0);
+//}
 int LoadContactListModule(void)
 {
 	/*	HANDLE hContact = (HANDLE) CallService(MS_DB_CONTACT_FINDFIRST, 0, 0);
@@ -185,6 +188,7 @@ int LoadContactListModule(void)
 	CreateServiceFunction(MS_CLIST_TRAYICONPROCESSMESSAGE,TrayIconProcessMessage);
 	CreateServiceFunction(MS_CLIST_PAUSEAUTOHIDE,TrayIconPauseAutoHide);
 	CreateServiceFunction(MS_CLIST_CONTACTCHANGEGROUP,ContactChangeGroup);
+	CreateServiceFunction(MS_CLIST_TOGGLEHIDEOFFLINE,ToggleHideOffline);
 
 	
 	MySetProcessWorkingSetSize=(BOOL (WINAPI*)(HANDLE,SIZE_T,SIZE_T))GetProcAddress(GetModuleHandle(TEXT("kernel32")),"SetProcessWorkingSetSize");

@@ -52,6 +52,8 @@ ClcProtoStatus *clcProto = NULL;
 HIMAGELIST himlCListClc=NULL;
 struct ClcContact * hitcontact=NULL;
 
+extern void UpdateAllAvatars(struct ClcData *dat);
+
 struct AvatarOverlayIconConfig 
 {
 	char *name;
@@ -114,8 +116,9 @@ static int ClcSettingChanged(WPARAM wParam,LPARAM lParam)
 			if (!strcmp(cws->szSetting,"Timezone"))
 				pcli->pfnClcBroadcast( INTM_TIMEZONECHANGED,wParam,0);	
 		}
-		else if (!strcmp(cws->szModule,"CList") &&0) 
+		else if (!strcmp(cws->szModule,"CList")) 
 		{
+			/*
 			if(!strcmp(cws->szSetting,"MyHandle"))
 				pcli->pfnClcBroadcast( INTM_NAMECHANGED,wParam,lParam);
     		else if(!strcmp(cws->szSetting,"Group"))
@@ -130,7 +133,9 @@ static int ClcSettingChanged(WPARAM wParam,LPARAM lParam)
 				pcli->pfnClcBroadcast( INTM_STATUSCHANGED,wParam,0);
 			else if(!strcmp(cws->szSetting,"NameOrder"))
 				pcli->pfnClcBroadcast( INTM_NAMEORDERCHANGED,0,0);
-			else if(!strcmp(cws->szSetting,"StatusMsg")) 
+			else
+			*/
+			if(!strcmp(cws->szSetting,"StatusMsg")) 
 				pcli->pfnClcBroadcast( INTM_STATUSMSGCHANGED,wParam,0);    
 		}
 		else if(!strcmp(cws->szModule,"ContactPhoto")) 
@@ -322,7 +327,7 @@ static int ClcShutdown(WPARAM wParam,LPARAM lParam)
 
 int AvatarChanged(WPARAM wParam, LPARAM lParam)
 {
-	pcli->pfnClcBroadcast(  INTM_AVATARCHANGED, wParam, lParam);
+	pcli->pfnClcBroadcast(INTM_AVATARCHANGED, wParam, lParam);
 	return 0;
 }
 /*
@@ -546,9 +551,10 @@ LRESULT CALLBACK ContactListControlWndProc(HWND hwnd, UINT msg, WPARAM wParam, L
 	case INTM_AVATARCHANGED:
 		{
 			struct ClcContact *contact;
-			if (!FindItem(hwnd,dat,(HANDLE)wParam,&contact,NULL,NULL,FALSE)) 
-				break;
-			Cache_GetAvatar(dat, contact); 
+			if (FindItem(hwnd,dat,(HANDLE)wParam,&contact,NULL,NULL,FALSE)) 
+				Cache_GetAvatar(dat, contact); 
+			else if (dat->use_avatar_service && !wParam)
+				UpdateAllAvatars(dat);
 			skinInvalidateRect(hwnd, NULL, FALSE);
 			return 0;
 		}
