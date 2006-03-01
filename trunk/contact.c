@@ -72,7 +72,7 @@ void ChangeContactIcon(HANDLE hContact,int iIcon,int add)
 					int MetaStatus;
 					szMetaProto=(char*)CallService(MS_PROTO_GETCONTACTBASEPROTO,(UINT)hContact,0);
 					MetaStatus=DBGetContactSettingWord(hContact,szMetaProto,"Status",ID_STATUS_OFFLINE);
-					iMetaStatusIcon=pcli->pfnIconFromStatusMode(szMetaProto,MetaStatus);
+					iMetaStatusIcon=pcli->pfnIconFromStatusMode(szMetaProto,MetaStatus,NULL);
 					if (iIcon==iMetaStatusIcon) //going to set meta icon but need to set most online icon
 					{
 							hMostMeta=(HANDLE)CallService(MS_MC_GETMOSTONLINECONTACT,(UINT)hContact,0);
@@ -83,14 +83,14 @@ void ChangeContactIcon(HANDLE hContact,int iIcon,int add)
 						
 							szRealProto=(char*)CallService(MS_PROTO_GETCONTACTBASEPROTO,(UINT)hMostMeta,0);
 							RealStatus=DBGetContactSettingWord(hMostMeta,szRealProto,"Status",ID_STATUS_OFFLINE);
-							iIcon=pcli->pfnIconFromStatusMode(szRealProto,RealStatus);
+							iIcon=pcli->pfnIconFromStatusMode(szRealProto,RealStatus,NULL);
 
 						}
 					}
 				}
-		
+	//clui MS_CLUI_CONTACTADDED MS_CLUI_CONTACTSETICON this methods is null
 	saveChangeContactIcon((HANDLE) hContact,(int) iIcon,(int) add);
-
+	//CallService(add?MS_CLUI_CONTACTADDED:MS_CLUI_CONTACTSETICON,(WPARAM)hContact,iIcon);
 }
 
 static int GetStatusModeOrdering(int statusMode)
@@ -101,53 +101,17 @@ static int GetStatusModeOrdering(int statusMode)
 	return 1000;
 }
 
-void LoadContactTree(void)
+/*void ReLoadContactTree(void)
 {
-	HANDLE hContact;
-	int i,hideOffline,status,tick;
-	pdisplayNameCacheEntry cacheEntry;
-		
-
-
-	tick=GetTickCount();
-	CallService(MS_CLUI_LISTBEGINREBUILD,0,0);
-	for(i=1;;i++) {
-		if ( pcli->pfnGetGroupName(i, NULL) == NULL) break;
-		CallService(MS_CLUI_GROUPADDED,i,0);
-	}
-
 	hideOffline=DBGetContactSettingByte(NULL,"CList","HideOffline",SETTING_HIDEOFFLINE_DEFAULT);
-	hContact=(HANDLE)CallService(MS_DB_CONTACT_FINDFIRST,0,0);
 
-	while(hContact!=NULL) {
-		cacheEntry=(pdisplayNameCacheEntry)pcli->pfnGetCacheEntry(hContact);
-		if (cacheEntry==NULL)
-		{
-			MessageBoxA(0,"Fail To Get CacheEntry for hContact","!!!!!",0);
-			break;
-		}
-		status=cacheEntry->status;
-		if((!hideOffline || status!=ID_STATUS_OFFLINE) && !cacheEntry->Hidden)
-			ChangeContactIcon(hContact,ExtIconFromStatusMode(hContact,(char*)cacheEntry->szProto,status),1);
-		hContact=(HANDLE)CallService(MS_DB_CONTACT_FINDNEXT,(WPARAM)hContact,0);
-	}
 	sortBy[0]=DBGetContactSettingByte(NULL,"CList","SortBy1",SETTING_SORTBY1_DEFAULT);
 	sortBy[1]=DBGetContactSettingByte(NULL,"CList","SortBy2",SETTING_SORTBY2_DEFAULT);
 	sortBy[2]=DBGetContactSettingByte(NULL,"CList","SortBy3",SETTING_SORTBY3_DEFAULT);
 	sortNoOfflineBottom=DBGetContactSettingByte(NULL,"CList","NoOfflineBottom",SETTING_NOOFFLINEBOTTOM_DEFAULT);
 
 	CallService(MS_CLUI_SORTLIST,0,0);
-	CallService(MS_CLUI_LISTENDREBUILD,0,0);
-	
-	tick=GetTickCount()-tick;
-	{
-	char buf[255];
-	//sprintf(buf,"%s %s took %i ms",__FILE__,__LINE__,tick);
-	sprintf(buf,"LoadContactTree %d \r\n",tick);
-
-	TRACE(buf);
-	}
-}
+}*/
 DWORD CompareContacts2_getLMTime(HANDLE u)
 {
 	HANDLE hDbEvent;
@@ -177,7 +141,7 @@ int GetProtoIndex(char * szName)
     pc=DBGetContactSettingDword(NULL,"Protocols","ProtoCount",-1);
     for (i=0; i<pc; i++)
     {
-        itoa(i,buf,10);
+        _itoa(i,buf,10);
         name=DBGetStringA(NULL,"Protocols",buf);
         if (name)
         {
@@ -200,7 +164,7 @@ int CompareContacts2(const struct ClcContact *contact1,const struct ClcContact *
 	TCHAR *namea, *nameb;
 	int statusa,statusb;
 	char *szProto1,*szProto2;
-
+	
 	if ((int)contact1<100 || (int)contact2<100) return 0;
 	
 	a=contact1->hContact;

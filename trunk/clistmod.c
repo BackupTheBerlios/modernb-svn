@@ -77,7 +77,7 @@ static HANDLE hSettingChanged;
 int ExtIconFromStatusMode(HANDLE hContact, const char *szProto,int status)
 {
 	if (DBGetContactSettingByte(NULL,"CLC","Meta",0)==1)
-		return pcli->pfnIconFromStatusMode(szProto,status);
+		return pcli->pfnIconFromStatusMode(szProto,status,hContact);
 	if (szProto!=NULL)
 		if (MyStrCmp(szProto,"MetaContacts")==0)      {
 			hContact=(HANDLE)CallService(MS_MC_GETMOSTONLINECONTACT,(UINT)hContact,0);
@@ -86,57 +86,10 @@ int ExtIconFromStatusMode(HANDLE hContact, const char *szProto,int status)
 				status=DBGetContactSettingWord(hContact,szProto,"Status",ID_STATUS_OFFLINE);
 		}	}
 
-	return pcli->pfnIconFromStatusMode(szProto,status);
+	return pcli->pfnIconFromStatusMode(szProto,status,hContact);
 }
 /////////// End by FYR ////////
 
-static int GetStatusModeDescriptionW(WPARAM wParam,LPARAM lParam)
-{
-	static TCHAR szMode[64];
-	TCHAR *descr;
-	int noPrefixReqd=0;
-	switch(wParam) {
-	case ID_STATUS_OFFLINE:	descr=TranslateT("Offline"); noPrefixReqd=1; break;
-	case ID_STATUS_CONNECTING: descr=TranslateT("Connecting"); noPrefixReqd=1; break;
-	case ID_STATUS_ONLINE: descr=TranslateT("Online"); noPrefixReqd=1; break;
-	case ID_STATUS_AWAY: descr=TranslateT("Away"); break;
-	case ID_STATUS_DND:	descr=TranslateT("DND"); break;
-	case ID_STATUS_NA: descr=TranslateT("NA"); break;
-	case ID_STATUS_OCCUPIED: descr=TranslateT("Occupied"); break;
-	case ID_STATUS_FREECHAT: descr=TranslateT("Free for chat"); break;
-	case ID_STATUS_INVISIBLE: descr=TranslateT("Invisible"); break;
-	case ID_STATUS_OUTTOLUNCH: descr=TranslateT("Out to lunch"); break;
-	case ID_STATUS_ONTHEPHONE: descr=TranslateT("On the phone"); break;
-	case ID_STATUS_IDLE: descr=TranslateT("Idle"); break;
-	default:
-		if(wParam>ID_STATUS_CONNECTING && wParam<ID_STATUS_CONNECTING+MAX_CONNECT_RETRIES) {
-			_sntprintf(szMode,sizeof(szMode),TranslateT("Connecting (attempt %d)"),wParam-ID_STATUS_CONNECTING+1);
-			return (int)szMode;
-		}
-		return (int)(TCHAR*)NULL;
-	}
-	if(noPrefixReqd || !(lParam&GSMDF_PREFIXONLINE)) return (int)descr;
-	lstrcpy(szMode,TranslateT("Online"));
-	lstrcat(szMode,TEXT(": "));
-	lstrcat(szMode,descr);
-	return (int)szMode;
-}
-static int GetStatusModeDescription(WPARAM wParam,LPARAM lParam)
-{
-#ifdef UNICODE
-	if (!(lParam&CNF_UNICODE))
-	{
-		static char szMode[64]={0};
-		TCHAR *buf1=(TCHAR*)GetStatusModeDescriptionW(wParam,lParam);
-		char *buf2=u2a(buf1);
-		_snprintf(szMode,sizeof(szMode),"%s",buf2);
-		mir_free(buf2);
-		return (int)szMode;
-	}
-	else
-#endif
-	return GetStatusModeDescriptionW(wParam,lParam);
-}
 
 int GetContactIconC(pdisplayNameCacheEntry cacheEntry)
 {
@@ -157,18 +110,15 @@ int GetContactIcon(WPARAM wParam,LPARAM lParam)
 	return ExtIconFromStatusMode((HANDLE)wParam,szProto,szProto==NULL?ID_STATUS_OFFLINE:status); //by FYR
 }
 
-
 static int ContactListShutdownProc(WPARAM wParam,LPARAM lParam)
 {
 	UnhookEvent(hSettingChanged);
 	UninitCustomMenus();
-//	UninitCListEvents();
+	//UninitCListEvents();
 	return 0;
 }
 extern int ToggleHideOffline(WPARAM wParam,LPARAM lParam);
-//{
-//	return CallService(MS_CLIST_SETHIDEOFFLINE,(WPARAM)(-1),0);
-//}
+
 int LoadContactListModule(void)
 {
 	/*	HANDLE hContact = (HANDLE) CallService(MS_DB_CONTACT_FINDFIRST, 0, 0);
@@ -184,17 +134,16 @@ int LoadContactListModule(void)
 	HookEvent(ME_DB_CONTACT_ADDED,ContactAdded);
 	hStatusModeChangeEvent=CreateHookableEvent(ME_CLIST_STATUSMODECHANGE);
 	hContactIconChangedEvent=CreateHookableEvent(ME_CLIST_CONTACTICONCHANGED);
-	CreateServiceFunction(MS_CLIST_GETSTATUSMODEDESCRIPTION,GetStatusModeDescription);
 	CreateServiceFunction(MS_CLIST_TRAYICONPROCESSMESSAGE,TrayIconProcessMessage);
 	CreateServiceFunction(MS_CLIST_PAUSEAUTOHIDE,TrayIconPauseAutoHide);
 	CreateServiceFunction(MS_CLIST_CONTACTCHANGEGROUP,ContactChangeGroup);
 	CreateServiceFunction(MS_CLIST_TOGGLEHIDEOFFLINE,ToggleHideOffline);
+	CreateServiceFunction(MS_CLIST_GETCONTACTICON,GetContactIcon);
 
-	
 	MySetProcessWorkingSetSize=(BOOL (WINAPI*)(HANDLE,SIZE_T,SIZE_T))GetProcAddress(GetModuleHandle(TEXT("kernel32")),"SetProcessWorkingSetSize");
 	hCListImages = ImageList_Create(16, 16, ILC_MASK|ILC_COLOR32, 32, 0);
 
-//	InitCListEvents();
+	//InitCListEvents();
 	InitCustomMenus();
 	InitTray();
 

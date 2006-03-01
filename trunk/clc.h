@@ -130,8 +130,8 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #define FONTID_INVIS       1
 #define FONTID_OFFLINE     2
 #define FONTID_NOTONLIST   3
-#define FONTID_GROUPS      4
-#define FONTID_GROUPCOUNTS 5
+#define FONTID_OPENGROUPS      4
+#define FONTID_OPENGROUPCOUNTS 5
 #define FONTID_DIVIDERS    6
 #define FONTID_OFFINVIS    7
 #define FONTID_SECONDLINE  8
@@ -145,6 +145,11 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #define FONTID_PHONE		16
 #define FONTID_LUNCH		17
 #define FONTID_CONTACT_TIME	18
+#define FONTID_CLOSEDGROUPS 19
+#define FONTID_CLOSEDGROUPCOUNTS 20
+
+
+#define FONTID_MODERN_MAX 20
 
 struct ClcGroup;
 
@@ -321,6 +326,8 @@ struct ClcData {
 	// Row
 	int row_min_heigh;
 	int row_border;
+	int row_before_group_space;
+
 	BOOL row_variable_height;
 	BOOL row_align_left_items_to_left;
 	BOOL row_align_right_items_to_right;
@@ -338,7 +345,9 @@ struct ClcData {
 	BOOL avatars_ignore_size_for_row_height;
 	BOOL avatars_draw_overlay;
 	int avatars_overlay_type;
-	int avatars_size;
+	
+	int avatars_maxheight_size;
+	int avatars_maxwidth_size;
 
 	// Icon
 	BOOL icon_hide_on_avatar;
@@ -382,6 +391,8 @@ struct ClcData {
 	BOOL third_line_xstatus_has_priority;
 	BOOL third_line_show_status_if_no_away;
 	BOOL third_line_use_name_and_message_for_xstatus;
+	struct ClcFontInfo fontModernInfo[FONTID_MODERN_MAX+1];
+	HWND hWnd;
 };
 
 //clc.c
@@ -470,6 +481,22 @@ typedef struct {
 } ExternDrawer,*pExternDrawer ;
 
 ExternDrawer SED;
+
+//add a new hotkey so it has a default and can be changed in the options dialog
+//wParam=0
+//lParam=(LPARAM)(SKINHOTKEYDESC*)ssd;
+//returns 0 on success, nonzero otherwise
+
+typedef struct {
+	int cbSize;
+	const char *pszName;		   //name to refer to sound when playing and in db
+	const char *pszDescription;	   //description for options dialog
+//    const char *pszDefaultFile;    //default sound file to use
+    const char *pszSection;        //section name used to group sounds (NULL is acceptable)
+	const char *pszService;        //Service to call when HotKey Pressed
+
+	int DefHotKey; //default hot key for action
+} SKINHOTKEYDESCEX;
 
 #define MS_SKIN_ADDHOTKEY      "Skin/HotKeys/AddNew"
 #define MS_SKIN_PLAYHOTKEY		"Skin/HotKeys/Run"

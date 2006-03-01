@@ -74,7 +74,7 @@ int SaveTree(HWND hwndDlg)
 							runtimepos=0;
 
 							while(tvi.hItem!=NULL) {
-								//itoa(count,buf,10);
+								//_itoa(count,buf,10);
 								TreeView_GetItemA(GetDlgItem(hwndDlg,IDC_MENUITEMS),&tvi);
 								name=((MenuItemOptData *)tvi.lParam)->name;
 #ifdef _DEBUG	
@@ -261,7 +261,7 @@ int BuildTree(HWND hwndDlg,int MenuObjectId)
 				
 				{
 				
-					DBVARIANT dbv;
+					DBVARIANT dbv={0};
 					sprintf(buf, "%s_name", menuItemName);
 					
 					if (!DBGetContactSetting(NULL, MenuNameItems, buf, &dbv))
@@ -414,10 +414,10 @@ static BOOL CALLBACK GenMenuOpts(HWND hwndDlg, UINT msg, WPARAM wParam, LPARAM l
 
 			TranslateDialogDefault(hwndDlg);
 			dat=(struct OrderData*)mir_alloc(sizeof(struct OrderData));
-			SetWindowLong(GetDlgItem(hwndDlg,IDC_MENUITEMS),GWL_USERDATA,(LONG)dat);
+			SetWindowLong(GetDlgItem(hwndDlg,IDC_MENUITEMS),GWL_USERDATA,(long)dat);
 			dat->dragging=0;
             MyOldWindowProc=(WNDPROC)GetWindowLong(GetDlgItem(hwndDlg,IDC_MENUITEMS),GWL_WNDPROC);
-	        SetWindowLong(GetDlgItem(hwndDlg,IDC_MENUITEMS),GWL_WNDPROC,(LONG)&LBTNDOWNProc);
+	        SetWindowLong(GetDlgItem(hwndDlg,IDC_MENUITEMS),GWL_WNDPROC,(long)&LBTNDOWNProc);
 
 			
 			//SetWindowLong(GetDlgItem(hwndDlg,IDC_BUTTONORDERTREE),GWL_STYLE,GetWindowLong(GetDlgItem(hwndDlg,IDC_BUTTONORDERTREE),GWL_STYLE)|TVS_NOHSCROLL);

@@ -608,7 +608,8 @@ static BOOL CALLBACK DlgSkinOpts(HWND hwndDlg, UINT msg, WPARAM wParam, LPARAM l
 					sd=(SkinListData*)SendDlgItemMessage(hwndDlg,IDC_SKINS_LIST,LB_GETITEMDATA,(WPARAM)item,(LPARAM)0);              
 					if (!sd) return 0;
 					LoadSkinFromIniFile(sd->File);
-					LoadSkinFromDB();				
+					LoadSkinFromDB();	
+					pcli->pfnClcBroadcast( INTM_RELOADOPTIONS,0,0);
 					CLUIFramesOnClistResize2(0,0,0);
 					RedrawCompleteWindow();        
           CLUIFramesOnClistResize2(0,0,0);
@@ -821,7 +822,7 @@ static BOOL CALLBACK DlgSkinOpts(HWND hwndDlg, UINT msg, WPARAM wParam, LPARAM l
 				//DrawImage
 				if (!gdiPlusFail) //Use gdi+ engine
 				{
-					DrawAvatarImageWithGDIp(memDC,imgPos.x,imgPos.y,dWidth,dHeight,hPreviewBitmap,0,0,bmp.bmWidth,bmp.bmHeight,8);
+					DrawAvatarImageWithGDIp(memDC,imgPos.x,imgPos.y,dWidth,dHeight,hPreviewBitmap,0,0,bmp.bmWidth,bmp.bmHeight,8,255);
 				}   
 				else
 				{

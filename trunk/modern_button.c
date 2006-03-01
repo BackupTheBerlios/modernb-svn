@@ -155,15 +155,15 @@ int PaintWorker(HWND hwnd, HDC whdc)
           }         
         case 'd':
             defval=DBGetContactSettingDword(NULL,section,key,defval);
-            Value=mir_strdup(ltoa(defval,buf,sizeof(buf)));
+            Value=mir_strdup(_ltoa(defval,buf,sizeof(buf)));
             break;
         case 'w':
             defval=DBGetContactSettingWord(NULL,section,key,defval);
-            Value=mir_strdup(ltoa(defval,buf,sizeof(buf)));
+            Value=mir_strdup(_ltoa(defval,buf,sizeof(buf)));
             break;
         case 'b':
             defval=DBGetContactSettingByte(NULL,section,key,defval);
-            Value=mir_strdup(ltoa(defval,buf,sizeof(buf)));
+            Value=mir_strdup(_ltoa(defval,buf,sizeof(buf)));
             break;
         }
         mir_free(section);
@@ -302,7 +302,7 @@ static LRESULT CALLBACK ModernButtonWndProc(HWND hwndDlg, UINT msg,  WPARAM wPar
           //			//bct->hFont = GetStockObject(DEFAULT_GUI_FONT);
           //		    bct->HandleService=NULL;
           //            bct->ID=NULL;
-          //			SetWindowLong(hwndDlg, 0, (LONG)bct);
+          //			SetWindowLong(hwndDlg, 0, (long)bct);
           if (((CREATESTRUCT *)lParam)->lpszName) SetWindowText(hwndDlg, ((CREATESTRUCT *)lParam)->lpszName);  
           return TRUE;
         }
@@ -336,7 +336,7 @@ static LRESULT CALLBACK ModernButtonWndProc(HWND hwndDlg, UINT msg,  WPARAM wPar
 
             mir_free(bct);
           }
-          SetWindowLong(hwndDlg,0,(LONG)NULL);
+          SetWindowLong(hwndDlg,0,(long)NULL);
           break;	// DONT! fall thru
         }
       case WM_SETCURSOR:
@@ -458,8 +458,19 @@ int SetToolTip(HWND hwnd, TCHAR * tip)
   if (!tip) return 0;
   EnterCriticalSection(&csTips);
   if (!hwndToolTips) {
-    hwndToolTips = CreateWindowEx(WS_EX_TOPMOST, TOOLTIPS_CLASS, TEXT(""), WS_POPUP, 0, 0, 0, 0, NULL, NULL, GetModuleHandle(NULL), NULL);
+  //  hwndToolTips = CreateWindowEx(WS_EX_TOPMOST, TOOLTIPS_CLASS, TEXT(""), WS_POPUP, 0, 0, 0, 0, NULL, NULL, GetModuleHandle(NULL), NULL);
+
+	hwndToolTips = CreateWindowEx(0, TOOLTIPS_CLASS, NULL,
+		WS_POPUP | TTS_NOPREFIX | TTS_ALWAYSTIP,
+		CW_USEDEFAULT, CW_USEDEFAULT,
+		CW_USEDEFAULT, CW_USEDEFAULT,
+		hwnd, NULL, GetModuleHandle(NULL),
+		NULL);
+
+	SetWindowPos(hwndToolTips, HWND_TOPMOST,0, 0, 0, 0,
+		SWP_NOMOVE | SWP_NOSIZE | SWP_NOACTIVATE);
   }
+
   ZeroMemory(&ti, sizeof(ti));
   ti.cbSize = sizeof(ti);
   ti.uFlags = TTF_IDISHWND;
@@ -472,6 +483,7 @@ int SetToolTip(HWND hwnd, TCHAR * tip)
   ti.uId = (UINT)hwnd;
   ti.lpszText=(TCHAR*)tip;
   SendMessage(hwndToolTips,TTM_ADDTOOL,0,(LPARAM)&ti);
+
   LeaveCriticalSection(&csTips);
   return 0;
 }
@@ -581,7 +593,7 @@ HWND CreateButtonWindow(ModernButtonCtrl * bct, HWND parent)
   hwnd=CreateWindowA(MODERNBUTTONCLASS,bct->ID,WS_VISIBLE|WS_CHILD,bct->Left,bct->Top,bct->Right-bct->Left,bct->Bottom-bct->Top,parent,NULL,g_hInst,NULL);       
   bct->hwnd = hwnd;	
   bct->focus = 0;
-  SetWindowLong(hwnd, 0, (LONG)bct);
+  SetWindowLong(hwnd, 0, (long)bct);
   return hwnd;
 }
 
@@ -616,6 +628,14 @@ int ReposButtons(HWND parent, BOOL draw, RECT * r)
   RECT clr;
   RECT rd;
   BOOL altDraw=FALSE;
+#ifdef _DEBUG
+  {
+	  char buf[256];
+	  static unsigned long c=0;
+	  _snprintf(buf, sizeof(buf),"Reposition Buttons N%d\n",c++);
+	  TRACE(buf);
+  }
+#endif
   GetWindowRect(parent,&rd);
   GetClientRect(parent,&clr);
   if (!r)
@@ -656,7 +676,7 @@ int ReposButtons(HWND parent, BOOL draw, RECT * r)
       ShowWindowNew(Buttons[i].hwnd,SW_HIDE);
     else 
       ShowWindowNew(Buttons[i].hwnd,SW_SHOW);
-    if (altDraw&&
+    if ((1 || altDraw)&&
         (Buttons[i].bct->Left!=l ||
           Buttons[i].bct->Top!=t  ||
           Buttons[i].bct->Right!=r||

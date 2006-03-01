@@ -27,7 +27,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 int HotKeysRegister(HWND hwnd);
 void HotKeysUnregister(HWND hwnd);
-void LoadContactTree(void);
+//void LoadContactTree(void);
 
 static BOOL CALLBACK DlgProcItemsOpts(HWND hwndDlg, UINT msg, WPARAM wParam, LPARAM lParam);
 static BOOL CALLBACK DlgProcGenOpts(HWND hwndDlg, UINT msg, WPARAM wParam, LPARAM lParam);
@@ -104,7 +104,7 @@ static BOOL CALLBACK DlgProcItemRowOpts(HWND hwndDlg, UINT msg, WPARAM wParam, L
 
 			SendDlgItemMessage(hwndDlg,IDC_ROW_BORDER_SPIN,UDM_SETBUDDY,(WPARAM)GetDlgItem(hwndDlg,IDC_ROW_BORDER),0);		// set buddy			
 			SendDlgItemMessage(hwndDlg,IDC_ROW_BORDER_SPIN,UDM_SETRANGE,0,MAKELONG(255,0));
-			SendDlgItemMessage(hwndDlg,IDC_ROW_BORDER_SPIN,UDM_SETPOS,0,MAKELONG(DBGetContactSettingWord(NULL,"CList","RowBorder",2),0));
+			SendDlgItemMessage(hwndDlg,IDC_ROW_BORDER_SPIN,UDM_SETPOS,0,MAKELONG(DBGetContactSettingWord(NULL,"CList","RowBorder",1),0));
 
 			CheckDlgButton(hwndDlg, IDC_VARIABLE_ROW_HEIGHT, DBGetContactSettingByte(NULL,"CList","VariableRowHeight",1) == 1 ? BST_CHECKED : BST_UNCHECKED );
 			CheckDlgButton(hwndDlg, IDC_ALIGN_TO_LEFT, DBGetContactSettingByte(NULL,"CList","AlignLeftItemsToLeft",1) == 1 ? BST_CHECKED : BST_UNCHECKED );
@@ -728,7 +728,7 @@ static BOOL CALLBACK DlgProcItemSecondLineOpts(HWND hwndDlg, UINT msg, WPARAM wP
 			CheckDlgButton(hwndDlg, IDC_DRAW_SMILEYS, DBGetContactSettingByte(NULL,"CList","SecondLineDrawSmileys",1) == 1 ? BST_CHECKED : BST_UNCHECKED);
 
 			{
-				DBVARIANT dbv;
+				DBVARIANT dbv={0};
 
 				if (!DBGetContactSettingTString(NULL, "CList","SecondLineText", &dbv))
 				{
@@ -911,7 +911,7 @@ static BOOL CALLBACK DlgProcItemThirdLineOpts(HWND hwndDlg, UINT msg, WPARAM wPa
 			CheckDlgButton(hwndDlg, IDC_DRAW_SMILEYS, DBGetContactSettingByte(NULL,"CList","ThirdLineDrawSmileys",0) == 1 ? BST_CHECKED : BST_UNCHECKED );
 
 			{
-				DBVARIANT dbv;
+				DBVARIANT dbv={0};
 
 				if (!DBGetContactSettingTString(NULL, "CList","ThirdLineText", &dbv))
 				{
@@ -1188,7 +1188,7 @@ static BOOL CALLBACK DlgProcItemsOpts(HWND hwndDlg, UINT msg, WPARAM wParam, LPA
 
 			data = (WndItemsData *) mir_alloc(sizeof(WndItemsData));
 			data->selected_item = -1;
-			SetWindowLong(hwndDlg, GWL_USERDATA, (LONG) data); 
+			SetWindowLong(hwndDlg, GWL_USERDATA, (long) data); 
 
 			hwndTab = GetDlgItem(hwndDlg, IDC_TAB);
 
@@ -1258,7 +1258,8 @@ static BOOL CALLBACK DlgProcItemsOpts(HWND hwndDlg, UINT msg, WPARAM wParam, LPA
 							SendMessage(data->items[i].hwnd, msg, wParam, lParam);
 						}
 
-						LoadContactTree(); /* this won't do job properly since it only really works when changes happen */
+						pcli->pfnLoadContactTree();
+						//ReLoadContactTree();/* this won't do job properly since it only really works when changes happen */
 						ClcOptionsChanged(); // Used to force loading avatar an list height related options
 						SendMessage(pcli->hwndContactTree,CLM_AUTOREBUILD,0,0); /* force reshuffle */
 						return TRUE;
@@ -1297,7 +1298,7 @@ static BOOL CALLBACK DlgProcGenOpts(HWND hwndDlg, UINT msg, WPARAM wParam, LPARA
 			HANDLE hContact=(HANDLE)wParam;
 			DBCONTACTWRITESETTING * ws = (DBCONTACTWRITESETTING *)lParam;
 			if ( hContact == NULL && ws != NULL && ws->szModule != NULL && ws->szSetting != NULL
-				&& strcmpi(ws->szModule,"CList")==0 && strcmpi(ws->szSetting,"UseGroups")==0
+				&& _strcmpi(ws->szModule,"CList")==0 && _strcmpi(ws->szSetting,"UseGroups")==0
 				&& IsWindowVisible(hwndDlg) ) {
 					CheckDlgButton(hwndDlg,IDC_DISABLEGROUPS,ws->value.bVal == 0);
 				}
@@ -1311,7 +1312,7 @@ static BOOL CALLBACK DlgProcGenOpts(HWND hwndDlg, UINT msg, WPARAM wParam, LPARA
 
 	case WM_INITDIALOG:
 		TranslateDialogDefault(hwndDlg);
-		SetWindowLong(hwndDlg, GWL_USERDATA, (LONG)HookEventMessage(ME_DB_CONTACT_SETTINGCHANGED,hwndDlg,WM_USER+1));
+		SetWindowLong(hwndDlg, GWL_USERDATA, (long)HookEventMessage(ME_DB_CONTACT_SETTINGCHANGED,hwndDlg,WM_USER+1));
 
 		CheckDlgButton(hwndDlg, IDC_ONTOP, DBGetContactSettingByte(NULL,"CList","OnTop",SETTING_ONTOP_DEFAULT) ? BST_CHECKED : BST_UNCHECKED);
 		CheckDlgButton(hwndDlg, IDC_HIDEOFFLINE, DBGetContactSettingByte(NULL,"CList","HideOffline",SETTING_HIDEOFFLINE_DEFAULT) ? BST_CHECKED : BST_UNCHECKED);
@@ -1462,7 +1463,7 @@ static BOOL CALLBACK DlgProcGenOpts(HWND hwndDlg, UINT msg, WPARAM wParam, LPARA
 		if((LOWORD(wParam)==IDC_HIDETIME || LOWORD(wParam)==IDC_CYCLETIME) && HIWORD(wParam)!=EN_CHANGE) break;
 		if(LOWORD(wParam)==IDC_PRIMARYSTATUS && HIWORD(wParam)!=CBN_SELCHANGE) break;
 		if((LOWORD(wParam)==IDC_HIDETIME || LOWORD(wParam)==IDC_CYCLETIME) && (HIWORD(wParam)!=EN_CHANGE || (HWND)lParam!=GetFocus())) return 0;
-		if (LOWORD(wParam)==IDC_BLINKTIME && HIWORD(wParam) != EN_CHANGE || (HWND)lParam != GetFocus()) return 0; // dont make apply enabled during buddy set crap
+		if (LOWORD(wParam)==IDC_BLINKTIME && (HIWORD(wParam) != EN_CHANGE || (HWND)lParam != GetFocus())) return 0; // dont make apply enabled during buddy set crap
 		//			if (LOWORD(wParam)==IDC_AVATAR_SIZE && HIWORD(wParam) != EN_CHANGE || (HWND)lParam != GetFocus()) return 0; // dont make apply enabled during buddy set crap
 		//			if (LOWORD(wParam)==IDC_MIN_ROW_HEIGHT && HIWORD(wParam) != EN_CHANGE || (HWND)lParam != GetFocus()) return 0; // dont make apply enabled during buddy set crap
 		//			if (LOWORD(wParam)==IDC_ROW_BORDER && HIWORD(wParam) != EN_CHANGE || (HWND)lParam != GetFocus()) return 0; // dont make apply enabled during buddy set crap
@@ -1521,7 +1522,7 @@ static BOOL CALLBACK DlgProcGenOpts(HWND hwndDlg, UINT msg, WPARAM wParam, LPARA
 				DBDeleteContactSetting(NULL, "CList","PrimaryStatus");
 			else DBWriteContactSettingString(NULL,"CList","PrimaryStatus",((PROTOCOLDESCRIPTOR*)SendDlgItemMessage(hwndDlg,IDC_PRIMARYSTATUS,CB_GETITEMDATA,SendDlgItemMessage(hwndDlg,IDC_PRIMARYSTATUS,CB_GETCURSEL,0,0),0))->szName);
 			pcli->pfnTrayIconIconsChanged();
-			LoadContactTree(); /* this won't do job properly since it only really works when changes happen */
+			pcli->pfnLoadContactTree(); /* this won't do job properly since it only really works when changes happen */
 			SendMessage(pcli->hwndContactTree,CLM_AUTOREBUILD,0,0); /* force reshuffle */
 			ClcOptionsChanged(); // Used to force loading avatar an list height related options
 			return TRUE;
@@ -1538,7 +1539,7 @@ static BOOL CALLBACK DlgProcHotkeyOpts(HWND hwndDlg, UINT msg, WPARAM wParam, LP
 	switch (msg)
 	{
 	case WM_INITDIALOG:
-		{	DBVARIANT dbv;
+		{	DBVARIANT dbv={0};
 
 		TranslateDialogDefault(hwndDlg);
 

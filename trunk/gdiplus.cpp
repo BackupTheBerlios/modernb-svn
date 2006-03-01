@@ -7,7 +7,7 @@
 #ifdef _DEBUG
 #	define _CRTDBG_MAP_ALLOC
 #	include <stdlib.h>
-#	include <crtdbg.h>
+//#	include <crtdbg.h>
 #endif
 
 #define _WIN32_WINNT 0x0501
@@ -165,43 +165,85 @@ extern "C" void TextOutWithGDIp(HDC hDestDC, int x, int y, LPCTSTR lpString, int
 //
 }
 
-extern "C" void DrawAvatarImageWithGDIp(HDC hDestDC,int x, int y, DWORD width, DWORD height, HBITMAP hbmp, int x1, int y1, DWORD width1, DWORD height1,DWORD flag)
+extern "C" void DrawAvatarImageWithGDIp(HDC hDestDC,int x, int y, DWORD width, DWORD height, HBITMAP hbmp, int x1, int y1, DWORD width1, DWORD height1,DWORD flag,BYTE alpha)
 {
    BITMAP bmp;
    Bitmap *bm;
+   BYTE * bmbits=NULL;
    GetObject(hbmp,sizeof(BITMAP),&bmp);
    Graphics g(hDestDC);   
    if (bmp.bmBitsPixel==32 && (flag&AVS_PREMULTIPLIED))
    {   
-      bm= new Bitmap(bmp.bmWidth,bmp.bmHeight,bmp.bmWidthBytes,PixelFormat32bppPARGB,(BYTE*)bmp.bmBits);
+      bmbits=(BYTE*)bmp.bmBits;
+      if (!bmbits)
+      {
+        bmbits=(BYTE*)malloc(bmp.bmHeight*bmp.bmWidthBytes);
+        GetBitmapBits(hbmp,bmp.bmHeight*bmp.bmWidthBytes,bmbits);
+      }
+      bm= new Bitmap(bmp.bmWidth,bmp.bmHeight,bmp.bmWidthBytes,PixelFormat32bppPARGB,bmbits);
       bm->RotateFlip(RotateNoneFlipY);
+      if (!bmp.bmBits) 
+      {
+      bm->RotateFlip(RotateNoneFlipY);
+        free(bmbits);
+      }
    }
    else 
      bm=new Bitmap(hbmp,NULL);
    
    ImageAttributes attr;
-   //ClrMatrix.m[3][3] = (REAL)(255) / 255.0f
-   //attr.SetColorMatrix(&ClrMatrix, ColorMatrixFlagsDefault, ColorAdjustTypeBitmap);
-   //
-   
+    ColorMatrix ClrMatrix = 
+    { 
+            1.0f, 0.0f, 0.0f, 0.0f, 0.0f,
+            0.0f, 1.0f, 0.0f, 0.0f, 0.0f,
+            0.0f, 0.0f, 1.0f, 0.0f, 0.0f,
+            0.0f, 0.0f, 0.0f, ((float)alpha)/255, 0.0f,
+            0.0f, 0.0f, 0.0f, 0.0f, 1.0f
+    };
+    attr.SetColorMatrix(&ClrMatrix, ColorMatrixFlagsDefault,ColorAdjustTypeBitmap);
     g.SetInterpolationMode(InterpolationModeHighQualityBicubic);
-    //if (x<0)
-    //{
-    //  x1-=x;
-    //  width1+=x;
-    //  width+=x;
-    //  x=0;
-    //}
-    //if (y<0)
-    //{
-    //  y1-=x;
-    //  height1+=y;
-    //  height+=y;
-    //  y=0;
-    //}
-    RectF rect((float)x,(float)y,(float)width,(float)height);
+	RectF rect((float)x,(float)y,(float)width,(float)height);
     g.DrawImage(bm, rect, (float)x1, (float)y1, (float)width1, (float)height1 , UnitPixel, &attr, NULL, NULL);
     delete bm;
+}
+extern "C" bool AlphaBlengGDIPlus(HDC hdcDest,int nXOriginDest,int nYOriginDest,int nWidthDest,int nHeightDest,
+								  HDC hdcSrc,int nXOriginSrc,int nYOriginSrc,int nWidthSrc,int nHeightSrc, 
+								  BLENDFUNCTION * bf)
+{
+	Graphics g(hdcDest);
+	BITMAP bmp;
+	HBITMAP hbmp=(HBITMAP)GetCurrentObject(hdcSrc,OBJ_BITMAP);
+	GetObject(hbmp,sizeof(BITMAP),&bmp);
+	Bitmap *bm=new Bitmap(hbmp,NULL);
+	if (bmp.bmBitsPixel==32 && bf->AlphaFormat)
+	{   
+		bm= new Bitmap(bmp.bmWidth,bmp.bmHeight,bmp.bmWidthBytes,PixelFormat32bppPARGB,(BYTE*)bmp.bmBits);
+		bm->RotateFlip(RotateNoneFlipY);
+	}
+	else 
+		bm=new Bitmap(hbmp,NULL);
+	ImageAttributes attr;
+	ColorMatrix ClrMatrix = 
+	{ 
+		1.0f, 0.0f, 0.0f, 0.0f, 0.0f,
+			0.0f, 1.0f, 0.0f, 0.0f, 0.0f,
+			0.0f, 0.0f, 1.0f, 0.0f, 0.0f,
+			0.0f, 0.0f, 0.0f, ((float)bf->SourceConstantAlpha)/255, 0.0f,
+			0.0f, 0.0f, 0.0f, 0.0f, 1.0f
+	};
+	attr.SetColorMatrix(&ClrMatrix, ColorMatrixFlagsDefault,ColorAdjustTypeBitmap);
+	if (nWidthDest<nWidthSrc && nHeightDest<nHeightSrc)
+		g.SetInterpolationMode(InterpolationModeHighQualityBicubic);
+	else
+	{
+		g.SetInterpolationMode(InterpolationModeLowQuality);
+		//g.SetPixelOffsetMode(PixelOffsetModeHalf);
+	}
+	
+	RectF rect((float)nXOriginDest,(float)nYOriginDest,(float)nWidthDest,(float)nHeightDest);
+	g.DrawImage(bm, rect, (float)nXOriginSrc, (float)nYOriginSrc, (float)nWidthSrc, (float)nHeightSrc , UnitPixel, &attr, NULL, NULL);
+	delete bm;
+	return TRUE;
 }
 //extern "C" void DrawWithGDIp(HDC hDC, DWORD x, DWORD y, DWORD width, DWORD height, UCHAR alpha, struct ClcContact *contact)
 //{

@@ -46,6 +46,14 @@ exclusively externally
 2->1: GetRowByIndex()
 */
 
+int GetContactIndex(struct ClcGroup *group,struct ClcContact *contact)
+{
+  int i=0;
+  for (i=0; i<group->cl.count; i++)
+    if (group->cl.items[i]->hContact==contact->hContact)  return i;
+  return -1;
+}
+
 int GetRowsPriorTo(struct ClcGroup *group,struct ClcGroup *subgroup,int contactIndex)
 {
 	int count=0;
@@ -81,6 +89,11 @@ int GetRowsPriorTo(struct ClcGroup *group,struct ClcGroup *subgroup,int contactI
 		group->scanIndex++;
 	}
 	return -1;
+}
+
+int sfnFindItem(HWND hwnd,struct ClcData *dat,HANDLE hItem,struct ClcContact **contact,struct ClcGroup **subgroup,int *isVisible)
+{
+  return FindItem(hwnd,dat, hItem,contact,subgroup,isVisible,FALSE);
 }
 
 int FindItem(HWND hwnd,struct ClcData *dat,HANDLE hItem,struct ClcContact **contact,struct ClcGroup **subgroup,int *isVisible, BOOL isIgnoreSubcontacts)

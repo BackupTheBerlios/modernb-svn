@@ -40,7 +40,7 @@ int GetStatusForContact(HANDLE hContact,char *szProto);
 TCHAR *UnknownConctactTranslatedName;
 extern boolean OnModulesLoadedCalled;
 void InvalidateDisplayNameCacheEntryByPDNE(HANDLE hContact,pdisplayNameCacheEntry pdnce,int SettingType);
-extern int GetClientIconByMirVer(pdisplayNameCacheEntry pdnce);
+
 
 static int handleCompare( void* c1, void* c2 )
 {
@@ -59,8 +59,8 @@ static int handleCompare( void* c1, void* c2 )
 	return p1 - p2;
 }
 
-//void InitDisplayNameCache(SortedList *list)
-//{
+
+
 //	int i, idx;
 //	HANDLE hContact;
 //
@@ -89,19 +89,17 @@ void FreeDisplayNameCacheItem( pdisplayNameCacheEntry p )
 		if ( p->szName) { mir_free(p->szName); p->szName = NULL; }
 	#endif
 	if ( p->szGroup) { mir_free(p->szGroup); p->szGroup = NULL; }
-	if ( p->MirVer)  { mir_free(p->MirVer);  p->MirVer  = NULL; }
 }
 
 void FreeDisplayNameCache(SortedList *list)
 {
 	int i;
-
-	for( i=0; i < list->realCount; i++) {
-		FreeDisplayNameCacheItem(( pdisplayNameCacheEntry )list->items[i] );
-		mir_free(list->items[i]);
-	}
-	
+		for( i=0; i < list->realCount; i++) {
+			FreeDisplayNameCacheItem(( pdisplayNameCacheEntry )list->items[i] );
+			mir_free(list->items[i]);
+		}
 	li.List_Destroy(list);
+
 }
 
 void CheckPDNCE(pdisplayNameCacheEntry pdnce)
@@ -172,7 +170,7 @@ void CheckPDNCE(pdisplayNameCacheEntry pdnce)
 		}
 		if (pdnce->szGroup==NULL)
 		{
-			DBVARIANT dbv;
+			DBVARIANT dbv={0};
 
 			if (!DBGetContactSettingTString(pdnce->hContact,"CList","Group",&dbv))
 			{
@@ -217,20 +215,6 @@ void CheckPDNCE(pdisplayNameCacheEntry pdnce)
 		{
 			pdnce->IsExpanded=DBGetContactSettingByte(pdnce->hContact,"CList","Expanded",0);
 		}
-
-		if (pdnce->MirVer==NULL||pdnce->ci.idxClientIcon==-2||pdnce->ci.idxClientIcon==-2)
-		{
-			if (pdnce->MirVer) mir_free(pdnce->MirVer);
-			pdnce->MirVer=DBGetStringA(pdnce->hContact,pdnce->szProto,"MirVer");
-			if (!pdnce->MirVer) pdnce->MirVer=mir_strdup("");
-			pdnce->ci.ClientID=-1;
-			pdnce->ci.idxClientIcon=-1;
-			if (pdnce->MirVer!=NULL)
-			{
-				GetClientIconByMirVer(pdnce);
-			}
-
-		}
 	}
 }
 
@@ -259,12 +243,6 @@ void InvalidateDisplayNameCacheEntryByPDNE(HANDLE hContact,pdisplayNameCacheEntr
 			pdnce->isUnknown=FALSE;
 			pdnce->noHiddenOffline=-1;
 			pdnce->IsExpanded=-1;
-			if (pdnce->MirVer) mir_free(pdnce->MirVer);
-			pdnce->MirVer=NULL;
-
-			pdnce->ci.ClientID=-2;
-			pdnce->ci.idxClientIcon=-2;
-
 			return;
 		}
 		if (SettingType==DBVT_ASCIIZ||SettingType==DBVT_BLOB)
@@ -272,14 +250,9 @@ void InvalidateDisplayNameCacheEntryByPDNE(HANDLE hContact,pdisplayNameCacheEntr
 			if (pdnce->name) mir_free(pdnce->name);
 			if (pdnce->szGroup) mir_free(pdnce->szGroup);
 			//if (pdnce->szProto) mir_free(pdnce->szProto);
-			if (pdnce->MirVer) mir_free(pdnce->MirVer);			
 			pdnce->name=NULL;			
 			pdnce->szGroup=NULL;
 			pdnce->szProto=NULL;				
-			pdnce->MirVer=NULL;
-			pdnce->ci.ClientID=-2;
-			pdnce->ci.idxClientIcon=-2;
-
 			return;
 		}
 		// in other cases clear all binary cache
@@ -293,12 +266,6 @@ void InvalidateDisplayNameCacheEntryByPDNE(HANDLE hContact,pdisplayNameCacheEntr
 		pdnce->isUnknown=FALSE;
 		pdnce->noHiddenOffline=-1;
 		pdnce->IsExpanded=-1;
-		//Can cause start delay
-   		    if (pdnce->MirVer) mir_free(pdnce->MirVer);
-			pdnce->MirVer=NULL;
-			pdnce->ci.ClientID=-2;
-			pdnce->ci.idxClientIcon=-2;
-
 	};
 };
 
@@ -376,7 +343,7 @@ extern void ReAskStatusMessage(HANDLE wParam);
 int ContactSettingChanged(WPARAM wParam,LPARAM lParam)
 {
 	DBCONTACTWRITESETTING *cws = (DBCONTACTWRITESETTING*)lParam;
-	DBVARIANT dbv;
+	DBVARIANT dbv={0};
 	pdisplayNameCacheEntry pdnce;
 
 	// Early exit

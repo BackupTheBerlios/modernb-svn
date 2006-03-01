@@ -225,8 +225,11 @@ void ReAskStatusMessage(HANDLE wParam)
  */
 void Cache_GetTimezone(struct ClcData *dat, struct ClcContact *contact)
 {
-	contact->timezone = (DWORD)DBGetContactSettingByte(contact->hContact,"UserInfo","Timezone", 
+	if (IsBadWritePtr(contact,sizeof(struct ClcContact))) return;
+	if (!IsBadStringPtrA(contact->proto,100))
+		contact->timezone = (DWORD)DBGetContactSettingByte(contact->hContact,"UserInfo","Timezone", 
 									DBGetContactSettingByte(contact->hContact, contact->proto,"Timezone",-1));
+	else contact->timezone =-1;
 	contact->timediff = 0;
 
 	if (contact->timezone != -1)
@@ -278,9 +281,10 @@ void Cache_DestroySmileyList( SortedList* p_list )
 				}
 			}
 		}
+		li.List_Destroy( p_list );
 	}
-
-	li.List_Destroy( p_list );
+	free(p_list);
+	
 }
 
 
@@ -341,7 +345,7 @@ void Cache_ReplaceSmileys(struct ClcData *dat, struct ClcContact *contact, TCHAR
 	}
 
 	// Lets add smileys
-	*plText = li.List_Create( 10, 10 );
+	*plText = li.List_Create( 0, 10 );
 
 	do
 	{
@@ -368,19 +372,22 @@ void Cache_ReplaceSmileys(struct ClcData *dat, struct ClcContact *contact, TCHAR
 			piece->len = sp.size;
 			piece->smiley = sp.SmileyIcon;
 
-			if (GetIconInfo(piece->smiley, &icon) && GetObject(icon.hbmColor,sizeof(BITMAP),&bm))
+			piece->smiley_width = 16;
+			piece->smiley_height = 16;
+			if (GetIconInfo(piece->smiley, &icon))
 			{
-				piece->smiley_width = bm.bmWidth;
-				piece->smiley_height = bm.bmHeight;
-			}
-			else
-			{
-				piece->smiley_width = 16;
-				piece->smiley_height = 16;
+				if (GetObject(icon.hbmColor,sizeof(BITMAP),&bm))
+				{
+					piece->smiley_width = bm.bmWidth;
+					piece->smiley_height = bm.bmHeight;
+				}
+
+				DeleteObject(icon.hbmMask);
+				DeleteObject(icon.hbmColor);
 			}
 
-				dat->text_smiley_height = max(piece->smiley_height, dat->text_smiley_height);
-				*max_smiley_height = max(piece->smiley_height, *max_smiley_height);
+			dat->text_smiley_height = max(piece->smiley_height, dat->text_smiley_height);
+			*max_smiley_height = max(piece->smiley_height, *max_smiley_height);
 
 			li.List_Insert(*plText, piece, plText[0]->realCount);
 		}
@@ -435,7 +442,7 @@ int GetStatusName(TCHAR *text, int text_size, struct ClcContact *contact, BOOL x
 	// Get XStatusName
 	if (!noAwayMsg&& !noXstatus&& xstatus_has_priority && contact->hContact && contact->proto)
 	{
-		DBVARIANT dbv;
+		DBVARIANT dbv={0};
 		if (!DBGetContactSettingTString(contact->hContact, contact->proto, "XStatusName", &dbv)) 
 		{
 			//lstrcpyn(text, dbv.pszVal, text_size);
@@ -459,7 +466,7 @@ int GetStatusName(TCHAR *text, int text_size, struct ClcContact *contact, BOOL x
 	// Get XStatusName
 	if (!noAwayMsg && !noXstatus && !xstatus_has_priority && contact->hContact && contact->proto)
 	{
-		DBVARIANT dbv;
+		DBVARIANT dbv={0};
 		if (!DBGetContactSettingTString(contact->hContact, contact->proto, "XStatusName", &dbv)) 
 		{
 			//lstrcpyn(text, dbv.pszVal, text_size);
@@ -480,7 +487,7 @@ int GetStatusName(TCHAR *text, int text_size, struct ClcContact *contact, BOOL x
 */
 int GetStatusMessage(TCHAR *text, int text_size, struct ClcContact *contact, BOOL xstatus_has_priority) 
 {
-	DBVARIANT dbv;
+	DBVARIANT dbv={0};
 	BOOL noAwayMsg=FALSE;
 	text[0] = '\0';
 	if (contact->status==0)
@@ -549,7 +556,7 @@ void Cache_GetLineText(struct ClcContact *contact, int type, LPTSTR text, int te
 		{
 			if (GetStatusName(text, text_size, contact, xstatus_has_priority) == -1 && use_name_and_message_for_xstatus)
 			{
-				DBVARIANT dbv;
+				DBVARIANT dbv={0};
 
 				// Try to get XStatusMsg
 				if (!DBGetContactSettingTString(contact->hContact, contact->proto, "XStatusMsg", &dbv)) 
@@ -570,7 +577,7 @@ void Cache_GetLineText(struct ClcContact *contact, int type, LPTSTR text, int te
 		{
 			if (contact->hContact && contact->proto)
 			{
-				DBVARIANT dbv;
+				DBVARIANT dbv={0};
 				if (!DBGetContactSettingTString(contact->hContact, contact->proto, "Nick", &dbv)) 
 				{
 					lstrcpyn(text, dbv.ptszVal, text_size);
@@ -583,7 +590,7 @@ void Cache_GetLineText(struct ClcContact *contact, int type, LPTSTR text, int te
 		{
 			if (GetStatusMessage(text, text_size, contact, xstatus_has_priority) == -1 && use_name_and_message_for_xstatus)
 			{
-				DBVARIANT dbv;
+				DBVARIANT dbv={0};
 
 				// Try to get XStatusName
 				if (!DBGetContactSettingTString(contact->hContact, contact->proto, "XStatusName", &dbv)) 
@@ -594,6 +601,17 @@ void Cache_GetLineText(struct ClcContact *contact, int type, LPTSTR text, int te
 						mir_sntprintf(text, text_size, TEXT("%s: %s"), dbv.pszVal, tmp);
 						mir_free(tmp);
 					}
+					DBFreeVariant(&dbv);
+				}
+			}
+			else if (use_name_and_message_for_xstatus && xstatus_has_priority)
+			{
+				DBVARIANT dbv={0};
+				// Try to get XStatusName
+				if (!DBGetContactSettingTString(contact->hContact, contact->proto, "XStatusName", &dbv)) 
+				{
+					if (dbv.pszVal != NULL && dbv.pszVal[0] != 0)
+						mir_sntprintf(text, text_size, TEXT("%s"), dbv.pszVal);
 					DBFreeVariant(&dbv);
 				}
 			}
@@ -632,7 +650,7 @@ void Cache_GetLineText(struct ClcContact *contact, int type, LPTSTR text, int te
 				dbtts.szDest = text;
 				dbtts.cbDest = 70;
 				dbtts.szFormat = TEXT("t");
-				CallService(MS_DB_TIME_TIMESTAMPTOSTRINGT, contact_time, (LPARAM) & dbtts);
+				CallService(MS_DB_TIME_TIMESTAMPTOSTRINGT, (WPARAM)contact_time, (LPARAM) & dbtts);
 			}
 
 			break;
@@ -651,7 +669,7 @@ void Cache_GetLineText(struct ClcContact *contact, int type, LPTSTR text, int te
 */
 void Cache_GetFirstLineText(struct ClcData *dat, struct ClcContact *contact)
 {
-	lstrcpyn(contact->szText, pcli->pfnGetContactDisplayName(contact->hContact,0),sizeof(contact->szText));
+	lstrcpyn(contact->szText, pcli->pfnGetContactDisplayName(contact->hContact,0),SIZEOF(contact->szText));
 	Cache_ReplaceSmileys(dat, contact, contact->szText, lstrlen(contact->szText)+1, &(contact->plText),
 		&contact->iTextMaxSmileyHeight,dat->first_line_draw_smileys);
 }
@@ -809,7 +827,7 @@ void Cache_GetAvatar(struct ClcData *dat, struct ClcContact *contact)
 			}
 
 			if (contact->avatar_data != NULL)
-				contact->avatar_data->t_lastAccess = time(NULL);
+				contact->avatar_data->t_lastAccess = (DWORD)time(NULL);
 		}
 		else
 		{
@@ -823,7 +841,7 @@ void Cache_GetAvatar(struct ClcData *dat, struct ClcContact *contact)
 		contact->avatar_pos = AVATAR_POS_DONT_HAVE;
 		if (dat->avatars_show && !DBGetContactSettingByte(contact->hContact, "CList", "HideContactAvatar", 0))
 		{
-			DBVARIANT dbv;
+			DBVARIANT dbv={0};
 			if (!DBGetContactSetting(contact->hContact, "ContactPhoto", "File", &dbv) && (dbv.type == DBVT_ASCIIZ || dbv.type == DBVT_UTF8))
 			{
 				HBITMAP hBmp = (HBITMAP) CallService(MS_UTILS_LOADBITMAP, 0, (LPARAM)dbv.pszVal);
@@ -843,8 +861,8 @@ void Cache_GetAvatar(struct ClcData *dat, struct ClcContact *contact)
 						RECT rc = {0};
 
 						// Clipping width and height
-						width_clip = dat->avatars_size;
-						height_clip = dat->avatars_size;
+						width_clip = dat->avatars_maxheight_size;
+						height_clip = dat->avatars_maxheight_size;
 
 						if (height_clip * bm.bmWidth / bm.bmHeight <= width_clip)
 						{

@@ -2,8 +2,8 @@
 
 Miranda IM: the free IM client for Microsoft* Windows*
 
-Copyright 2000-2004 Miranda ICQ/IM project, 
-all portions of this codebase are copyrighted to the people 
+Copyright 2000-2004 Miranda ICQ/IM project,
+all portions of this codebase are copyrighted to the people
 listed in contributors.txt.
 
 This program is free software; you can redistribute it and/or
@@ -22,6 +22,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
 #include "commonheaders.h"
+#include "commonprototypes.h"
 
 #include <time.h>
 
@@ -39,15 +40,31 @@ extern int LoadMoveToGroup();
 int OnSkinLoad(WPARAM wParam, LPARAM lParam);
 void UninitSkinHotKeys();
 
-void CheckPDNCE(pdisplayNameCacheEntry pdnce);
-void FreeDisplayNameCacheItem( pdisplayNameCacheEntry p );
-extern int HotKeysRegister(HWND hwnd);
-extern int HotKeysUnregister(HWND hwnd);
-extern int HotKeysProcess(HWND hwnd,WPARAM wParam,LPARAM lParam);
-extern int HotkeysProcessMessage(WPARAM wParam,LPARAM lParam);
+void  CalcEipPosition( struct ClcData *dat, struct ClcContact *contact, struct ClcGroup *group, POINT *result);
+void  CheckPDNCE(pdisplayNameCacheEntry pdnce);
+int   CListTrayNotify(MIRANDASYSTRAYNOTIFY *msn);
+void  FreeDisplayNameCacheItem( pdisplayNameCacheEntry p );
+void  GetDefaultFontSetting(int i,LOGFONT *lf,COLORREF *colour);
+int   HotKeysProcess(HWND hwnd,WPARAM wParam,LPARAM lParam);
+int   HotkeysProcessMessage(WPARAM wParam,LPARAM lParam);
+int   HotKeysRegister(HWND hwnd);
 extern int GetContactIcon(WPARAM wParam,LPARAM lParam);
+void  RebuildEntireList(HWND hwnd,struct ClcData *dat);
+void  RecalcScrollBar(HWND hwnd,struct ClcData *dat);
+int   UnRegistersAllHotkey(HWND hwnd);
+
+extern int GetContactIcon(WPARAM wParam,LPARAM lParam);
+extern void TrayIconUpdateBase(char *szChangedProto);
+extern void TrayIconSetToBase(char *szPreferredProto);
+extern void TrayIconIconsChanged(void);
+extern void fnCluiProtocolStatusChanged(int status,const unsigned char * proto);
+extern int sfnFindItem(HWND hwnd,struct ClcData *dat,HANDLE hItem,struct ClcContact **contact,struct ClcGroup **subgroup,int *isVisible);
 extern HMENU BuildGroupPopupMenu(struct ClcGroup *group);
 struct ClcGroup* ( *saveAddGroup )(HWND hwnd,struct ClcData *dat,const TCHAR *szName,DWORD flags,int groupId,int calcTotalMembers);
+
+
+void (*savedLoadCluiGlobalOpts)(void);
+extern void LoadCluiGlobalOpts(void);
 
 int ( *saveAddItemToGroup )( struct ClcGroup *group, int iAboveItem );
 int AddItemToGroup(struct ClcGroup *group, int iAboveItem);
@@ -61,11 +78,16 @@ LRESULT CALLBACK ContactListControlWndProc(HWND hwnd, UINT msg, WPARAM wParam, L
 LRESULT ( CALLBACK *saveContactListWndProc )(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam);
 LRESULT CALLBACK ContactListWndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam);
 
+int (* saveTrayIconProcessMessage) ( WPARAM wParam, LPARAM lParam );
+
+void ( *savedAddContactToTree)(HWND hwnd,struct ClcData *dat,HANDLE hContact,int updateTotalCount,int checkHideOffline);
+void AddContactToTree(HWND hwnd,struct ClcData *dat,HANDLE hContact,int updateTotalCount,int checkHideOffline);
+
 void ( *saveDeleteItemFromTree )(HWND hwnd, HANDLE hItem);
 void DeleteItemFromTree(HWND hwnd, HANDLE hItem);
 
 void ( *saveFreeContact )( struct ClcContact* );
-void FreeContact( struct ClcContact* );
+extern void FreeContact( struct ClcContact* );
 
 void ( *saveFreeGroup )( struct ClcGroup* );
 void FreeGroup( struct ClcGroup* );
@@ -83,20 +105,20 @@ PLUGININFO pluginInfo = {
 		"Modern Contact List (UNICODE)",
 	#else
 		"Modern Contact List",
-	#endif	
-	
+	#endif
+
 #else
 	#ifdef UNICODE
 			"Debug of Modern Contact List (UNICODE)",
 	#else
 			"Debug of Modern Contact List",
-	#endif	
+	#endif
 #endif
 	0,                              //will initiate later in MirandaPluginInfo
 	"Display contacts, event notifications, protocol status with advantage visual modifications. Supported MW modifications, enchanced metacontact cooperation.",
 	"Artem Shpynov and Ricardo Pescuma Domenecci, based on clist_mw by Bethoven",
 	"shpynov@nm.ru" ,
-	"Copyright 2000-2005 Miranda-IM project ["__DATE__" "__TIME__"]",	
+	"Copyright 2000-2005 Miranda-IM project ["__DATE__" "__TIME__"]",
 	"http://miranda-im.org/download/details.php?action=viewfile&id=2103",
 	UNICODE_AWARE,
 	DEFMOD_CLISTALL
@@ -106,7 +128,7 @@ BOOL WINAPI DllMain(HINSTANCE hInstDLL, DWORD dwReason, LPVOID reserved)
 {
 	g_hInst = hInstDLL;
 	DisableThreadLibraryCalls(g_hInst);
-	
+
 	return TRUE;
 }
 
@@ -117,7 +139,7 @@ int MakeVer(a,b,c,d)
 
 __declspec(dllexport) PLUGININFO* MirandaPluginInfo(DWORD mirandaVersion)
 {
-	if ( mirandaVersion < PLUGIN_MAKE_VERSION(0,4,3,42) ) 
+	if ( mirandaVersion < PLUGIN_MAKE_VERSION(0,4,3,42) )
 	{
 		return NULL;
 	}
@@ -127,8 +149,8 @@ __declspec(dllexport) PLUGININFO* MirandaPluginInfo(DWORD mirandaVersion)
 
 int LoadContactListModule(void);
 //int UnLoadContactListModule(void);
-int LoadCLCModule(void); 
-void LoadCLUIModule(void); 
+int LoadCLCModule(void);
+void LoadCLUIModule(void);
 
 int SetDrawer(WPARAM wParam,LPARAM lParam)
 {
@@ -138,7 +160,7 @@ int SetDrawer(WPARAM wParam,LPARAM lParam)
 	if (DSS->PluginName==NULL) return -1;
 	if (!ServiceExists(DSS->GetDrawFuncsServiceName)) return -1;
 
-	
+
 	SED.cbSize=sizeof(SED);
 	SED.PaintClc=(void (__cdecl *)(HWND,struct ClcData *,HDC,RECT *,int ,ClcProtoStatus *,HIMAGELIST))CallService(DSS->GetDrawFuncsServiceName,CLUI_EXT_FUNC_PAINTCLC,0);
 	if (!SED.PaintClc) return -1;
@@ -147,24 +169,29 @@ int SetDrawer(WPARAM wParam,LPARAM lParam)
 
 static struct ClcContact* fnCreateClcContact( void )
 {
-	return (struct ClcContact*)calloc( sizeof( struct ClcContact ), 1 );
+	return (struct ClcContact*)mir_calloc(1, sizeof( struct ClcContact ) );
 }
 
 static ClcCacheEntryBase* fnCreateCacheItem( HANDLE hContact )
 {
-	pdisplayNameCacheEntry p = (pdisplayNameCacheEntry)calloc( sizeof( displayNameCacheEntry ), 1 );
+	pdisplayNameCacheEntry p = (pdisplayNameCacheEntry)mir_calloc( 1, sizeof( displayNameCacheEntry ));
 	if ( p )
+	{
 		p->hContact = hContact;
+		InvalidateDisplayNameCacheEntryByPDNE(hContact,p,0); //TODO should be in core
+	}
 	return (ClcCacheEntryBase*)p;
 }
+
+extern TCHAR *parseText(TCHAR *stzText);
 
 int __declspec(dllexport) CListInitialise(PLUGINLINK * link)
 {
 	int rc=0;
 	pluginLink=link;
-#ifdef _DEBUG
-	_CrtSetDbgFlag( _CRTDBG_ALLOC_MEM_DF | _CRTDBG_LEAK_CHECK_DF);
-#endif	
+//#ifdef _DEBUG
+//	_CrtSetDbgFlag( _CRTDBG_ALLOC_MEM_DF | _CRTDBG_LEAK_CHECK_DF);
+//#endif
 	// get the internal malloc/free()
 	TRACE("CListInitialise ClistMW\r\n");
 	memset(&memoryManagerInterface,0,sizeof(memoryManagerInterface));
@@ -179,7 +206,13 @@ int __declspec(dllexport) CListInitialise(PLUGINLINK * link)
 
 	// get the contact list interface
 	pcli = ( CLIST_INTERFACE* )CallService(MS_CLIST_RETRIEVE_INTERFACE, 0, (LPARAM)g_hInst);
+	if ( (int)pcli == CALLSERVICE_NOTFOUND ) {
+		MessageBoxA( NULL, "This version of plugin requires Miranda 0.4.3 bld#42 or later", "Fatal error", MB_OK );
+		return 1;
+	}
+
 	pcli->pfnCheckCacheItem = (void ( * )( ClcCacheEntryBase* )) CheckPDNCE;
+//	pcli->pfnCListTrayNotify = CListTrayNotify;
 	pcli->pfnCreateClcContact = fnCreateClcContact;
 	pcli->pfnCreateCacheItem = fnCreateCacheItem;
 	pcli->pfnFreeCacheItem = (void( * )( ClcCacheEntryBase* ))FreeDisplayNameCacheItem;
@@ -188,27 +221,42 @@ int __declspec(dllexport) CListInitialise(PLUGINLINK * link)
 	pcli->pfnGetRowTopY = RowHeights_GetItemTopY;
 	pcli->pfnGetRowTotalHeight = RowHeights_GetTotalHeight;
 	pcli->pfnInvalidateRect = skinInvalidateRect;
+  savedLoadCluiGlobalOpts=pcli->pfnLoadCluiGlobalOpts; pcli->pfnLoadCluiGlobalOpts=LoadCluiGlobalOpts;
+  
+
 	pcli->pfnOnCreateClc = LoadCLUIModule;
+	pcli->pfnHotKeysProcess = HotKeysProcess;
+	pcli->pfnHotkeysProcessMessage = HotkeysProcessMessage;
+	pcli->pfnHotKeysRegister = HotKeysRegister;
+	pcli->pfnHotKeysUnregister = UnRegistersAllHotkey;
 	pcli->pfnPaintClc = PaintClc;
 	pcli->pfnRebuildEntireList = RebuildEntireList;
 	pcli->pfnRecalcScrollBar = RecalcScrollBar;
 	pcli->pfnRowHitTest = RowHeights_HitTest;
 	pcli->pfnScrollTo = ScrollTo;
 	pcli->pfnShowHide = ShowHide;
-	
+
+	pcli->pfnCluiProtocolStatusChanged=fnCluiProtocolStatusChanged;
 	pcli->pfnBeginRenameSelection=BeginRenameSelection;
 	pcli->pfnHitTest=HitTest;
-
 	pcli->pfnCompareContacts=CompareContacts;
-	
-	pcli->pfnHotKeysRegister=HotKeysRegister;
-	pcli->pfnHotKeysUnregister=HotKeysUnregister;
-	pcli->pfnHotKeysProcess=HotKeysProcess;
-	pcli->pfnHotkeysProcessMessage=HotkeysProcessMessage;
-	pcli->pfnTrayIconProcessMessage=TrayIconProcessMessage;
+
 	pcli->pfnBuildGroupPopupMenu=BuildGroupPopupMenu;
 
+
+	saveTrayIconProcessMessage=pcli->pfnTrayIconProcessMessage; pcli->pfnTrayIconProcessMessage=TrayIconProcessMessage;
+	pcli->pfnTrayIconUpdateBase=(void (*)( const char *szChangedProto ))TrayIconUpdateBase;
+	pcli->pfnTrayIconUpdateWithImageList=TrayIconUpdateWithImageList;
+	pcli->pfnTrayIconSetToBase=TrayIconSetToBase;
+	pcli->pfnTrayIconIconsChanged=TrayIconIconsChanged;
+
+  pcli->pfnFindItem=sfnFindItem;
+
+	pcli->pfnGetRowByIndex=GetRowByIndex;
+
+
 	saveAddGroup = pcli->pfnAddGroup; pcli->pfnAddGroup = AddGroup;
+  savedAddContactToTree=pcli->pfnAddContactToTree;  pcli->pfnAddContactToTree=AddContactToTree;
 	saveAddInfoItemToGroup = pcli->pfnAddInfoItemToGroup; pcli->pfnAddInfoItemToGroup = AddInfoItemToGroup;
 	saveAddItemToGroup = pcli->pfnAddItemToGroup; pcli->pfnAddItemToGroup = AddItemToGroup;
 	saveContactListControlWndProc = pcli->pfnContactListControlWndProc; pcli->pfnContactListControlWndProc = ContactListControlWndProc;
@@ -217,7 +265,7 @@ int __declspec(dllexport) CListInitialise(PLUGINLINK * link)
 	saveFreeContact = pcli->pfnFreeContact; pcli->pfnFreeContact = FreeContact;
 	saveFreeGroup = pcli->pfnFreeGroup; pcli->pfnFreeGroup = FreeGroup;
 	saveProcessExternalMessages = pcli->pfnProcessExternalMessages; pcli->pfnProcessExternalMessages = ProcessExternalMessages;
-	
+
 	saveChangeContactIcon = pcli->pfnChangeContactIcon; pcli->pfnChangeContactIcon = ChangeContactIcon;
 
 	memset(&SED,0,sizeof(SED));
@@ -229,7 +277,7 @@ int __declspec(dllexport) CListInitialise(PLUGINLINK * link)
 	if (rc==0) rc=LoadCLCModule();
 
 	LoadMoveToGroup();
-	//BGModuleLoad();	
+	//BGModuleLoad();
 
 	//CallTest();
 	TRACE("CListInitialise ClistMW...Done\r\n");
@@ -240,7 +288,7 @@ int __declspec(dllexport) CListInitialise(PLUGINLINK * link)
 int __declspec(dllexport) Load(PLUGINLINK * link)
 {
 	TRACE("Load ClistMW\r\n");
-	MessageBoxA(0,"You Running Old Miranda, use >30-10-2004 version!","MultiWindow Clist",0);
+	MessageBoxA(0,"You Running Old Miranda, use >30-10-2004 version!","Modern Clist",0);
 	CListInitialise(link);
 	return 1;
 }
@@ -271,7 +319,7 @@ typedef struct _HookRec
 
 HookRec * hooksrec=NULL;
 DWORD hooksRecAlloced=0;
-    
+
 #undef HookEvent
 #undef UnhookEvent
 
@@ -282,7 +330,7 @@ HANDLE MyHookEvent(char *EventID,MIRANDAHOOK HookProc)
 	//1. Find free
 	for (i=0;i<hooksRecAlloced;i++)
 	{
-		if (hooksrec[i].hHook==NULL) 
+		if (hooksrec[i].hHook==NULL)
 		{
 			hr=&(hooksrec[i]);
 			break;
@@ -311,7 +359,7 @@ int MyUnhookEvent(HANDLE hHook)
 	//1. Find free
 	for (i=0;i<hooksRecAlloced;i++)
 	{
-		if (hooksrec[i].hHook==hHook) 
+		if (hooksrec[i].hHook==hHook)
 		{
 			pluginLink->UnhookEvent(hHook);
 			hooksrec[i].hHook=NULL;
@@ -328,18 +376,18 @@ int UnhookAll()
 	TRACE("Unhooked Events:\n");
 	for (i=0;i<hooksRecAlloced;i++)
 	{
-		if (hooksrec[i].hHook!=NULL) 
+		if (hooksrec[i].hHook!=NULL)
 		{
 			pluginLink->UnhookEvent(hooksrec[i].hHook);
 			hooksrec[i].hHook=NULL;
-			if (hooksrec[i].HookStr) 
+			if (hooksrec[i].HookStr)
 			{
 				TRACE(hooksrec[i].HookStr);
 				TRACE("\n");
 				mir_free(hooksrec[i].HookStr);
 			}
 		}
-	}  
+	}
 	mir_free(hooksrec);
 	return 1;
 }

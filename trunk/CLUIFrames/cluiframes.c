@@ -248,17 +248,21 @@ int SetParentForContainers(HWND parent)
   }
   return 0;
 }
+extern void __inline lockfrm();
+extern void __inline ulockfrm();
 
 int OnShowHide(HWND hwnd, int mode)
 {
 
   int i;
-
+  lockfrm();
   for(i=0;i<nFramescount;i++){
     if (!Frames[i].floating && Frames[i].OwnerWindow!=(HWND)0 &&Frames[i].OwnerWindow!=(HWND)-2)
     {
-      ShowWindowNew(Frames[i].OwnerWindow,(mode==SW_HIDE||!Frames[i].visible||Frames[i].needhide)?SW_HIDE:mode);
-      ShowWindowNew(Frames[i].hWnd,(mode==SW_HIDE||!Frames[i].visible||Frames[i].needhide)?SW_HIDE:mode);
+	  ulockfrm();	
+      ShowWindow(Frames[i].OwnerWindow,(mode==SW_HIDE||!Frames[i].visible||Frames[i].needhide)?SW_HIDE:mode);
+      ShowWindow(Frames[i].hWnd,(mode==SW_HIDE||!Frames[i].visible||Frames[i].needhide)?SW_HIDE:mode);
+	  lockfrm();
       if (mode!=SW_HIDE)
       {
         SetWindowPos(Frames[i].OwnerWindow,HWND_TOP,0,0,0,0,SWP_NOMOVE|SWP_NOSIZE|SWP_NOACTIVATE);
@@ -271,6 +275,7 @@ int OnShowHide(HWND hwnd, int mode)
       }
     }
   }
+  ulockfrm();
   if (mode!=SW_HIDE) SetForegroundWindow(pcli->hwndContactList);
   return 0;
 }
@@ -301,12 +306,12 @@ static int btoint(BOOLEAN b)
   return 0;
 }
 
-static void __inline lockfrm()
+void __inline lockfrm()
 {
   EnterCriticalSection(&csFrameHook);
 }
 
-static void __inline ulockfrm()
+void __inline ulockfrm()
 {
   LeaveCriticalSection(&csFrameHook);
 }
@@ -715,7 +720,7 @@ int DBLoadFrameSettingsAtPos(int pos,int Frameid)
   char buf[255];
   //	char *oldtb;
 
-  itoa(pos,sadd,10);
+  _itoa(pos,sadd,10);
 
   //DBWriteContactSettingString(0,CLUIFrameModule,strcat("Name",sadd),Frames[Frameid].name);
   //boolean
@@ -747,7 +752,7 @@ int DBStoreFrameSettingsAtPos(int pos,int Frameid)
   char sadd[16];
   char buf[255];
 
-  itoa(pos,sadd,10);
+  _itoa(pos,sadd,10);
 
   DBWriteContactSettingString(0,CLUIFrameModule,AS(buf,"Name",sadd),Frames[Frameid].name);
   //boolean
@@ -782,7 +787,7 @@ int LocateStorePosition(int Frameid,int maxstored)
 		mir_snprintf(settingname,sizeof(settingname),"%s%d","Name",i);
     frmname=DBGetStringA(0,CLUIFrameModule,settingname);
     if(frmname==NULL) continue;
-    if(strcmpi(frmname,Frames[Frameid].name)==0) {
+    if(_strcmpi(frmname,Frames[Frameid].name)==0) {
       storpos=i;
       mir_free(frmname);
       break;
@@ -1318,8 +1323,8 @@ int CLUIFramesSetFrameOptions(WPARAM wParam,LPARAM lParam)
 	style|=!LayeredFlag?WS_BORDER:0;
     if(flag&F_NOBORDER) {style&=(~WS_BORDER);};
     {
-      SetWindowLong(Frames[pos].hWnd,GWL_STYLE,(LONG)style);
-      SetWindowLong(Frames[pos].TitleBar.hwnd,GWL_STYLE,(LONG)style);
+      SetWindowLong(Frames[pos].hWnd,GWL_STYLE,(long)style);
+      SetWindowLong(Frames[pos].TitleBar.hwnd,GWL_STYLE,(long)style);
     }
     ulockfrm();
     CLUIFramesOnClistResize((WPARAM)pcli->hwndContactList,(LPARAM)0);
@@ -1836,7 +1841,7 @@ static int CLUIFramesLoadMainMenu()
 
   ZeroMemory(&mi,sizeof(mi));
   mi.cbSize=sizeof(mi);
-
+  TRACE("CLUIFramesLoadMainMenu\n");
   // create root menu
   mi.hIcon=LoadIcon(g_hInst,MAKEINTRESOURCE(IDI_MIRANDA));
   mi.flags=CMIF_ROOTPOPUP;
@@ -1953,7 +1958,7 @@ int CLUIFramesAddFrame(WPARAM wParam,LPARAM lParam)
     if (CustomName)
     {
       if (clfrm->name) mir_free(clfrm->name);
-      clfrm->name=strdup(CustomName);
+      clfrm->name=_strdup(CustomName);
       mir_free(CustomName);
     }
   }
@@ -2961,7 +2966,7 @@ boolean AlignCOLLIconToLeft; //will hide frame icon
 int OnFrameTitleBarBackgroundChange(WPARAM wParam,LPARAM lParam)
 {
   {	
-    DBVARIANT dbv;
+    DBVARIANT dbv={0};
 
     AlignCOLLIconToLeft=DBGetContactSettingByte(NULL,"FrameTitleBar","AlignCOLLIconToLeft",0);
 
@@ -3798,6 +3803,7 @@ int CLUIFrameResizeFloatingFrame(int framepos)
 static int CLUIFrameOnMainMenuBuild(WPARAM wParam,LPARAM lParam)
 {
   CLUIFramesLoadMainMenu();
+ 
   return 0;
 }
 
@@ -3851,15 +3857,15 @@ LRESULT CALLBACK CLUIFrameSubContainerProc(HWND hwnd, UINT msg, WPARAM wParam, L
   case WM_SYSCOMMAND:
     TRACE("WM_SYSCOMMAND\n");
     return SendMessage((HWND)CallService(MS_CLUI_GETHWND,0,0),msg,wParam,lParam); 
-  case WM_CREATE:
-    {
-      int framepos;
-      lockfrm();
-      framepos=id2pos(Frameid);
       //SetWindowPos(Frames[framepos].TitleBar.hwndTip, HWND_TOPMOST,0, 0, 0, 0,SWP_NOMOVE | SWP_NOSIZE  );
-      ulockfrm();
-      return(0);
-    };
+  //  {
+  //  //  int framepos;
+  //   // lockfrm();
+  //   // framepos=id2pos(Frameid);
+  //    //SetWindowPos(Frames[framepos].TitleBar.hwndTip, HWND_TOPMOST,0, 0, 0, 0,SWP_NOMOVE | SWP_NOSIZE  );
+  //  //  ulockfrm();
+  //  //  return(0);
+  //  };
   case WM_MOVE:
     {
       if (docked) 
@@ -4440,12 +4446,24 @@ int LoadCLUIFramesModule(void)
   return 0;
 }
 
+int UnloadMainMenu()
+{
+	CLUIFrameOnModulesUnload(0,0);
+	if(MainMIRoot!=(HANDLE)-1)
+	{ 
+		CallService(MS_CLIST_REMOVEMAINMENUITEM,(WPARAM)MainMIRoot,0); 
+		MainMIRoot=(HANDLE)-1;
+	}
+	return (int) MainMIRoot;
+}
+
 int UnLoadCLUIFramesModule(void)
 {
   int i;
   FramesSysNotStarted=TRUE;
   CLUIFramesOnClistResize((WPARAM)pcli->hwndContactList,0);
   CLUIFramesStoreAllFrames();
+  UnloadMainMenu();
   lockfrm();
   //UnitFramesMenu();
   for (i=0;i<nFramescount;i++) {
@@ -4473,6 +4491,8 @@ int UnLoadCLUIFramesModule(void)
   UnitFramesMenu();
   return 0;
 }
+
+
 
 
 

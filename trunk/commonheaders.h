@@ -38,11 +38,11 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #ifdef _DEBUG
 #	define _CRTDBG_MAP_ALLOC
 #	include <stdlib.h>
-#	include <crtdbg.h>
+//#	include <crtdbg.h>
 #endif
 
 #if defined (_DEBUG)
-  #define TRACE(str) OutputDebugStringA(str)
+  #define TRACE(str)  OutputDebugStringA(str)
 #else
   #define TRACE(str)
 #endif
@@ -108,8 +108,6 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #include "m_variables.h"
 #include "m_avatars.h"
 #include "m_smileyadd.h"
-
-#define CLS_CONTACTLIST 1
 
 // shared vars
 extern HINSTANCE g_hInst;
@@ -210,7 +208,18 @@ extern int ShowWindowNew(HWND hwnd, int cmd);
 
 extern char* Utf8EncodeUcs2( const wchar_t* src );
 extern void Utf8Decode( char* str, wchar_t** ucs2 );
-
-
-
 #endif
+
+#ifndef LWA_COLORKEY
+#define LWA_COLORKEY            0x00000001
+#endif
+
+#ifndef AC_SRC_ALPHA
+#define AC_SRC_ALPHA            0x01
+#endif
+
+#ifdef _DEBUG
+#define DeleteObject(a) DebugDeleteObject(a)
+#endif 
+
+extern BOOL DebugDeleteObject(HGDIOBJ a);

@@ -125,45 +125,9 @@
 #define IDC_DROPMETA                    295
 #define IDC_CURSOR1                     296
 #define IDC_REGROUP                     296
-#define IDI_CLIENTTRILLIAN              298
-#define IDI_CLIENTMIRANDA               299
-#define IDI_CLIENTRQ                    300
-#define IDI_CLIENTGAIM                  301
-#define IDI_CLIENTIM2                   302
-#define IDI_CLIENTKOPETE                303
-#define IDI_CLIENTLICQ                  304
-#define IDI_CLIENTQIP                   305
-#define IDI_CLIENTSIM                   306
 #define IDI_MIRANDA2                    307
 #define IDD_OPT_CLCBKG2                 308
 #define IDI_CLIENTICQL5                 315
-#define IDI_CLIENTAGILE                 318
-#define IDI_CLIENTGNOMEICU              319
-#define IDI_CLIENTMOBICQ                320
-#define IDI_CLIENTSPAMBOT               321
-#define IDI_CLIENTICQMAC                322
-#define IDI_CLIENTIMPLUS                323
-#define IDI_CLIENTYSM                   324
-#define IDI_CLIENTYAMIGO                325
-#define IDI_CLIENTWEBICQ                326
-#define IDI_CLIENTVICQ                  327
-#define IDI_CLIENTSTRICQ                328
-#define IDI_CLIENTSTICQ                 329
-#define IDI_CLIENTNICQ2                 330
-#define IDI_CLIENTPSI                   331
-#define IDI_CLIENTMOB2ICQ               333
-#define IDI_CLIENTMICQ                  334
-#define IDI_CLIENTLIBICQ2000            335
-#define IDI_CLIENTCENTERICQ             336
-#define IDI_CLIENTALICQ                 337
-#define IDI_CLIENTICQ2000               339
-#define IDI_CLIENTICQ2001               340
-#define IDI_CLIENTICQ2003               341
-#define IDI_CLIENTICQLITE               342
-#define IDI_CLIENTICQLITE4              343
-#define IDI_CLIENTICQLITE5              344
-#define IDI_CLIENTICQGOF                345
-#define IDI_CLIENTICQGOJ                346
 #define IDI_AVATAR_OVERLAY_NA           357
 #define IDI_AVATAR_OVERLAY_OCCUPIED     358
 #define IDI_AVATAR_OVERLAY_OFFLINE      359
@@ -898,6 +862,7 @@
 #define IDM_OPENEXISTING                40015
 #define IDM_COPYLINK                    40016
 #define POPUP_HIDEMIRANDA               40017
+#define POPUP_GROUPSHOWOFFLINE          40019
 #define ID_TRAY_HIDE                    40038
 #define ID_TRAY_EXIT                    40040
 #define POPUP_NEWGROUP                  40050
@@ -911,7 +876,7 @@
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        397
-#define _APS_NEXT_COMMAND_VALUE         40018
+#define _APS_NEXT_COMMAND_VALUE         40020
 #define _APS_NEXT_CONTROL_VALUE         1853
 #define _APS_NEXT_SYMED_VALUE           101
 #endif

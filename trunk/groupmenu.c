@@ -228,9 +228,9 @@ int UseGroupsHelper(WPARAM wParam,LPARAM lParam)
 int HideOfflineRootHelper(WPARAM wParam,LPARAM lParam)
 {
 SendMessage(
-			pcli->hwndContactTree,
+			(HWND)CallService(MS_CLUI_GETHWNDTREE,0,0),
 			CLM_SETHIDEOFFLINEROOT,
-			!SendMessage(pcli->hwndContactTree,CLM_GETHIDEOFFLINEROOT,0,0),
+			!SendMessage((HWND)CallService(MS_CLUI_GETHWNDTREE,0,0),CLM_GETHIDEOFFLINEROOT,0,0),
 			0);
 	return 0;
 };
@@ -456,6 +456,7 @@ HANDLE hHideShowMainMenuItem;
 HANDLE hSubGroupStatusMenuItemProxy;
 HANDLE hPreBuildSubGroupMenuEvent;
 HANDLE hHideOfflineUsersHereMenuItem;
+HANDLE hShowOfflineUsersHereMenuItem;
 
 //SubGroupmenu exec param(ownerdata)
 typedef struct{
@@ -473,21 +474,33 @@ static int RemoveSubGroupMenuItem(WPARAM wParam,LPARAM lParam)
 	return 0;
 }
 
+extern _inline BOOL IsShowOfflineGroup(struct ClcGroup* group);
 static int OnBuildSubGroupMenu(WPARAM wParam,LPARAM lParam)
 {
 	CLISTMENUITEM mi;
+  BOOL gray1=FALSE;
+  BOOL gray2=FALSE;
+  BOOL showOfflineinGroup=FALSE;
+  
 	struct ClcGroup *group=(struct ClcGroup *)wParam;
 	if (wParam==0) return 0;
 
 
 	//contact->group
-
-	
-	
-	ZeroMemory(&mi,sizeof(mi));
+  ZeroMemory(&mi,sizeof(mi));
 	mi.cbSize = sizeof(mi);
-	mi.flags = CMIM_FLAGS | (group->hideOffline?CMIF_CHECKED:0);
+
+  showOfflineinGroup=IsShowOfflineGroup(group);
+  gray1=(showOfflineinGroup!=FALSE);
+  gray2=(group->hideOffline!=FALSE);
+	
+  if (gray1&&gray2) gray1=FALSE;  //should not be cause IsShowOfflineGroup return false if group->hideOffline
+	
+  mi.flags = CMIM_FLAGS | ((group->hideOffline&&!gray1)?CMIF_CHECKED:0)| (gray1?CMIF_GRAYED:0);
 	CallService(MS_CLIST_MODIFYMENUITEM, (WPARAM)hHideOfflineUsersHereMenuItem, (LPARAM)&mi);	
+	
+  mi.flags = CMIM_FLAGS | ((showOfflineinGroup&&!gray2) ? CMIF_CHECKED:0)| (gray2?CMIF_GRAYED:0);
+  CallService(MS_CLIST_MODIFYMENUITEM, (WPARAM)hShowOfflineUsersHereMenuItem, (LPARAM)&mi);	
 	
 	return 0;
 };
@@ -519,7 +532,8 @@ int BuildSubGroupMenu(WPARAM wParam,LPARAM lParam)
 
 HMENU BuildGroupPopupMenu(struct ClcGroup *group)
 {
-	return (HMENU) BuildSubGroupMenu(0,0);
+	//HWND wnd=GetForegroundWindow();
+	return (HMENU)CallService(MS_CLIST_MENUBUILDSUBGROUP,(WPARAM)group,0);
 }
 static int AddSubGroupMenuItem(WPARAM wParam,LPARAM lParam)
 {
@@ -636,7 +650,7 @@ int SubGroupMenuExecService(WPARAM wParam,LPARAM lParam) {
 			CallService(mmep->szServiceName,mmep->Param1,lParam);	
 		}else
 		{
-			CallService(mmep->szServiceName,mmep->Param1,mmep->Param2);	
+			CallService(mmep->szServiceName,mmep->Param1,lParam);	
 		}
 		
 	};
@@ -697,7 +711,7 @@ void InitSubGroupMenus(void)
 	CreateServiceFunction("CLISTMENUSSubGroup/ExecService",SubGroupMenuExecService);
 	CreateServiceFunction("CLISTMENUSSubGroup/FreeOwnerDataSubGroupMenu",FreeOwnerDataSubGroupMenu);
 	CreateServiceFunction("CLISTMENUSSubGroup/SubGroupMenuonAddService",SubGroupMenuonAddService);
-    CreateServiceFunction("CLISTMENUSSubGroup/SubGroupMenuCheckService",SubGroupMenuCheckService);
+  CreateServiceFunction("CLISTMENUSSubGroup/SubGroupMenuCheckService",SubGroupMenuCheckService);
 	CreateServiceFunction("CLISTMENUSSubGroup/GroupMenuExecProxy",GroupMenuExecProxy);
 
 	//CreateServiceFunction("CLISTMENUSSubGroup/HideSubGroupsHelper",HideSubGroupsHelper);
@@ -752,8 +766,7 @@ void InitSubGroupMenus(void)
 	mi.hIcon=ImageList_GetIcon(hCListImages,NewGroupIconidx,0);
 	mi.pszService="CLISTMENUSSubGroup/GroupMenuExecProxy";
 	mi.pszName=Translate("&New SubGroup");	
-	gmp.lParam=0;
-	gmp.wParam=POPUP_NEWSUBGROUP;
+	gmp.lParam=0;gmp.wParam=POPUP_NEWSUBGROUP;
 	hNewSubGroupMenuItem=(HANDLE)AddSubGroupMenuItem((WPARAM)&gmp,(LPARAM)&mi);
 
 	memset(&mi,0,sizeof(mi));
@@ -765,6 +778,16 @@ void InitSubGroupMenus(void)
 	gmp.lParam=0;
   gmp.wParam=POPUP_GROUPHIDEOFFLINE;
 	hHideOfflineUsersHereMenuItem=(HANDLE)AddSubGroupMenuItem((WPARAM)&gmp,(LPARAM)&mi);
+
+	memset(&mi,0,sizeof(mi));
+	mi.cbSize=sizeof(mi);
+	mi.position=1002;
+	mi.hIcon=NULL;
+	mi.pszService="CLISTMENUSSubGroup/GroupMenuExecProxy";
+	mi.pszName=Translate("&Show Offline Users in here");	
+	gmp.lParam=0;
+  gmp.wParam=POPUP_GROUPSHOWOFFLINE;
+	hShowOfflineUsersHereMenuItem=(HANDLE)AddSubGroupMenuItem((WPARAM)&gmp,(LPARAM)&mi);
 
 	memset(&mi,0,sizeof(mi));
 	mi.cbSize=sizeof(mi);

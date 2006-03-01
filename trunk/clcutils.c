@@ -41,7 +41,11 @@ int HitTest(HWND hwnd,struct ClcData *dat,int testx,int testy,struct ClcContact 
 	struct ClcGroup *hitgroup;
 	int hit;
 	RECT clRect;
-
+ if (TestCursorOnBorders()!=0)
+ {
+   	if(flags) *flags=CLCHT_NOWHERE;
+	  return -1;
+ }
 	if(flags) *flags=0;
 	GetClientRect(hwnd,&clRect);
 	if(testx<0 || testy<0 || testy>=clRect.bottom || testx>=clRect.right) {
@@ -159,7 +163,7 @@ void ScrollTo(HWND hwnd,struct ClcData *dat,int desty,int noSmooth)
 			else
 			{
 				UpdateFrameImage((WPARAM) hwnd, (LPARAM) 0); 
-				//skinInvalidateRect(hwnd,NULL,FALSE);
+				//InvalidateRectZ(hwnd,NULL,FALSE);
 			}
 			previousy=dat->yScroll;
 			SetScrollPos(hwnd,SB_VERT,dat->yScroll,TRUE);
@@ -184,6 +188,7 @@ void RecalcScrollBar(HWND hwnd,struct ClcData *dat)
 
 	TRACE("RecalcScrollBar\r\n");
 	RowHeights_CalcRowHeights(dat, hwnd);
+
 	GetClientRect(hwnd,&clRect);
 	si.cbSize=sizeof(si);
 	si.fMask=SIF_ALL;
@@ -274,23 +279,22 @@ void BeginRenameSelection(HWND hwnd,struct ClcData *dat)
 	w=clRect.right-x;
 	y=RowHeights_GetItemTopY(dat, dat->selection)-dat->yScroll;
 	h=dat->row_heights[dat->selection];
-
 	{
 		int i;
-		for (i=0; i<=FONTID_MAX; i++)
-			if (h<dat->fontInfo[i].fontHeight+4) h=dat->fontInfo[i].fontHeight+4;
+		for (i=0; i<=FONTID_MODERN_MAX; i++)
+			if (h<dat->fontModernInfo[i].fontHeight+4) h=dat->fontModernInfo[i].fontHeight+4;
 	}
 	//TODO contact->pos_label 
 
 
 	{
 
-		RECT rectW;
+		RECT rectW;      
 		int h2;
 		GetWindowRect(hwnd,&rectW);
-		//w=contact->pos_label
 		//       w=contact->pos_full_first_row.right-contact->pos_full_first_row.left;
 		//       h=contact->pos_full_first_row.bottom-contact->pos_full_first_row.top;
+		//w=clRect.right-x;
 		//w=clRect.right-x;
 		//x+=rectW.left;//+contact->pos_full_first_row.left;
 		//y+=rectW.top;//+contact->pos_full_first_row.top;
@@ -309,16 +313,16 @@ void BeginRenameSelection(HWND hwnd,struct ClcData *dat)
 			if (dat->row_align_group_mode==1) a|=ES_CENTER;
 			else if (dat->row_align_group_mode==2) a|=ES_RIGHT;
 		}
-		//if (dat->text_rtl) a|=EN_ALIGN_RTL_EC;
+		if (dat->text_rtl) a|=EN_ALIGN_RTL_EC;
 		dat->hwndRenameEdit=CreateWindow(TEXT("EDIT"),contact->szText,WS_POPUP|WS_BORDER|ES_AUTOHSCROLL|a,x,y,w,h,hwnd,NULL,g_hInst,NULL);
 	}
 	SetWindowLong(dat->hwndRenameEdit,GWL_STYLE,GetWindowLong(dat->hwndRenameEdit,GWL_STYLE)&(~WS_CAPTION)|WS_BORDER);
-	SetWindowLong(dat->hwndRenameEdit,GWL_USERDATA,(LONG)dat);
-	OldRenameEditWndProc=(WNDPROC)SetWindowLong(dat->hwndRenameEdit,GWL_WNDPROC,(LONG)RenameEditSubclassProc);
-	SendMessage(dat->hwndRenameEdit,WM_SETFONT,(WPARAM)(contact->type==CLCIT_GROUP?dat->fontInfo[FONTID_GROUPS].hFont:dat->fontInfo[FONTID_CONTACTS].hFont),0);
+	SetWindowLong(dat->hwndRenameEdit,GWL_USERDATA,(long)dat);
+	OldRenameEditWndProc=(WNDPROC)SetWindowLong(dat->hwndRenameEdit,GWL_WNDPROC,(long)RenameEditSubclassProc);
+	SendMessage(dat->hwndRenameEdit,WM_SETFONT,(WPARAM)(contact->type==CLCIT_GROUP?dat->fontModernInfo[FONTID_OPENGROUPS].hFont:dat->fontModernInfo[FONTID_CONTACTS].hFont),0);
 	SendMessage(dat->hwndRenameEdit,EM_SETMARGINS,EC_LEFTMARGIN|EC_RIGHTMARGIN|EC_USEFONTINFO,0);
 	SendMessage(dat->hwndRenameEdit,EM_SETSEL,0,(LPARAM)(-1));
-	// SetWindowLong(dat->hwndRenameEdit,GWL_USERDATA,(LONG)hwnd);
+	// SetWindowLong(dat->hwndRenameEdit,GWL_USERDATA,(long)hwnd);
 	r.top=1;
 	r.bottom=h-1;
 	r.left=0;
@@ -406,7 +410,7 @@ int GetDropTargetInformation(HWND hwnd,struct ClcData *dat,POINT pt)
 	if (contact->isSubcontact && (ServiceExists(MS_MC_ADDTOMETA))) return DROPTARGET_ONSUBCONTACT;
 	return DROPTARGET_ONCONTACT;
 }
-
+extern int sortNoOfflineBottom;
 void LoadClcOptions(HWND hwnd, struct ClcData *dat)
 { 
 	int i;
@@ -415,9 +419,9 @@ void LoadClcOptions(HWND hwnd, struct ClcData *dat)
 		HFONT holdfont;
 		SIZE fontSize;
 		HDC hdc=GetDC(hwnd);
-		for(i=0;i<=FONTID_MAX;i++) {
-			if(!dat->fontInfo[i].changed) DeleteObject(dat->fontInfo[i].hFont);
-			GetFontSetting(i,&lf,&dat->fontInfo[i].colour);
+		for(i=0;i<=FONTID_MODERN_MAX;i++) {
+			if(!dat->fontModernInfo[i].changed && dat->fontModernInfo[i].hFont) DeleteObject(dat->fontModernInfo[i].hFont);
+			GetFontSetting(i,&lf,&dat->fontModernInfo[i].colour);
 			{
 				LONG height;
 				HDC hdc=GetDC(NULL);
@@ -425,23 +429,30 @@ void LoadClcOptions(HWND hwnd, struct ClcData *dat)
 				lf.lfHeight=-MulDiv(lf.lfHeight, GetDeviceCaps(hdc, LOGPIXELSY), 72);
 				ReleaseDC(NULL,hdc);				
 
-				dat->fontInfo[i].hFont=CreateFontIndirectA(&lf);
+				dat->fontModernInfo[i].hFont=CreateFontIndirectA(&lf);
 
 				lf.lfHeight=height;
 			}
 
-			dat->fontInfo[i].changed=0;
-			holdfont=SelectObject(hdc,dat->fontInfo[i].hFont);
+			dat->fontModernInfo[i].changed=0;
+			holdfont=SelectObject(hdc,dat->fontModernInfo[i].hFont);
 			GetTextExtentPoint32A(hdc,"x",1,&fontSize);
-			dat->fontInfo[i].fontHeight=fontSize.cy;
+			dat->fontModernInfo[i].fontHeight=fontSize.cy;
 			//			if(fontSize.cy>dat->rowHeight && (!DBGetContactSettingByte(NULL,"CLC","DoNotCheckFontSize",0))) dat->rowHeight=fontSize.cy;
 			if(holdfont) SelectObject(hdc,holdfont);
 		}
 		ReleaseDC(hwnd,hdc);
 	}
+
+	sortBy[0]=DBGetContactSettingByte(NULL,"CList","SortBy1",SETTING_SORTBY1_DEFAULT);
+	sortBy[1]=DBGetContactSettingByte(NULL,"CList","SortBy2",SETTING_SORTBY2_DEFAULT);
+	sortBy[2]=DBGetContactSettingByte(NULL,"CList","SortBy3",SETTING_SORTBY3_DEFAULT);
+	sortNoOfflineBottom=DBGetContactSettingByte(NULL,"CList","NoOfflineBottom",SETTING_NOOFFLINEBOTTOM_DEFAULT);
+
 	// Row
 	dat->row_min_heigh = DBGetContactSettingWord(NULL,"CList","MinRowHeight",CLCDEFAULT_ROWHEIGHT);
-	dat->row_border = DBGetContactSettingWord(NULL,"CList","RowBorder",2);
+	dat->row_border = DBGetContactSettingWord(NULL,"CList","RowBorder",1);
+	dat->row_before_group_space = DBGetContactSettingWord(NULL,"ModernSkin","SpaceBeforeGroup",0);
 	dat->row_variable_height = DBGetContactSettingByte(NULL,"CList","VariableRowHeight",1);
 	dat->row_align_left_items_to_left = DBGetContactSettingByte(NULL,"CList","AlignLeftItemsToLeft",1);
 	dat->row_hide_group_icon = DBGetContactSettingByte(NULL,"CList","HideGroupsIcon",0);
@@ -467,7 +478,7 @@ void LoadClcOptions(HWND hwnd, struct ClcData *dat)
 		dat->avatars_ignore_size_for_row_height = DBGetContactSettingByte(NULL,"CList","AvatarsIgnoreSizeForRow",0);
 		dat->avatars_draw_overlay = DBGetContactSettingByte(NULL,"CList","AvatarsDrawOverlay",0);
 		dat->avatars_overlay_type = DBGetContactSettingByte(NULL,"CList","AvatarsOverlayType",SETTING_AVATAR_OVERLAY_TYPE_NORMAL);
-		dat->avatars_size = DBGetContactSettingWord(NULL,"CList","AvatarsSize",30);
+		dat->avatars_maxheight_size = DBGetContactSettingWord(NULL,"CList","AvatarsSize",30);
 	}
 	else
 	{
@@ -480,7 +491,7 @@ void LoadClcOptions(HWND hwnd, struct ClcData *dat)
 		dat->avatars_ignore_size_for_row_height = 0;
 		dat->avatars_draw_overlay = 0;
 		dat->avatars_overlay_type = SETTING_AVATAR_OVERLAY_TYPE_NORMAL;
-		dat->avatars_size = 30;
+		dat->avatars_maxheight_size = 30;
 	}
 
 	// Icon
@@ -552,7 +563,7 @@ void LoadClcOptions(HWND hwnd, struct ClcData *dat)
 		dat->second_line_draw_smileys = DBGetContactSettingByte(NULL,"CList","SecondLineDrawSmileys",1);
 		dat->second_line_type = DBGetContactSettingWord(NULL,"CList","SecondLineType",TEXT_STATUS_MESSAGE);
 		{
-			DBVARIANT dbv;
+			DBVARIANT dbv={0};
 
 			if (!DBGetContactSettingTString(NULL, "CList","SecondLineText", &dbv))
 			{
@@ -589,7 +600,7 @@ void LoadClcOptions(HWND hwnd, struct ClcData *dat)
 		dat->third_line_draw_smileys = DBGetContactSettingByte(NULL,"CList","ThirdLineDrawSmileys",0);
 		dat->third_line_type = DBGetContactSettingWord(NULL,"CList","ThirdLineType",TEXT_STATUS);
 		{
-			DBVARIANT dbv;
+			DBVARIANT dbv={0};
 
 			if (!DBGetContactSettingTString(NULL, "CList","ThirdLineText", &dbv))
 			{
@@ -629,7 +640,7 @@ void LoadClcOptions(HWND hwnd, struct ClcData *dat)
 	dat->noVScrollbar=DBGetContactSettingByte(NULL,"CLC","NoVScrollBar",0);
 	SendMessage(hwnd,INTM_SCROLLBARCHANGED,0,0);
 	if(!dat->bkChanged) {
-		DBVARIANT dbv;
+		DBVARIANT dbv={0};
 		dat->bkColour=DBGetContactSettingDword(NULL,"CLC","BkColour",CLCDEFAULT_BKCOLOUR);
 		if(dat->hBmpBackground) {DeleteObject(dat->hBmpBackground); dat->hBmpBackground=NULL;}
 		if(DBGetContactSettingByte(NULL,"CLC","UseBitmap",CLCDEFAULT_USEBITMAP)) {
@@ -666,14 +677,14 @@ void LoadClcOptions(HWND hwnd, struct ClcData *dat)
 	dat->quickSearchColour=DBGetContactSettingDword(NULL,"CLC","QuickSearchColour",CLCDEFAULT_QUICKSEARCHCOLOUR);
 	dat->IsMetaContactsEnabled=
 		DBGetContactSettingByte(NULL,"MetaContacts","Enabled",1) && ServiceExists(MS_MC_GETDEFAULTCONTACT);
-	dat->MetaIgnoreEmptyExtra=DBGetContactSettingByte(NULL,"CLC","MetaIgnoreEmptyExtra",1);
-	dat->expandMeta=DBGetContactSettingByte(NULL,"CLC","MetaExpanding",1);
+		dat->MetaIgnoreEmptyExtra=DBGetContactSettingByte(NULL,"CLC","MetaIgnoreEmptyExtra",1);
+		dat->expandMeta=DBGetContactSettingByte(NULL,"CLC","MetaExpanding",1);
 	{
 		NMHDR hdr;
-		hdr.code=CLN_OPTIONSCHANGED;
-		hdr.hwndFrom=hwnd;
-		hdr.idFrom=GetDlgCtrlID(hwnd);
-		SendMessage(GetParent(hwnd),WM_NOTIFY,0,(LPARAM)&hdr);
+	hdr.code=CLN_OPTIONSCHANGED;
+	hdr.hwndFrom=hwnd;
+	hdr.idFrom=GetDlgCtrlID(hwnd);
+	SendMessage(GetParent(hwnd),WM_NOTIFY,0,(LPARAM)&hdr);
 	}
 	SendMessage(hwnd,WM_SIZE,0,0);
 }

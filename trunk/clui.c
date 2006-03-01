@@ -48,7 +48,6 @@ extern BYTE CALLED_FROM_SHOWHIDE;
 #define MENU_STATUSMENU         0xFFFF1235
 
 extern BOOL TransparentFlag;
-
 extern void Docking_GetMonitorRectFromWindow(HWND hWnd,RECT *rc);
 extern sCurrentWindowImageData * cachedWindow;
 int BehindEdge_State;
@@ -74,13 +73,32 @@ extern int docked;
 BOOL DestMode;
 BYTE ANIMATION_IS_IN_PROGRESS=0;
 BOOL SHOWHIDE_CALLED_FROM_ANIMATION=0;
+BOOL firstTimeCallFlag=FALSE;
 int SmoothAlphaTransition(HWND hwnd, BYTE GoalAlpha, BOOL wParam);
 extern tPaintCallbackProc ClcPaintCallbackProc(HWND hWnd, HDC hDC, RECT * rcPaint, HRGN rgn, DWORD dFlags, void * CallBackData);
 extern int LoadModernButtonModule(void);
 extern int CreateModernStatusBar(HWND parent);
 int SmoothAlphaThreadTransition(HWND hwnd);
 BOOL IsInChangingMode;
-
+extern void (*savedLoadCluiGlobalOpts)(void);
+/*
+*	Function CheckOwner returns true if given window is in 
+* frames.
+*/
+BOOL CheckOwner(HWND hwnd)
+{
+	HWND midWnd,hwndClui;
+	hwndClui=(HWND)CallService(MS_CLUI_GETHWND,0,0);
+	midWnd=GetAncestor(hwnd,GA_ROOTOWNER);
+	if(midWnd==hwndClui) return TRUE;
+	{
+		char buf[255];
+		GetClassNameA(midWnd,buf,254);
+		if (!_strcmpi(buf,CLUIFrameSubContainerClassName)) return TRUE;
+	}
+	return FALSE;
+}
+extern void __inline ulockfrm();
 /*
 *	Function ShowWindowNew overloads API ShowWindow in case of
 *  dropShaddow is enabled: it force to minimize window before hiding
@@ -110,7 +128,7 @@ int ShowWindowNew(HWND hwnd, int cmd)
 	{
 		SmoothAlphaTransition(hwnd, 255, 1);		
 	}
-	return ShowWindow(hwnd,cmd);
+		return ShowWindow(hwnd,cmd);
 }
 struct sUpdatingWindow
 {
@@ -227,24 +245,21 @@ extern int dock_prevent_moving;
 int show_event_started=0;
 extern int JustUpdateWindowImage();
 BOOL TransparentFlag=FALSE;// TransparentFlag
+
 void ChangeWindowMode()
 {
 	BOOL storedVisMode=FALSE;
 	LONG style,styleEx;
+	LONG oldStyle,oldStyleEx;
 	LONG styleMask=WS_CLIPCHILDREN|WS_BORDER|WS_CAPTION|WS_MINIMIZEBOX|WS_POPUPWINDOW|WS_CLIPCHILDREN|WS_THICKFRAME|WS_SYSMENU;
 	LONG styleMaskEx=WS_EX_TOOLWINDOW|WS_EX_LAYERED;
 	LONG curStyle,curStyleEx;
 	if (!pcli->hwndContactList) return;
+
 	IsInChangingMode=TRUE;
 	TransparentFlag=IsWinVer2000Plus()&&DBGetContactSettingByte( NULL,"CList","Transparent",SETTING_TRANSPARENT_DEFAULT);
 	SmoothAnimation=IsWinVer2000Plus()&&DBGetContactSettingByte(NULL, "CLUI", "FadeInOut", 1);
-	//1- If visible store it and hide
-	if (IsWindowVisible(pcli->hwndContactList)) 
-	{
-		storedVisMode=TRUE;
-		ShowWindowNew(pcli->hwndContactList,SW_HIDE);
-		OnShowHide(pcli->hwndContactList,0);
-	}
+
 	//2- Calculate STYLES and STYLESEX
 	if (!LayeredFlag)
 	{
@@ -282,7 +297,7 @@ void ChangeWindowMode()
 	//4- Set Title
 	{
 		TCHAR titleText[255]={0};
-		DBVARIANT dbv;
+		DBVARIANT dbv={0};
 		if(DBGetContactSettingTString(NULL,"CList","TitleText",&dbv))
 			lstrcpyn(titleText,TEXT(MIRANDANAME),sizeof(titleText));
 		else 
@@ -292,20 +307,42 @@ void ChangeWindowMode()
 		}
 		SetWindowText(pcli->hwndContactList,titleText);
 	}
+	//<->
+	//1- If visible store it and hide
 
+	if (LayeredFlag && (DBGetContactSettingByte(NULL,"CList","OnDesktop", 0)))// && !firstTimeCallFlag))
+	{
+			SetParent(pcli->hwndContactList,NULL);
+			SetParentForContainers(NULL);
+			UpdateWindow(pcli->hwndContactList);
+			IsOnDesktop=0;
+	}
 	//5- TODO Apply Style
-	curStyleEx=GetWindowLong(pcli->hwndContactList,GWL_EXSTYLE);
-	curStyle=GetWindowLong(pcli->hwndContactList,GWL_STYLE);	
+	oldStyleEx=curStyleEx=GetWindowLong(pcli->hwndContactList,GWL_EXSTYLE);
+	oldStyle=curStyle=GetWindowLong(pcli->hwndContactList,GWL_STYLE);	
+
 	curStyleEx=(curStyleEx&(~styleMaskEx))|styleEx;
 	curStyle=(curStyle&(~styleMask))|style;
-	SetWindowLong(pcli->hwndContactList,GWL_EXSTYLE,curStyleEx);
-	SetWindowLong(pcli->hwndContactList,GWL_STYLE,curStyle);
+	if (oldStyleEx!=curStyleEx || oldStyle!=curStyle)
+	{
+		if (IsWindowVisible(pcli->hwndContactList)) 
+		{
+			storedVisMode=TRUE;
+      SHOWHIDE_CALLED_FROM_ANIMATION=TRUE;
+			ShowWindow(pcli->hwndContactList,SW_HIDE);
+			OnShowHide(pcli->hwndContactList,0);
+		}
+		SetWindowLong(pcli->hwndContactList,GWL_EXSTYLE,curStyleEx);
+		SetWindowLong(pcli->hwndContactList,GWL_STYLE,curStyle);
+	}
 
 	if(LayeredFlag || !DBGetContactSettingByte(NULL,"CLUI","ShowMainMenu",SETTING_SHOWMAINMENU_DEFAULT)) 
 		SetMenu(pcli->hwndContactList,NULL);
 	else
 		SetMenu(pcli->hwndContactList,hMenuMain);
-
+	
+	if (LayeredFlag&&(DBGetContactSettingByte(NULL,"CList","OnDesktop", 0)))
+		UpdateWindowImage();
 	//6- Pin to desktop mode
 	if (DBGetContactSettingByte(NULL,"CList","OnDesktop", 0)) 
 	{
@@ -319,17 +356,23 @@ void ChangeWindowMode()
 	} 
 	else 
 	{
-		SetParent(pcli->hwndContactList,NULL);
-		SetParentForContainers(NULL);
+	//	HWND parent=GetParent(pcli->hwndContactList);
+	//	HWND progman=FindWindow(TEXT("Progman"),NULL);
+	//	if (parent==progman)
+		{
+			SetParent(pcli->hwndContactList,NULL);
+			SetParentForContainers(NULL);
+		}
 		IsOnDesktop=0;
 	}
 
 	//7- if it was visible - show
 	if (storedVisMode) 
 	{
-		ShowWindowNew(pcli->hwndContactList,SW_SHOW);
+		ShowWindow(pcli->hwndContactList,SW_SHOW);
 		OnShowHide(pcli->hwndContactList,1);
 	}
+  SHOWHIDE_CALLED_FROM_ANIMATION=FALSE;
 	if (!LayeredFlag)
 	{
 		HRGN hRgn1;
@@ -347,6 +390,7 @@ void ChangeWindowMode()
 		RedrawWindow(pcli->hwndContactList,NULL,NULL,RDW_INVALIDATE|RDW_ERASE|RDW_FRAME|RDW_UPDATENOW|RDW_ALLCHILDREN);   
 	} 			
 	IsInChangingMode=FALSE;
+	firstTimeCallFlag=TRUE;
 }
 
 int UpdateTimer(BYTE BringIn)
@@ -1262,25 +1306,12 @@ static int CluiModulesLoaded(WPARAM wParam,LPARAM lParam)
 	mii.hSubMenu=(HMENU)CallService(MS_CLIST_MENUGETSTATUS,0,0);
 	SetMenuItemInfo(hMenuMain,1,TRUE,&mii);
 
-	//canloadstatusbar=TRUE;
 	CheckProtocolOrder();
-	//SendMessage(pcli->hwndContactList,WM_SIZE,0,0);
 	CluiProtocolStatusChanged(0,0);
 	SleepEx(0,TRUE);
-
-	{//++//
-		char b[260];
-		sprintf(b,"%s was posted in FILELINE2\n","M_CREATECLC");
-		TRACE (b);
-	}//--//
-
 	OnModulesLoadedCalled=TRUE;	
-	pcli->pfnInvalidateDisplayNameCacheEntry(INVALID_HANDLE_VALUE);   
+	///pcli->pfnInvalidateDisplayNameCacheEntry(INVALID_HANDLE_VALUE);   
 	SendMessage(pcli->hwndContactList,M_CREATECLC,0,0); //$$$
-
-	//    OnSkinLoad(0,0);
-	//    InitGroupMenus();
-
 	return 0;
 }
 
@@ -1558,16 +1589,6 @@ int OnSettingChanging(WPARAM wParam,LPARAM lParam)
 			return(0);
 		};
 
-		if (dbcws->value.type==DBVT_ASCIIZ)//&&strstri(dbcws->szModule,"ICQ"))
-		{
-			if (!MyStrCmp(dbcws->szSetting,(HANDLE)"MirVer"))
-			{		
-				SetAllExtraIcons(pcli->hwndContactTree,(HANDLE)wParam);
-				return(0);
-			};
-
-		};
-
 		if (dbcws->value.type==DBVT_ASCIIZ&&!MyStrCmp(dbcws->szModule,"UserInfo"))
 		{
 			if (!MyStrCmp(dbcws->szSetting,(HANDLE)"MyPhone0"))
@@ -1607,6 +1628,7 @@ static void DisconnectAll()
 
 int PreCreateCLC(HWND parent)
 {
+  
 	pcli->hwndContactTree=CreateWindow(CLISTCONTROL_CLASS,TEXT(""),
 		WS_CHILD|WS_CLIPCHILDREN|CLS_CONTACTLIST
 		|(DBGetContactSettingByte(NULL,"CList","UseGroups",SETTING_USEGROUPS_DEFAULT)?CLS_USEGROUPS:0)
@@ -2108,11 +2130,10 @@ LRESULT CALLBACK ContactListWndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM l
 			if (ServiceExists(MS_CLIST_MENUBUILDMAIN)){CallService(MS_CLIST_MENUBUILDMAIN,0,0);};
 			return(0);
 		};
-
+	case WM_NCACTIVATE:
 	case WM_PRINT:  
 	case WM_NCPAINT:
-	case WM_NCACTIVATE:
-		{
+	{
 			int r = DefWindowProc(hwnd, msg, wParam, lParam);
 			if (DBGetContactSettingByte(NULL,"CLUI","ShowMainMenu",SETTING_SHOWMAINMENU_DEFAULT))
 			{
@@ -2322,7 +2343,7 @@ LRESULT CALLBACK ContactListWndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM l
 			GetWindowRect(hwnd, &rc);
 
 			CheckFramesPos(&rc);
-			ReposButtons(hwnd,1,&rc);
+			//ReposButtons(hwnd,1,&rc);
 			OnMoving(hwnd,&rc);
 
 			if(!IsIconic(hwnd)) {
@@ -2353,8 +2374,8 @@ LRESULT CALLBACK ContactListWndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM l
 
 				GetWindowRect(hwnd, &rc);
 				CheckFramesPos(&rc);
-				ReposButtons(hwnd,1,&rc);
-				ReposButtons(hwnd,FALSE,NULL);
+				ReposButtons(hwnd,FALSE,&rc);
+				ReposButtons(hwnd,7,NULL);
 				if (LayeredFlag)
 					UpdateFrameImage((WPARAM)hwnd,0);
 				if (!LayeredFlag)
@@ -2441,7 +2462,7 @@ LRESULT CALLBACK ContactListWndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM l
 				KillTimer(hwnd,TM_AUTOALPHA);
 				return 0;
 			}
-			if(wParam==WA_INACTIVE && ((HWND)lParam!=hwnd) && GetParent((HWND)lParam)!=hwnd && !IsOption) 
+			if(wParam==WA_INACTIVE && ((HWND)lParam!=hwnd) && !CheckOwner((HWND)lParam) && !IsOption) 
 			{
 				//if (!DBGetContactSettingByte(NULL,"CList","OnTop",SETTING_ONTOP_DEFAULT))
 				//{
@@ -2473,12 +2494,12 @@ LRESULT CALLBACK ContactListWndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM l
 					transparentFocus=1;
 				}
 			}
-			//skinInvalidateRect(hwnd,NULL, TRUE);
+			//InvalidateRectZ(hwnd,NULL, TRUE);
 			RedrawWindow(hwnd,NULL,NULL,RDW_INVALIDATE|RDW_ALLCHILDREN);
 			if(TransparentFlag)
 			{
 				BYTE alpha;
-				if (wParam!=WA_INACTIVE || IsOption || ((HWND)lParam==hwnd) || GetParent((HWND)lParam)==hwnd) alpha=DBGetContactSettingByte(NULL,"CList","Alpha",SETTING_ALPHA_DEFAULT);
+				if (wParam!=WA_INACTIVE || CheckOwner((HWND)lParam)|| IsOption || ((HWND)lParam==hwnd) || GetParent((HWND)lParam)==hwnd) alpha=DBGetContactSettingByte(NULL,"CList","Alpha",SETTING_ALPHA_DEFAULT);
 				else 
 					alpha=DBGetContactSettingByte(NULL,"CList","AutoAlpha",SETTING_AUTOALPHA_DEFAULT);
 				SmoothAlphaTransition(hwnd, alpha, 1);
@@ -2600,8 +2621,8 @@ LRESULT CALLBACK ContactListWndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM l
 				}
 #endif
 
-				if(IsWindowVisible(pcli->hwndStatus)) SkinInvalidateFrame(pcli->hwndStatus,NULL,0);//skinInvalidateRect(pcli->hwndStatus,NULL,TRUE);
-				TrayIconUpdateBase(pt->szProto);
+				if(IsWindowVisible(pcli->hwndStatus)) SkinInvalidateFrame(pcli->hwndStatus,NULL,0);//InvalidateRectZ(pcli->hwndStatus,NULL,TRUE);
+				if (DBGetContactSettingByte(NULL,"CList","TrayIcon",SETTING_TRAYICON_DEFAULT)!=SETTING_TRAYICON_CYCLE) TrayIconUpdateBase(pt->szProto);
 
 			}
 			SkinInvalidateFrame(pcli->hwndStatus,NULL,0);
@@ -2622,17 +2643,21 @@ LRESULT CALLBACK ContactListWndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM l
 		else if ((int)wParam==TM_AUTOALPHA)
 		{	int inwnd;
 
-		if (GetForegroundWindow()==hwnd) {
+		if (GetForegroundWindow()==hwnd)
+		{
 			KillTimer(hwnd,TM_AUTOALPHA);
 			inwnd=1;
 		}
 		else {
 			POINT pt;
-			HWND hwndPt,thwnd;
+			HWND hwndPt;
 			pt.x=(short)LOWORD(GetMessagePos());
 			pt.y=(short)HIWORD(GetMessagePos());
 			hwndPt=WindowFromPoint(pt);
+
 			inwnd=0;
+			inwnd=CheckOwner(hwndPt);
+			/*
 			{
 				thwnd=hwndPt;
 				do
@@ -2641,7 +2666,8 @@ LRESULT CALLBACK ContactListWndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM l
 					if (!inwnd)
 						thwnd=GetParent(thwnd);
 				}while (thwnd && !inwnd); 
-			}
+			}*/
+
 		}
 		if (inwnd!=transparentFocus)
 		{ //change
@@ -2678,11 +2704,7 @@ LRESULT CALLBACK ContactListWndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM l
 			KillTimer(hwnd,TM_BRINGOUTTIMEOUT);
 			GetCursorPos(&pt);
 			hAux = WindowFromPoint(pt);
-			while(hAux != NULL) 
-			{
-				if (hAux == hwnd) {mouse_in_window=1; break;}
-				hAux = GetParent(hAux);
-			}
+			mouse_in_window=CheckOwner(hAux);
 			if (!mouse_in_window && GetForegroundWindow()!=hwnd)
 			{
 				BehindEdge_Hide(); 
@@ -2741,7 +2763,7 @@ LRESULT CALLBACK ContactListWndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM l
 	case WM_SHOWWINDOW:
 		{	
 			BYTE gAlpha;
-			if (lParam) break;
+			if (lParam) return 0;
 			if (SHOWHIDE_CALLED_FROM_ANIMATION) return 1; 
 			{
 
@@ -2894,7 +2916,6 @@ LRESULT CALLBACK ContactListWndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM l
 					called_from_cln=0;
 					return 0;
 				}
-
 			case NM_CLICK:
 				{	NMCLISTCONTROL *nm=(NMCLISTCONTROL*)lParam;
 					DWORD hitFlags;
@@ -3149,7 +3170,7 @@ static int MenuItem_PreBuild(WPARAM wParam, LPARAM lParam)
 		}
 		else
 		{
-			DBVARIANT dbv;
+			DBVARIANT dbv={0};
 			if (DBGetContactSetting(hItem, "ContactPhoto", "File", &dbv))
 			{
 				has_avatar = 0;
@@ -3219,11 +3240,32 @@ int CList_ShowStatusMenu(WPARAM w,LPARAM l)
 	return 0;
 }
 
+
+void LoadCluiGlobalOpts()
+{
+  BOOL tLayeredFlag=FALSE;
+  tLayeredFlag=IsWinVer2000Plus();
+  tLayeredFlag&=DBGetContactSettingByte(NULL, "ModernData", "EnableLayering", tLayeredFlag);
+
+  if(tLayeredFlag)
+  {
+    if (DBGetContactSettingByte(NULL,"CList","WindowShadow",0)==1)
+      DBWriteContactSettingByte(NULL,"CList","WindowShadow",2);    
+  }
+  else
+  {
+    if (DBGetContactSettingByte(NULL,"CList","WindowShadow",0)==2)
+      DBWriteContactSettingByte(NULL,"CList","WindowShadow",1); 
+  }
+  savedLoadCluiGlobalOpts();
+}
+extern int GetGlobalStatus(WPARAM wparam,LPARAM lparam);
+extern void InitModernRow();
 void LoadCLUIModule(void)
 {
 	hFrameContactTree=0;
 	TRACE("Load CLUI Module\n");
-
+	CreateServiceFunction(MS_CLIST_GETSTATUSMODE,GetGlobalStatus);
 	hUserDll = LoadLibrary(TEXT("user32.dll"));
 	if (hUserDll)
 	{
@@ -3247,7 +3289,10 @@ void LoadCLUIModule(void)
 	hContactDroppedEvent=CreateHookableEvent(ME_CLUI_CONTACTDROPPED);
 	hContactDragStopEvent=CreateHookableEvent(ME_CLUI_CONTACTDRAGSTOP);
 	LoadCluiServices();
+  //TODO Add Row template loading here.
 
+  InitModernRow();
+  
 	CreateServiceFunction("CLUI/GetConnectingIconForProtocol",GetConnectingIconService);
 
 	oldhideoffline=DBGetContactSettingByte(NULL,"CList","HideOffline",SETTING_HIDEOFFLINE_DEFAULT);
@@ -3314,6 +3359,21 @@ int TestCursorOnBorders()
 	GetCursorPos(&pt);
 	IgnoreActivation=0;
 	GetWindowRect(hwnd,&r);
+  /*
+  *  Size borders offset (contract)
+  */
+  r.top+=DBGetContactSettingDword(NULL,"ModernSkin","SizeMarginOffset_Top",0);
+  r.bottom-=DBGetContactSettingDword(NULL,"ModernSkin","SizeMarginOffset_Bottom",0);
+  r.left+=DBGetContactSettingDword(NULL,"ModernSkin","SizeMarginOffset_Left",0);
+  r.right-=DBGetContactSettingDword(NULL,"ModernSkin","SizeMarginOffset_Right",0);
+  
+  if (r.right<r.left) r.right=r.left;
+  if (r.bottom<r.top) r.bottom=r.top;
+
+  /*
+  *  End of size borders offset (contract)
+  */
+
 	hAux = WindowFromPoint(pt);
 	while(hAux != NULL) 
 	{
@@ -3361,6 +3421,20 @@ int SizingOnBorder(POINT pt, int PerformSize)
 		HWND hwnd=pcli->hwndContactList;
 		int k=0;
 		GetWindowRect(hwnd,&r);
+      /*
+      *  Size borders offset (contract)
+      */
+      r.top+=DBGetContactSettingDword(NULL,"ModernSkin","SizeMarginOffset_Top",0);
+      r.bottom-=DBGetContactSettingDword(NULL,"ModernSkin","SizeMarginOffset_Bottom",0);
+      r.left+=DBGetContactSettingDword(NULL,"ModernSkin","SizeMarginOffset_Left",0);
+      r.right-=DBGetContactSettingDword(NULL,"ModernSkin","SizeMarginOffset_Right",0);
+      
+      if (r.right<r.left) r.right=r.left;
+      if (r.bottom<r.top) r.bottom=r.top;
+
+      /*
+      *  End of size borders offset (contract)
+      */
 		//ScreenToClient(hwnd,&pt);
 		if (pt.y<=r.bottom && pt.y>=r.bottom-SIZING_MARGIN && !DBGetContactSettingByte(NULL,"CLUI","AutoSize",0)) k=6;
 		else if (pt.y>=r.top && pt.y<=r.top+SIZING_MARGIN && !DBGetContactSettingByte(NULL,"CLUI","AutoSize",0)) k=3;
@@ -3379,6 +3453,7 @@ int SizingOnBorder(POINT pt, int PerformSize)
 	return 0;
 }
 extern void ApplyTransluency();
+BYTE PAUSE=FALSE;
 void SmoothAnimationThread(HWND hwnd)
 {
 	//  return;
@@ -3402,6 +3477,7 @@ int SmoothAlphaThreadTransition(HWND hwnd)
 {
 	int step;
 	int a;
+
 	step=(CURRENT_ALPHA>alphaEnd)?-1*ANIMATION_STEP:ANIMATION_STEP;
 	a=CURRENT_ALPHA+step;
 	if ((step>=0 && a>=alphaEnd) || (step<=0 && a<=alphaEnd))
@@ -3488,11 +3564,16 @@ int SmoothAlphaTransition(HWND hwnd, BYTE GoalAlpha, BOOL wParam)
 			}
 			if (IsWindowVisible(hwnd))
 			{
+				if (!ANIMATION_IS_IN_PROGRESS && GoalAlpha>0 && GoalAlpha<255 && SmoothAnimation)
+					PAUSE=TRUE;
+				else
+					PAUSE=FALSE;
 				ANIMATION_IS_IN_PROGRESS=1;
 				//TRACE("- -StartTimer\n");
 				//			 if (!ALREADYACTIVE)
 				if (SmoothAnimation)
-				{         
+				{   
+					
 					forkthread(SmoothAnimationThread,0,pcli->hwndContactList);	
 				}
 				//SetTimer(hwnd,TM_SMOTHALPHATRANSITION,20,NULL); 

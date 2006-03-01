@@ -643,18 +643,6 @@ int MO_AddNewMenuItem(WPARAM wParam,LPARAM lParam)
   MenuObjects[objidx].MenuItems[miidx].mi.pszName=mir_strdup(pmi->pszName);
   MenuObjects[objidx].MenuItems[miidx].iconId=-1;
   MenuObjects[objidx].MenuItems[miidx].OverrideShow=TRUE;
-#ifdef _DEBUG	
-
-  {
-    char buf[256];
-		mir_snprintf(buf,sizeof(buf),"added menuitem menu: %s, name: %s,id: %d mi: %x mi.position %d\r\n",MenuObjects[objidx].Name,MenuObjects[objidx].MenuItems[miidx].mi.pszName,
-      MenuObjects[objidx].MenuItems[miidx].id,
-      pmi,
-      MenuObjects[objidx].MenuItems[miidx].mi.position);
-      TRACE(buf);
-  }
-#endif
-
   MenuObjects[objidx].MenuItems[miidx].IconRegistred=FALSE;
   if(TRUE/*pmi->hIcon!=NULL*/) 
   {
@@ -734,8 +722,6 @@ static int WhereToPlace(HMENU hMenu,PMO_MenuItem mi,MENUITEMINFOA *mii,ListParam
 {
   int i=0;			
   PMO_IntMenuItem pimi;	
-
-
   mii->fMask=MIIM_SUBMENU|MIIM_DATA;
   for(i=GetMenuItemCount(hMenu)-1;i>=0;i--) {
     GetMenuItemInfoA(hMenu,i,TRUE,mii);
@@ -751,6 +737,42 @@ static int WhereToPlace(HMENU hMenu,PMO_MenuItem mi,MENUITEMINFOA *mii,ListParam
   return i;
 }
 
+typedef struct _MenuItemHandles 
+{
+	HMENU OwnerMenu;
+	int position;
+} MenuItemData;
+
+extern BOOL FindMenuHanleByGlobalID(HMENU hMenu, int globalID, MenuItemData * dat);
+
+BOOL FindMenuHanleByGlobalID(HMENU hMenu, int globalID, MenuItemData * itdat)
+{
+	int i;
+	PMO_IntMenuItem pimi;	
+	MENUITEMINFOA mii={0};
+	BOOL inSub=FALSE;
+	if (!itdat) return FALSE;
+	mii.cbSize=sizeof(MENUITEMINFOA);
+	mii.fMask=MIIM_SUBMENU|MIIM_DATA;
+	for(i=GetMenuItemCount(hMenu)-1;i>=0;i--) 
+	{
+		GetMenuItemInfoA(hMenu,i,TRUE,&mii);
+		if(mii.fType==MFT_SEPARATOR) continue;
+		if(mii.hSubMenu) 
+			inSub=FindMenuHanleByGlobalID(mii.hSubMenu, globalID,itdat);
+		if (inSub) return inSub;		
+		pimi=MO_GetIntMenuItem(mii.dwItemData);
+		if(pimi!=NULL){	
+			if (pimi->globalid==globalID) 
+			{
+				itdat->OwnerMenu=hMenu;
+				itdat->position=i;
+				return TRUE;
+			}
+		};
+	}
+	return FALSE;
+}
 
 static void InsertMenuItemWithSeparators(HMENU hMenu,int uItem,BOOL fByPosition,MENUITEMINFOA *lpmii,ListParam *param)
 {
@@ -875,7 +897,7 @@ int MO_BuildMenu(WPARAM wParam,LPARAM lParam)
 char *menuItemName = mi->pszName;
 
 char DBString[256];
-DBVARIANT dbv;
+DBVARIANT dbv={0};
 
 // check if it visible
 sprintf(DBString, "%s_visible", menuItemName); 
@@ -955,7 +977,7 @@ HMENU BuildRecursiveMenu(HMENU hMenu,ListParam *param)
 
       char menuItemName[256];	
       char DBString[256];
-      DBVARIANT dbv;
+      DBVARIANT dbv={0};
 
       memset(&dbv,0,sizeof(dbv));
       if (MenuItems[j].UniqName)
@@ -1249,7 +1271,7 @@ int RegisterOneIcon(int mo,int mi)
 
     char mn[255];
 	HICON defic=0;
-    sprintf(mn,"Menu icons/%s",MenuObjects[mo].Name);
+    sprintf(mn,Translate("Menu icons/%s"),MenuObjects[mo].Name);
 	defic=ImageList_GetIcon(MenuObjects[mo].hMenuIcons,MenuObjects[mo].MenuItems[mi].iconId,0);
     newIcon=LoadIconFromLibrary(
       mn,
@@ -1379,3 +1401,19 @@ int UnitGenMenu()
   return(0);
 };
 
+TMO_IntMenuItem * GetMenuItemByGlobalID(int globalMenuID)
+{
+	int ObjId; 
+	int ItemId; 
+	int pimoidx; 
+	int itempos; 
+
+	ObjId=HIWORD(globalMenuID);
+	ItemId=LOWORD(globalMenuID);
+	pimoidx=GetMenuObjbyId(ObjId);
+	itempos=GetMenuItembyId(pimoidx,ItemId);
+	if (pimoidx<MenuObjectsCount && itempos<MenuObjects[pimoidx].MenuItemsCount)
+		if(MenuObjects[pimoidx].MenuItems[itempos].globalid==globalMenuID) 
+			return (&(MenuObjects[pimoidx].MenuItems[itempos]));
+	return NULL;
+}

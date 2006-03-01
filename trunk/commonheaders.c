@@ -36,8 +36,8 @@ BOOL __cdecl strstri(const char *a, const char *b)
 {
     char * x, *y;
     if (!a || !b) return FALSE;
-    x=strdup(a);
-    y=strdup(b);
+    x=_strdup(a);
+    y=_strdup(b);
     x=_strupr(x);
     y=_strupr(y);
     if (strstr(x,y))
@@ -128,7 +128,8 @@ extern __inline wchar_t * mir_strdupW(const wchar_t * src)
 {
 	wchar_t * p;
 	if (src==NULL) return NULL;
-	p= mir_alloc((lstrlenW(src)+1)*sizeof(wchar_t));
+	if (IsBadStringPtrW(src,255)) return NULL;
+	p=(wchar_t *) mir_alloc((lstrlenW(src)+1)*sizeof(wchar_t));
 	if (!p) return 0;
 	lstrcpyW(p, src);
 	return p;
@@ -203,3 +204,48 @@ DWORD exceptFunction(LPEXCEPTION_POINTERS EP)
     
 	return EXCEPTION_EXECUTE_HANDLER; 
 } 
+
+#ifdef _DEBUG
+#undef DeleteObject
+#endif 
+
+BOOL DebugDeleteObject(HGDIOBJ a)
+{
+	BOOL res=DeleteObject(a);
+	if (!res) 
+	{
+		DWORD t = GetLastError();
+		LPVOID lpMsgBuf;
+		if (!FormatMessage( 
+			FORMAT_MESSAGE_ALLOCATE_BUFFER | 
+			FORMAT_MESSAGE_FROM_SYSTEM | 
+			FORMAT_MESSAGE_IGNORE_INSERTS,
+			NULL,
+			t,
+			MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), // Default language
+			(LPTSTR) &lpMsgBuf,
+			0,
+			NULL ))
+		{
+		// Handle the error.
+		return res;
+		}
+
+		// Process any inserts in lpMsgBuf.
+		// ...
+
+		// Display the string.
+		MessageBox( NULL, (LPCTSTR)lpMsgBuf, _T("Error"), MB_OK | MB_ICONINFORMATION );
+		TRACE("******************** ");
+		TRACET(lpMsgBuf);
+		TRACE("\n");
+		// Free the buffer.
+		LocalFree( lpMsgBuf );
+
+	}
+	return res;
+}
+
+#ifdef _DEBUG
+#define DeleteObject(a) DebugDeleteObject(a)
+#endif 

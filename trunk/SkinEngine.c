@@ -31,6 +31,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #include "shlwapi.h"
 #include "mod_skin_selector.h"
 #include "commonprototypes.h"
+
 //Definition
 #define ScaleBord 2
 
@@ -65,6 +66,10 @@ int arrlen;
 BOOL JustDrawNonFramedObjects=0;
 SKINOBJECTSLIST glObjectList={0};
 
+SortedList * gl_plGlyphTexts=NULL;
+
+SortedList * gl_plSkinFonts=NULL;
+
 
 //Declaration
 int AlphaTextOutServ(WPARAM w,LPARAM l);
@@ -94,13 +99,15 @@ int DrawNonFramedObjects(BOOL Erase,RECT *r);
 
 //Implementation
 extern BOOL (WINAPI *MySetLayeredWindowAttributesNew)(HWND,COLORREF,BYTE,DWORD);
+extern BOOL AlphaBlengGDIPlus(HDC hdcDest,int nXOriginDest,int nYOriginDest,int nWidthDest,int nHeightDest,HDC hdcSrc,int nXOriginSrc,int nYOriginSrc,int nWidthSrc,int nHeightSrc, BLENDFUNCTION * blendFunction);
+
 BOOL MyAlphaBlend(HDC hdcDest,int nXOriginDest,int nYOriginDest,int nWidthDest,int nHeightDest,HDC hdcSrc,int nXOriginSrc,int nYOriginSrc,int nWidthSrc,int nHeightSrc,BLENDFUNCTION blendFunction)
 {
-  if (!gdiPlusFail &&0) //Use gdi+ engine
+  if (!gdiPlusFail && 0) //Use gdi+ engine
   {
-    HBITMAP hbmp=GetCurrentObject(hdcSrc,OBJ_BITMAP);
-    DrawAvatarImageWithGDIp(hdcDest,nXOriginDest,nYOriginDest,nWidthDest,nHeightDest,hbmp,nXOriginSrc,nYOriginSrc,nWidthSrc,nHeightSrc,blendFunction.AlphaFormat?8:0);
-    return 0;
+	  return AlphaBlengGDIPlus( hdcDest,nXOriginDest,nYOriginDest,nWidthDest,nHeightDest,
+								hdcSrc,nXOriginSrc,nYOriginSrc,nWidthSrc,nHeightSrc,
+								&blendFunction);
   }
   return AlphaBlend(hdcDest,nXOriginDest,nYOriginDest,nWidthDest,nHeightDest,hdcSrc,nXOriginSrc,nYOriginSrc,nWidthSrc,nHeightSrc,blendFunction);
 }
@@ -680,7 +687,7 @@ HBITMAP CreateBitmap32(int cx, int cy)
 {
   return CreateBitmap32Point(cx,cy,NULL);
 }
-
+#include <assert.h>
 HBITMAP CreateBitmap32Point(int cx, int cy, void ** bits)
 {
   BITMAPINFO RGB32BitsBITMAPINFO; 
@@ -701,7 +708,8 @@ HBITMAP CreateBitmap32Point(int cx, int cy, void ** bits)
     DIB_RGB_COLORS,
     (void **)&ptPixels, 
     NULL, 0);
-  if (bits!=NULL) *bits=ptPixels;
+  assert(ptPixels!=NULL); 
+  if (bits!=NULL) *bits=ptPixels;  
   return DirectBitmap;
 }
 int DrawSkinObject(SKINDRAWREQUEST * preq, GLYPHOBJECT * pobj)
@@ -990,6 +998,9 @@ int DrawSkinObject(SKINDRAWREQUEST * preq, GLYPHOBJECT * pobj)
       }
     }
     //free GDI resources
+    //--++--
+    
+    //free GDI resources
     {
 
       if (oldglyph) SelectObject(glyphdc,oldglyph);
@@ -1003,6 +1014,60 @@ int DrawSkinObject(SKINDRAWREQUEST * preq, GLYPHOBJECT * pobj)
     }
 
   }  
+  if (pobj->plTextList && pobj->plTextList->realCount>0)
+    {
+      int i;
+      HFONT hOldFont;
+      for (i=0; i<pobj->plTextList->realCount; i++)
+      {
+        GLYPHTEXT * gt=(GLYPHTEXT *)pobj->plTextList->items[i];
+        if (!gt->hFont)
+        {
+          if (gl_plSkinFonts && gl_plSkinFonts->realCount>0)
+          {
+            int j=0;
+            for (j=0; j<gl_plSkinFonts->realCount; j++)
+            {
+              SKINFONT * sf;
+              sf=(SKINFONT*)gl_plSkinFonts->items[j];
+              if (sf->szFontID && !strcmp(sf->szFontID,gt->szFontID))
+              {
+                gt->hFont=sf->hFont;
+                break;
+              }
+            }
+          }
+          if (!gt->hFont) gt->hFont=(HFONT)-1;
+        }
+        if (gt->hFont!=(HFONT)-1)
+        {
+          RECT rc={0};
+          hOldFont=SelectObject(preq->hDC,gt->hFont);
+          
+          
+
+          if (gt->RelativeFlags&2) rc.left=preq->rcDestRect.right+gt->iLeft;
+          else if (gt->RelativeFlags&1) rc.left=((preq->rcDestRect.right-preq->rcDestRect.left)>>1)+gt->iLeft;
+          else rc.left=preq->rcDestRect.left+gt->iLeft;
+            
+          if (gt->RelativeFlags&8) rc.top=preq->rcDestRect.bottom+gt->iTop;
+          else if (gt->RelativeFlags&4) rc.top=((preq->rcDestRect.bottom-preq->rcDestRect.top)>>1)+gt->iTop;
+          else rc.top=preq->rcDestRect.top+gt->iTop;
+
+          if (gt->RelativeFlags&32) rc.right=preq->rcDestRect.right+gt->iRight;
+          else if (gt->RelativeFlags&16) rc.right=((preq->rcDestRect.right-preq->rcDestRect.left)>>1)+gt->iRight;
+          else rc.right=preq->rcDestRect.left+gt->iRight;
+
+          if (gt->RelativeFlags&128) rc.bottom=preq->rcDestRect.bottom+gt->iBottom;
+          else if (gt->RelativeFlags&64) rc.bottom=((preq->rcDestRect.bottom-preq->rcDestRect.top)>>1)+gt->iBottom;
+          else rc.bottom=preq->rcDestRect.top+gt->iBottom;
+          
+          AlphaTextOut(preq->hDC, gt->stText, -1, &rc,gt->dwFlags, gt->dwColor);
+          SelectObject(preq->hDC,hOldFont);
+        }
+      }
+    }
+
   return 0;
 }
 
@@ -1309,6 +1374,23 @@ int UnloadSkin(SKINOBJECTSLIST * Skin)
   InitializeCriticalSection(&skin);
   EnterCriticalSection(&skin);
   ClearMaskList(Skin->MaskList);
+  {//clear font list
+    int i;
+    if (gl_plSkinFonts && gl_plSkinFonts->realCount>0)
+    {
+      for (i=0; i<gl_plSkinFonts->realCount; i++)
+      {
+        SKINFONT * sf=gl_plSkinFonts->items[i];
+        if (sf)
+        {
+          if (sf->szFontID) mir_free(sf->szFontID);
+          DeleteObject(sf->hFont);
+        }
+      }
+      li.List_Destroy(gl_plSkinFonts);
+      gl_plSkinFonts=NULL;
+    }
+  }
 
   if (Skin->SkinPlace) mir_free(Skin->SkinPlace);
   DeleteButtons();
@@ -1324,6 +1406,25 @@ int UnloadSkin(SKINOBJECTSLIST * Skin)
         if (dt->hGlyph) UnloadGlyphImage(dt->hGlyph);
         dt->hGlyph=NULL;
         if (dt->szFileName) mir_free(dt->szFileName);
+        {// delete texts
+          int i;
+          if (dt->plTextList && dt->plTextList->realCount>0)
+          {
+            for (i=0; i<dt->plTextList->realCount; i++)
+            {
+              GLYPHTEXT * gt=dt->plTextList->items[i];
+              if (gt)
+              {
+                if (gt->stText)       mir_free(gt->stText);
+                if (gt->stValueText)  mir_free(gt->stValueText);
+                if (gt->szFontID)     mir_free(gt->szFontID);
+                if (gt->szGlyphTextID)mir_free(gt->szGlyphTextID);
+              }
+            }
+            li.List_Destroy(dt->plTextList);
+            dt->plTextList=NULL;
+          }
+        }
         mir_free(dt);
       }
       break;
@@ -1357,7 +1458,46 @@ int EnumGetProc (const char *szSetting,LPARAM lParam)
   }
   return 1;
 }
+int EnumGetMasksProc(const char *szSetting,LPARAM lParam)
+{
+        if (WildCompare((char *)szSetting,"@*",0) && CURRENTSKIN)
+        {
+                DWORD ID=atoi(szSetting+1);
+                int i=0;
+                char * value;
+                value=DBGetStringA(NULL,SKIN,szSetting);
+                if (value)
+                {
+                        for (i=0; i<MyStrLen(value); i++)  if (value[i]==':') break;
+                        if (i<MyStrLen(value))
+                        {
+                                char * Obj, *Mask;
+                                int res;
+                                Mask=value+i+1;
+                                Obj=mir_alloc(i+1);
+                                strncpy(Obj,value,i);
+                                Obj[i]='\0';
+                                res=AddStrModernMaskToList(ID,Mask,Obj,CURRENTSKIN->MaskList,CURRENTSKIN);
+                                mir_free(Obj);
+                        }
+                        mir_free(value);
+                }
 
+        }
+        else if (WildCompare((char *)szSetting,"t*",0) && CURRENTSKIN)
+        {
+           char * value;
+           value=DBGetStringA(NULL,SKIN,szSetting);
+           AddParseTextGlyphObject((char*)szSetting,value,CURRENTSKIN);
+        }
+        else if (WildCompare((char *)szSetting,"f*",0) && CURRENTSKIN)
+        {
+           char * value;
+           value=DBGetStringA(NULL,SKIN,szSetting);
+           AddParseSkinFont((char*)szSetting,value,CURRENTSKIN);
+        }
+        return 1;
+}
 // Getting skin objects and masks from DB
 int GetSkinFromDB(char * szSection, SKINOBJECTSLIST * Skin)
 {
@@ -1381,8 +1521,8 @@ int GetSkinFromDB(char * szSection, SKINOBJECTSLIST * Skin)
     _snprintf(buf,sizeof(buf),"Glyph,Solid,%d,%d,%d,%d",GetRValue(col),GetGValue(col),GetBValue(col),255);
     RegisterObjectByParce("$DefSkinSelObj",buf);
 
-    AddStrModernMaskToList("CL,ID=Selection","$DefSkinSelObj",Skin->MaskList,Skin);	
-    AddStrModernMaskToList("*,ID^Ovl,ID^Row,ID^Hot*","$DefaultSkinObj",Skin->MaskList,Skin);	
+    AddStrModernMaskToList(0,"CL,ID=Selection","$DefSkinSelObj",Skin->MaskList,Skin);
+    AddStrModernMaskToList(0,"*,ID^Ovl,ID^Row,ID^Hot*","$DefaultSkinObj",Skin->MaskList,Skin);
     return 1;
   }
   //Load objects
@@ -1393,41 +1533,14 @@ int GetSkinFromDB(char * szSection, SKINOBJECTSLIST * Skin)
     dbces.szModule=SKIN;
     dbces.ofsSettings=0;
     CallService(MS_DB_CONTACT_ENUMSETTINGS,0,(LPARAM)&dbces);
+ 
+        dbces.pfnEnumProc=EnumGetMasksProc;
+        dbces.ofsSettings=0;
+        CallService(MS_DB_CONTACT_ENUMSETTINGS,0,(LPARAM)&dbces);
+        SortMaskList(Skin->MaskList);
     CURRENTSKIN=NULL;
   }
   //Load Masks
-  {
-    DWORD n=0;
-    while (TRUE)
-    {
-      char buf[260];
-      DWORD Param=0;
-      char * Mask=NULL;
-      char * value=NULL;
-      _snprintf(buf,sizeof(buf),"@%d",n);
-      if (value=DBGetStringA(NULL,SKIN,buf))
-      {
-        int i=0;
-        for (i=0; i<MyStrLen(value); i++)
-          if (value[i]==':') break;
-        if (i<MyStrLen(value))
-        {
-          char * Obj, *Mask;
-          int res;
-          Mask=value+i+1;
-          Obj=mir_alloc(i+1);
-          strncpy(Obj,value,i);
-          Obj[i]='\0';
-          res=AddStrModernMaskToList(Mask,Obj,Skin->MaskList,Skin);
-          mir_free(Obj);
-        }
-        mir_free(value);
-        value=NULL;
-        n++;
-      }
-      else break;
-    }
-  }
   return 0;
 }
 
@@ -1468,8 +1581,154 @@ int GetSkinFolder(char * szFileName, char * t2)
   CallService(MS_UTILS_PATHTORELATIVE, (WPARAM)t2, (LPARAM)t2);
   return 0;
 }
+//
+#include "stdio.h"
+char * iniCurrentSection=NULL;
+char *_szFileName=NULL;
+void WriteParamToDatabase(char *cKey, char* cName, char* cVal, BOOL SecCheck)
+{
+        if (SecCheck)
+        {
+                //TODO check security here
+		if (WildCompare(cKey,"Skin_Description_Section",1)) return;
+        }
+        if (strlen(cVal)>0 && cVal[strlen(cVal)-1]==10) cVal[strlen(cVal)-1]='\0';  //kill linefeed at the end  
+	switch(cVal[0]) 
+        {
+        case 'b':
+                {
+                        BYTE P;
+                        P=(BYTE)atoi(cVal+1);
+                        DBWriteContactSettingByte(NULL,cKey,cName,P);
+                }
+                break;
+        case 'w':
+                {
+                        WORD P;
+                        P=(WORD)atoi(cVal+1);
+                        DBWriteContactSettingWord(NULL,cKey,cName,P);
+                }
+                break;
+        case 'd':
+                {
+                        DWORD P;
+                        P=(DWORD)atoi(cVal+1);
+                        DBWriteContactSettingDword(NULL,cKey,cName,P);
+                }
+                break;
+        case 's':
+                DBWriteContactSettingString(NULL,cKey,cName,cVal+1);
+                break;
+        case 'f':
+                if (_szFileName)
+                {
+                        char fn[MAX_PATH]={0};
+                        char bb[MAX_PATH*2]={0};
+                        int pp, i;
+                        pp=-1;
+                        CallService(MS_UTILS_PATHTORELATIVE, (WPARAM)_szFileName, (LPARAM)fn);
+                        {
+                                for (i=strlen(fn); i>=0; i--)  if (fn[i]=='.') break;
+                                if (i>0) fn[i]='\0';
+                        }                      
+                        _snprintf(bb,SIZEOF(bb),"%s\\%s",fn,cVal+1);
+                        DBWriteContactSettingString(NULL,cKey,cName,bb);
+                }
+                break;
+        }
+}
+
+BOOL ParseLineOfIniFile(char * Line)
+{
+        DWORD i=0;
+        DWORD len=strlen(Line);
+        while (i<len && (Line[i]==' ' || Line[i]=='\t')) i++; //skip spaces&tabs
+	if (i>=len) return FALSE; //only spaces (or tabs)
+	if (len>0 && Line[len-1]==10) Line[len-1]='\0';
+        switch(Line[i])
+        {
+        case ';':
+                return FALSE; // start of comment is found
+	case '[':
+                //New section start here
+		if (iniCurrentSection) mir_free(iniCurrentSection);
+                {
+                        char *tbuf=Line+i+1;		
+                        DWORD len2=strlen(tbuf);
+                        DWORD k=len2;
+                        while (k>0 && tbuf[k]!=']') k--; //searching close bracket
+			tbuf[k]='\0';   //closing string
+			if (k==0) return FALSE;
+                        iniCurrentSection=mir_strdup(tbuf);
+                }
+                return TRUE;
+        default:
+                if (!iniCurrentSection) return FALSE;  //param found out of section
+		{
+                        char *keyName=Line+i;
+                        char *keyValue=Line+i;
+                        
+                        DWORD eqPlace=0;
+                        DWORD len2=strlen(keyName);
+                        while (eqPlace<len2 && keyName[eqPlace]!='=') eqPlace++; //find '='
+			if (eqPlace==0 || eqPlace==len2) return FALSE; //= not found or no key name
+			keyName[eqPlace]='\0';
+                        keyValue=keyName+eqPlace+1;
+                        //remove tail spaces in Name
+			{
+                                DWORD len3=strlen(keyName);
+                                int j=len3-1;
+                                while (j>0 && (keyName[j]==' ' || keyName[j]=='\t')) j--;
+                                if (j>=0) keyName[j+1]='\0';
+                        }		
+                        //remove start spaces in Value
+			{
+                                DWORD len3=strlen(keyValue);
+                                DWORD j=0;
+                                while (j<len3 && (keyValue[j]==' ' || keyValue[j]=='\t')) j++;
+                                if (j<len3) keyValue+=j;
+                        }
+                        //remove tail spaces in Value
+			{
+                                DWORD len3=strlen(keyValue);
+                                int j=len3-1;
+                                while (j>0 && (keyValue[j]==' ' || keyValue[j]=='\t')) j--;
+                                if (j>=0) keyValue[j+1]='\0';
+                        }
+                        WriteParamToDatabase(iniCurrentSection,keyName,keyValue,TRUE);
+                }
+        }
+        return FALSE;
+}
 //Load data from ini file
 int LoadSkinFromIniFile(char * szFileName)
+{
+        FILE *stream=NULL;
+        char line[512]={0};
+        char skinFolder[MAX_PATH]={0};
+        char skinFile[MAX_PATH]={0};
+        DeleteAllSettingInSection("ModernSkin");
+        GetSkinFolder(szFileName,skinFolder);
+        DBWriteContactSettingString(NULL,SKIN,"SkinFolder",skinFolder);
+        CallService(MS_UTILS_PATHTORELATIVE, (WPARAM)szFileName, (LPARAM)skinFile);
+        DBWriteContactSettingString(NULL,SKIN,"SkinFile",skinFile);
+        
+        if( (stream = fopen( szFileName, "r" )) != NULL )
+        {
+                _szFileName=szFileName;
+                while (fgets( line, SIZEOF(line),stream ) != NULL)
+                {
+                        ParseLineOfIniFile(line);
+                }
+                fclose( stream );
+                _szFileName=NULL;
+        }
+        return 0;
+}
+
+//Load data from ini file
+
+int OldLoadSkinFromIniFile(char * szFileName)
 {
   char bsn[MAXSN_BUFF_SIZE];
   char * Buff;
@@ -1598,7 +1857,7 @@ int EnumDeletionProc (const char *szSetting,LPARAM lParam)
   if (szSetting==NULL){return(1);};
   arrlen++;
   settingname=(char **)realloc(settingname,arrlen*sizeof(char *));
-  settingname[arrlen-1]=strdup(szSetting);
+  settingname[arrlen-1]=_strdup(szSetting);
   return(1);
 };
 int DeleteAllSettingInSection(char * SectionName)
@@ -1677,6 +1936,327 @@ BYTE weight[256];
 BYTE weight2[256];
 BYTE weightfilled=0;
 #include "math.h"
+typedef signed char sbyte;
+
+_inline void SetMatrix( sbyte * matrix,
+					   sbyte a, sbyte b, sbyte c, 
+					   sbyte d, sbyte e, sbyte f, 
+					   sbyte g, sbyte h, sbyte i)
+{
+	matrix[0]=a;	matrix[1]=b;	matrix[2]=c;
+	matrix[3]=d;	matrix[4]=e;	matrix[5]=f;
+	matrix[6]=g;	matrix[7]=h;	matrix[8]=i;
+}
+
+typedef  struct _MODERNEFFECTMATRIX
+{
+	sbyte matrix[25];
+	BYTE  topEffect;
+	BYTE  leftEffect;
+	BYTE  rightEffect;
+	BYTE  bottomEffect;
+	BYTE  cycleCount;	  //low 7 bits
+}MODERNEFFECTMATRIX;
+
+typedef  struct _MODERNEFFECT
+{
+	BYTE EffectID;
+	MODERNEFFECTMATRIX EffectMatrix;
+	DWORD EffectColor1;
+	DWORD EffectColor2;
+}MODERNEFFECT;
+
+#define MAXPREDEFINEDEFFECTS 3
+
+char * ModernEffectNames[]={"Outline","Outline smooth","Smooth bump"};
+
+MODERNEFFECTMATRIX ModernEffectsEnum[]={
+	{   //Outline
+		{	0,	0,	0,	0,	 0,
+			0,	16, 16, 16, 0,
+			0,	16,	32, 16, 0,
+			0,	16,	16,	16,	 0,
+			0,	0,	0,	0,	 0   },	1,1,1,1,1},
+	
+	{  //Outline smooth
+		{	4,	4,	4,	4,	 4,
+			4,	8,  8,  8,   4,
+			4,	8,	32, 8,   4,
+			4,	8,	8,	8,	 4,
+			4,	4,	4,	4,	 4   },	2,2,2,2,1},
+	
+	{  //Smooth bump
+		{	-2,   2,  2,  2,  2,
+			-2,	-16, 16, 16,  2,
+			-2,	-16, 48, 16,  2,
+			-2,	-16,-16, 16,  2,
+			-2,	 -2, -2, -2, -2 },	2,2,2,2,1+0x80}
+};
+
+MODERNEFFECT CurrentEffect={-1,{0},0,0};
+	
+void SetEffect(BYTE EffectID, DWORD FirstColor, DWORD SecondColor)
+{
+	if (EffectID>MAXPREDEFINEDEFFECTS) return; 
+	if (EffectID==-1) CurrentEffect.EffectID=-1;
+	else
+	{
+		CurrentEffect.EffectID=EffectID;
+		CurrentEffect.EffectMatrix=ModernEffectsEnum[EffectID];
+		CurrentEffect.EffectColor1=FirstColor;
+		CurrentEffect.EffectColor2=SecondColor;
+	}
+}
+
+void ResetEffect()
+{
+	CurrentEffect.EffectID=-1;
+}
+
+
+BOOL DrawTextEffect(BYTE* destPt,BYTE* maskPt, DWORD width, DWORD height)
+{
+	sbyte *buf;
+	sbyte *outbuf;
+	sbyte *bufline, *buflineTop, *buflineMid;
+	int sign=0;
+	BYTE *maskline,*destline;
+	BYTE al,rl,gl,bl,ad,rd,gd,bd;
+	int k=0;
+	DWORD x,y;
+	sbyte *matrix;
+	BYTE mcTopStart;
+	BYTE mcBottomEnd;
+	BYTE mcLeftStart;
+	BYTE mcRightEnd;
+	BYTE effectCount;
+	int minX=width;
+	int maxX=0;
+	int minY=height;
+	int maxY=0;
+	if (CurrentEffect.EffectID==0xFF) return FALSE;
+	buf=(BYTE*)malloc(width*height*sizeof(BYTE));
+	{
+		matrix=CurrentEffect.EffectMatrix.matrix;
+		mcTopStart=2-CurrentEffect.EffectMatrix.topEffect;
+		mcBottomEnd=3+CurrentEffect.EffectMatrix.bottomEffect;
+		mcLeftStart=2-CurrentEffect.EffectMatrix.leftEffect;
+		mcRightEnd=3+CurrentEffect.EffectMatrix.rightEffect;
+		effectCount=CurrentEffect.EffectMatrix.cycleCount;
+	}
+	al=255-((BYTE)(CurrentEffect.EffectColor1>>24));
+	rl=GetRValue(CurrentEffect.EffectColor1);
+	gl=GetGValue(CurrentEffect.EffectColor1);
+	bl=GetBValue(CurrentEffect.EffectColor1);
+	rd=GetRValue(CurrentEffect.EffectColor2);
+	gd=GetGValue(CurrentEffect.EffectColor2);
+	bd=GetBValue(CurrentEffect.EffectColor2);
+	ad=255-((BYTE)(CurrentEffect.EffectColor2>>24));
+
+	
+	//Fill buffer by mid values of image
+	for (y=0; y<height; y++)
+	{
+		bufline=buf+y*width;
+		maskline=maskPt+((y*width)<<2);
+		for (x=0; x<width; x++)
+		{
+			BYTE a=(sbyte)(DWORD)((maskline[0]+maskline[2]+maskline[1]+maskline[1])>>4);
+			*bufline=a;
+			if (a!=0)
+			{
+				minX=min((int)x,minX);
+				minY=min((int)y,minY);
+				maxX=max((int)x,maxX);
+				maxY=max((int)y,maxY);
+			}
+			bufline++;
+			maskline+=4;
+		}
+	}
+	//Here perform effect on buffer and place results to outbuf
+	for (k=0; k<(effectCount&0x7F); k++)
+	{
+		minX=max(0,minX+mcLeftStart-2);
+		minY=max(0,minY+mcTopStart-2);
+		maxX=min((int)width,maxX+mcRightEnd-1);
+		maxY=min((int)height,maxX+mcBottomEnd-1);
+
+		outbuf=(sbyte*)malloc(width*height*sizeof(sbyte));
+		memset(outbuf,0,width*height*sizeof(sbyte));
+		for (y=(DWORD)minY; y<(DWORD)maxY; y++)
+		{
+			int val;
+			bufline=outbuf+y*width+minX;
+			buflineMid=buf+y*width+minX; 
+			for (x=(DWORD)minX; x<(DWORD)maxX; x++)
+			{			
+				int matrixHor,matrixVer;
+				val=0;			
+				for (matrixVer=mcTopStart; matrixVer<mcBottomEnd; matrixVer++)
+					for (matrixHor=mcLeftStart; matrixHor<mcRightEnd;matrixHor++)
+					{						
+						int a=y+matrixVer-2;
+						buflineTop=NULL;
+						if (a>=0 && (DWORD)a<height) buflineTop=buflineMid+width*(matrixVer-2);
+						a=x+matrixHor-2;
+						if (buflineTop && a>=0 && (DWORD)a<width) buflineTop+=matrixHor-2;
+						else buflineTop=NULL;
+						if (buflineTop) 
+							val+=((*buflineTop)*matrix[matrixVer*5+matrixHor]); 					
+					}
+				val=(val+1)>>5;
+				*bufline=(sbyte)((val>127)?127:(val<-125)?-125:val);
+				bufline++;
+				buflineMid++;
+			}
+		}
+		free(buf);
+		buf=outbuf;
+	}
+	{
+		BYTE r1,b1,g1,a1;
+		b1=bl; r1=rl; g1=gl; a1=al; sign=1;
+		//perform out to dest
+		for (y=0; y<height; y++)
+		{		
+			bufline=buf+y*width;
+			destline=destPt+((y*width)<<2);
+			for (x=0; x<width; x++)
+			{
+				sbyte val=*bufline;
+				BYTE absVal=((val<0)?-val:val);
+				
+				//val=val<0?val:0;
+				//val=val>0?val:0;
+				
+				if (val!=0)
+				{	
+					if (val>0 && sign<0)
+					{ b1=bl; r1=rl; g1=gl; a1=al; sign=1;}
+					else if (val<0 && sign>0)
+					{ b1=bd; r1=rd; g1=gd; a1=ad; sign=-1;}
+						
+
+					destline[0]=((destline[0]*(128-absVal))+absVal*b1)/128;
+					destline[1]=((destline[1]*(128-absVal))+absVal*g1)/128;
+					destline[2]=((destline[2]*(128-absVal))+absVal*r1)/128;
+					destline[3]=((destline[3]*(128-absVal))+(a1*absVal))/128;				
+				}
+				bufline++;
+				destline+=4;
+			}
+		}
+		free(buf);
+	}
+	return FALSE;
+}
+/*
+BOOL DrawTextEffect_(BYTE* destPt,BYTE* maskPt, DWORD width, DWORD height, DWORD EffectColor, BYTE Effect)
+{
+	BYTE *buf=(BYTE*)malloc(width*height*sizeof(BYTE));
+	BYTE *outbuf;
+	BYTE *bufline, *buflineTop, *buflineMid, *buflineBot;
+	BYTE *maskline,*destline;
+	BYTE a,r,g,b;
+	int k=0;
+	sbyte matrix[9]={0};
+	
+	DWORD x,y,i;
+	a=255-((BYTE)(EffectColor>>24));
+	r=GetRValue(EffectColor);
+	g=GetGValue(EffectColor);
+	b=GetBValue(EffectColor);
+	if (div3[0]==255) for (i=0; i<766; i++) div3[i]=(BYTE)(i/3);  //fill div3 matrix
+	//Fill buffer by mid values of image
+	for (y=0; y<height; y++)
+	{
+		bufline=buf+y*width;
+		maskline=maskPt+(y<<2)*width;
+		for (x=0; x<width; x++)
+		{
+			*bufline=(BYTE)div3[(DWORD)(maskline[0]+maskline[1]+maskline[2])];
+			bufline++;
+			maskline+=4;
+		}
+	}
+
+	//Here perform effect on buffer and place results to outbuf
+	for (k=0; k<3; k++)
+	{
+		outbuf=(BYTE*)malloc(width*height*sizeof(BYTE));
+		SetMatrix(matrix,
+					4, 8,  4,     //128 - max, -127 min  (16 is base equal to 1) 
+					4, 32, 4,
+					4, 4,  4 );
+		for (y=0; y<height; y++)
+		{
+			bufline=outbuf+y*width;
+			buflineMid=buf+y*width; 
+			buflineTop=(y>0)?buflineMid-width:NULL;
+			buflineBot=(y<height-1)?buflineMid+width:NULL;
+			{//most left pixels
+				int val=((buflineTop)?(*(buflineTop)*matrix[1]+*(buflineTop+1)*matrix[2]):0)+
+					+*(buflineMid)*matrix[4]+*(buflineMid+1)*matrix[5]+
+					+((buflineBot)?(*(buflineBot)*matrix[7]+*(buflineBot+1)*matrix[8]):0);
+				val=val>>5;
+				*bufline=(BYTE)((val>255)?255:(val<0)?0:val);
+				bufline++;
+				if (buflineTop) buflineTop++;
+				buflineMid++;
+				if (buflineBot) buflineBot++;
+			}
+			for (x=1; x<width-1; x++)
+			{
+				int val=((buflineTop)?(*(buflineTop-1)*matrix[0]+*(buflineTop)*matrix[1]+*(buflineTop+1)*matrix[2]):0)+
+					+*(buflineMid-1)*matrix[3]+*(buflineMid)*matrix[4]+*(buflineMid+1)*matrix[5]+
+					+((buflineBot)?(*(buflineBot-1)*matrix[6]+*(buflineBot)*matrix[7]+*(buflineBot+1)*matrix[8]):0);
+				val=(val>>5);
+				*bufline=(BYTE)((val>255)?255:(val<0)?0:val);
+				bufline++;
+				if (buflineTop) buflineTop++;
+				buflineMid++;
+				if (buflineBot) buflineBot++;
+			}
+			{  // most right pixels
+				int val=((buflineTop)?(*(buflineTop-1)*matrix[0]+*(buflineTop)*matrix[1]):0)+
+					+*(buflineMid-1)*matrix[3]+*(buflineMid)*matrix[4]+
+					+((buflineBot)?(*(buflineBot-1)*matrix[6]+*(buflineBot)*matrix[7]):0);
+				val=val>>5;
+				*bufline=(BYTE)((val>255)?255:(val<0)?0:val);
+				bufline++;
+				if (buflineTop) buflineTop++;
+				buflineMid++;
+				if (buflineBot) buflineBot++;
+			}
+		}
+		free(buf);
+		buf=outbuf;
+	}
+	{
+		//perform out to dest
+		for (y=0; y<height; y++)
+		{		
+			bufline=buf+y*width;
+			destline=destPt+(y<<2)*width;
+			for (x=0; x<width; x++)
+			{
+				BYTE val=*bufline;
+				destline[0]=((destline[0]*(255-val))+(b*val))/255;
+				destline[1]=((destline[1]*(255-val))+(g*val))/255;
+				destline[2]=((destline[2]*(255-val))+(r*val))/255;
+				destline[3]=((destline[3]*(255-val))+(a*val))/255;				
+				bufline++;
+				destline+=4;
+			}
+		}
+	}
+	return FALSE;
+}
+*/
+
+
+
 int AlphaTextOut (HDC hDC, LPCTSTR lpString, int nCount, RECT * lpRect, UINT format, DWORD ARGBcolor)
 {
   HBITMAP destBitmap;
@@ -1693,10 +2273,15 @@ int AlphaTextOut (HDC hDC, LPCTSTR lpString, int nCount, RECT * lpRect, UINT for
   BYTE * bits;
   BYTE * bufbits;
   HFONT hfnt, holdfnt;
+  
   int drx=0;
   int dry=0;
   int dtx=0;
   int dty=0;
+  int dtsy=0;
+  int dtey=0;
+  int dtsx=0;
+  int dtex=0;
   RECT workRect;
   workRect=*lpRect;
   if (!weightfilled)
@@ -1749,16 +2334,38 @@ int AlphaTextOut (HDC hDC, LPCTSTR lpString, int nCount, RECT * lpRect, UINT for
     GetTextExtentPoint32(memdc,lpString,nCount,&sz);
     sz.cx+=2;
     fsize=sz;
+    {
+      if (workRect.right-workRect.left>sz.cx)
+      {
+        if (format&(DT_RIGHT|DT_RTLREADING)) drx=workRect.right-workRect.left-sz.cx;
+        else if (format&DT_CENTER) 
+          drx=(workRect.right-workRect.left-sz.cx)>>1;
+        else drx=0;
+      }
+      else
+      {
+        
+        sz.cx=workRect.right-workRect.left;
+        drx=0;
     // Calc buffer size
-    if (workRect.left<0) workRect.left=0;
-    if (workRect.top<0) workRect.top=0;
-    if (workRect.right>bmpdata.bmWidth) workRect.right=bmpdata.bmWidth;
-    if (workRect.bottom>bmpdata.bmHeight) workRect.bottom=bmpdata.bmHeight;
-    if (workRect.right<workRect.left) workRect.right=workRect.left;
-    if (workRect.bottom<workRect.top) workRect.bottom=workRect.top;
-    sz.cx=min(workRect.right-workRect.left,sz.cx);
-    sz.cy=min(workRect.bottom-workRect.top,sz.cy);	
+      }
+      
+      if (workRect.bottom-workRect.top>sz.cy)
+      {
+        if (format&DT_BOTTOM) dry=workRect.bottom-workRect.top-sz.cy;
+        else if (format&DT_VCENTER) 
+          dry=(workRect.bottom-workRect.top-sz.cy)>>1;
+        else dry=0;
+      }
+      else
+      {
+        sz.cy=workRect.bottom-workRect.top;
+        dry=0;
+        
+      }
   }
+	sz.cx+=4;
+	sz.cy+=4;
   if (sz.cx>0 && sz.cy>0)
   {
     //Create text bitmap
@@ -1769,35 +2376,20 @@ int AlphaTextOut (HDC hDC, LPCTSTR lpString, int nCount, RECT * lpRect, UINT for
       bufDC=CreateCompatibleDC(hDC);
       bufbmp=CreateBitmap32Point(sz.cx,sz.cy,(void**)&bufbits);
       bufoldbmp=SelectObject(bufDC,bufbmp);
-      BitBlt(bufDC,0,0,sz.cx,sz.cy,hDC,workRect.left,workRect.top,SRCCOPY);
+        BitBlt(bufDC,0,0,sz.cx,sz.cy,hDC,workRect.left+drx-2,workRect.top+dry-2,SRCCOPY);
     }
     //Calc text draw offsets
-    {
-      //horizontal (drx)
-      if (format&ADT_RIGHT)
-        drx=(lpRect->right-lpRect->left-fsize.cx);
-      else if (format&ADT_HCENTER)
-        drx=(lpRect->right-lpRect->left-fsize.cx)/2;
-      else drx=0; 
-      if (lpRect->left<workRect.left) drx+=lpRect->left-workRect.left;
-      //vertical (dry)
-      if (format&ADT_BOTTOM)
-        dry=(lpRect->bottom-lpRect->top-fsize.cy);
-      else if (format&ADT_VCENTER)
-        dry=(lpRect->bottom-lpRect->top-fsize.cy)/2;
-      else dry=0; 
-      if (lpRect->top<workRect.top) dry+=lpRect->top-workRect.top;	
-    }
     //Draw text on temp bitmap
     {
-      UINT al=GetTextAlign(hDC);
-      if (format&DT_RTLREADING)
-        al|=TA_RTLREADING;
-      SetTextAlign(hDC,al);
-      TextOut(memdc,drx,dry,lpString,nCount);
+		
+        TextOut(memdc,2,2,lpString,nCount);
     }
-    //UpdateAlphaCannel
-    {
+	{
+		DrawTextEffect(bufbits,bits,sz.cx,sz.cy);	
+	}
+    //RenderText
+   //if (1)
+	{
       DWORD x,y;
       DWORD width=sz.cx;
       DWORD heigh=sz.cy;
@@ -1810,12 +2402,12 @@ int AlphaTextOut (HDC hDC, LPCTSTR lpString, int nCount, RECT * lpRect, UINT for
       r=GetRValue(ARGBcolor);
       g=GetGValue(ARGBcolor);
       b=GetBValue(ARGBcolor);      
-      for (y=0; y<heigh;y++)
+        for (y=0+dtsy; y<heigh-dtey;y++)
       {
         int a=y*(width<<2);
         ScanLine=bits+a;
         BufScanLine=bufbits+a;
-        for(x=0; x<width; x++)
+          for(x=0+dtsx; x<width-dtex; x++)
         {
           BYTE bx,rx,gx,mx;
           pix=ScanLine+x*4;
@@ -1877,7 +2469,7 @@ int AlphaTextOut (HDC hDC, LPCTSTR lpString, int nCount, RECT * lpRect, UINT for
     }
     //Blend to destination
     {
-      BitBlt(hDC,workRect.left,workRect.top,sz.cx,sz.cy,bufDC,0,0,SRCCOPY);
+        BitBlt(hDC,workRect.left+drx-2,workRect.top+dry-2,sz.cx,sz.cy,bufDC,0,0,SRCCOPY);
     }
     //free resources
 
@@ -1889,184 +2481,12 @@ int AlphaTextOut (HDC hDC, LPCTSTR lpString, int nCount, RECT * lpRect, UINT for
       DeleteDC(bufDC);
     }	
   }
+  }
   SelectObject(memdc,holdfnt);
   DeleteDC(memdc); 
   if (noDIB) free(destBits);
   return 0;
 }
-//int AlphaTextOutOld (HDC hDC, LPCTSTR lpString, int nCount, RECT * lpRect, UINT format, DWORD ARGBcolor)
-//{
-//	SIZE sz;
-//	SIZE wsize={0};
-//	HDC memdc;
-//	HBITMAP hbmp,holdbmp;
-//	HBITMAP destBitmap;
-//	BITMAP bmpdata;
-//	BYTE * destBits;
-//	BOOL noDIB=0;
-//	BOOL is16bit=0;
-//	BYTE * bits;
-//
-//
-//	HFONT hfnt, holdfnt;
-//	int dx,dy;
-//
-//
-//	//inializations
-//	if (!lpString) return 0;
-//	if (nCount==-1) nCount=MyStrLen(lpString);
-//
-//	// retrieve destination bitmap bits
-//	{
-//		destBitmap=(HBITMAP)GetCurrentObject(hDC,OBJ_BITMAP);
-//		GetObject(destBitmap, sizeof(BITMAP),&bmpdata);
-//		if (bmpdata.bmBits==NULL)
-//		{
-//			noDIB=1;
-//			destBits=(BYTE*)malloc(bmpdata.bmHeight*bmpdata.bmWidthBytes);
-//			GetBitmapBits(destBitmap,bmpdata.bmHeight*bmpdata.bmWidthBytes,destBits);
-//		}
-//		else 
-//			destBits=bmpdata.bmBits;
-//	}
-//	is16bit=(bmpdata.bmBitsPixel)!=32;
-//
-//	//DC creation
-//	memdc=CreateCompatibleDC(hDC);
-//	hfnt=(HFONT)GetCurrentObject(hDC,OBJ_FONT);
-//	SetBkColor(memdc,0);
-//	SetTextColor(memdc,RGB(255,255,255));
-//	holdfnt=(HFONT)SelectObject(memdc,hfnt);
-//	//calc sizes
-//	GetTextExtentPoint32A(memdc,lpString,nCount,&sz);
-//	sz.cx+=2;
-//	if (sz.cx>lpRect->right-lpRect->left)
-//	{
-//		wsize.cx=lpRect->right-lpRect->left;
-//		//if (format&ADT_RIGHT)
-//		//    dx=-(sz.cx-lpRect->right+lpRect->left);
-//		//else if (format&ADT_HCENTER)
-//		//    dx=((lpRect->right-lpRect->left)-sz.cx)/2; 
-//		//else dx=0;
-//	}
-//	else
-//	{
-//		wsize.cx=sz.cx;
-//	}
-//	if (format&ADT_RIGHT)
-//		dx=lpRect->right-lpRect->left-sz.cx;
-//	else if (format&ADT_HCENTER)
-//		dx=((lpRect->right-lpRect->left)-sz.cx)/2;
-//	else dx=0;  
-//
-//	if (sz.cy>lpRect->bottom-lpRect->top)
-//		wsize.cy=lpRect->bottom-lpRect->top;
-//	else
-//		wsize.cy=sz.cy;  
-//	if (lpRect->top<0) {wsize.cy+=lpRect->top; dy=lpRect->top;}
-//	else dy=0;
-//
-//	if (format&ADT_BOTTOM)
-//		dy=lpRect->bottom-lpRect->top-sz.cy;
-//	else if (format&ADT_VCENTER)
-//		dy=((lpRect->bottom-lpRect->top)-sz.cy)/2;
-//
-//	// drawing
-//	hbmp=CreateBitmap32Point(wsize.cx,wsize.cy,(void**)&bits);
-//	holdbmp=SelectObject(memdc,hbmp);
-//	//BitBlt(memdc,0,0,wsize.cx,wsize.cy,hDC,lpRect->left,lpRect->top,SRCCOPY);
-//	TextOut(memdc,dx<=0?dx:0,dy<=0?dy:0,lpString,nCount);
-//	//TextOut(hDC,lpRect->left,lpRect->top,lpString,nCount);
-//
-//	// ok. now perform per pixel transfering from temp to destination 
-//	{
-//		int x,y;
-//		int sx,sy,mx,my,ddx,ddy;
-//		BYTE cr,cg,cb,ca;
-//		DWORD w,h;
-//		DWORD destH, destWB;  //avoiding use struct in cycles
-//		BYTE * destB, * sourB;
-//		w=wsize.cx; h=wsize.cy;
-//		destH=bmpdata.bmHeight;
-//		destWB=bmpdata.bmWidthBytes;
-//		cb=*(((BYTE*)&ARGBcolor)+0);
-//		cg=*(((BYTE*)&ARGBcolor)+1);
-//		cr=*(((BYTE*)&ARGBcolor)+2);
-//		ca=*(((BYTE*)&ARGBcolor)+3);
-//
-//		ddx=lpRect->left+(dx>0?dx:0);
-//		sx=0;//((lpRect->left)<0)?(-lpRect->left):0;
-//		if (ddx<0) {sx+=0/*-ddx*/; ddx=-ddx;}
-//
-//		ddy=lpRect->top+(dy>0?dy:0);
-//		sy=0;//((lpRect->top)<0)?(-lpRect->top):0;
-//		if (ddy<0) {sy+=0/*-ddy*/; ddy=0;}
-//
-//
-//		if (ddx+wsize.cx>bmpdata.bmWidth) mx=bmpdata.bmWidth-ddx;
-//		else mx=wsize.cx;
-//
-//		if (ddy+wsize.cy>bmpdata.bmHeight) my=bmpdata.bmHeight-ddy;
-//		else my=wsize.cy;    
-//
-//		my=min(my,wsize.cy);
-//		mx=min(mx,wsize.cx);
-//		for (y=sy;y<my;y++)
-//		{
-//			if (noDIB) destB=destBits+(y+ddy)*destWB;
-//			else destB=destBits+(destH-(y+ddy)-1)*destWB;
-//			sourB=bits+(h-y-1)*(w*4);
-//			for (x=sx;x<mx;x++)  
-//			{
-//				if (!is16bit) 
-//				{
-//					BYTE sr,sg,sb,sa;
-//					BYTE tr,tg,tb,ta,taf;
-//					BYTE * psx=(sourB+(x)*4);
-//					tr=*psx;
-//					tg=*(psx+1);
-//					tb=*(psx+2);   
-//					ta=(BYTE)(((DWORD)((DWORD)tr+(DWORD)tg+(DWORD)tb))/3);
-//					taf=255-ta;
-//
-//					if (ta!=0)
-//					{
-//						BYTE * pdx=(destB+(x+ddx)*4);
-//						sr=*pdx;
-//						sg=*(pdx+1);
-//						sb=*(pdx+2);
-//						sa=*(pdx+3);
-//						sr=(cr*tr+(255-tr)*sr)/255;
-//						sg=(cg*tg+(255-tg)*sg)/255;
-//						sb=(cb*tb+(255-tb)*sb)/255;
-//						sa=ta+taf*sa/255;
-//						pdx[0]=sr;
-//						pdx[1]=sg;
-//						pdx[2]=sb;
-//						pdx[3]=sa;
-//					}
-//				}
-//			}
-//		}
-//	}
-//	if (noDIB)
-//	{
-//		SetBitmapBits(destBitmap,bmpdata.bmHeight*bmpdata.bmWidthBytes,destBits);
-//		free(destBits);
-//	}
-//	SelectObject(memdc,holdfnt);
-//	SelectObject(memdc,holdbmp);
-//	DeleteObject(hbmp);
-//	DeleteDC(memdc);
-//	return 0; 
-//}
-//
-//
-//
-//BOOL DrawTextSA(HDC hdc, LPCSTR lpString, int nCount, RECT * lpRect, UINT format);
-
-//BOOL DrawTextSW(HDC hdc, LPCWSTR lpString, int nCount, RECT * lpRect, UINT format);
-
 BOOL DrawTextSA(HDC hdc, char * lpString, int nCount, RECT * lpRect, UINT format)
 {
 #ifdef UNICODE
@@ -2086,12 +2506,8 @@ BOOL DrawTextS(HDC hdc, LPCTSTR lpString, int nCount, RECT * lpRect, UINT format
   DWORD form=0, color=0;
   RECT r=*lpRect;
   OffsetRect(&r,1,1);
+  if (format|DT_RTLREADING) SetTextAlign(hdc,TA_RTLREADING);
   if (format&DT_CALCRECT) return DrawText(hdc,lpString,nCount,lpRect,format);
-
-  //form|=(format&DT_VCENTER)?ADT_VCENTER:0;
-  //form|=(format&DT_BOTTOM)?ADT_BOTTOM:0;
-  //form|=(format&DT_RIGHT)?ADT_RIGHT:0;
-  //form|=(format&DT_CENTER)?ADT_HCENTER:0;
   form=format;
   color=GetTextColor(hdc);
   if (!gdiPlusFail &&0) ///text via gdi+
@@ -2099,324 +2515,46 @@ BOOL DrawTextS(HDC hdc, LPCTSTR lpString, int nCount, RECT * lpRect, UINT format
     TextOutWithGDIp(hdc,lpRect->left,lpRect->top,lpString,nCount);
     return 0;
   }
-//  AlphaTextOut(hdc,lpString,nCount,&r,form,0);
   return AlphaTextOut(hdc,lpString,nCount,lpRect,form,color);
-
-  /*    int i;
-  DWORD tick;
-  char buf[255];
-  if (format&DT_CALCRECT&& nCount!=10)
-  return DrawTextSA(hdc,lpString,nCount,lpRect,format);
-  {
-  tick=GetTickCount();
-  for (i=0;i<100;i++)
-  AlphaTextOut(hdc,lpString,nCount,lpRect,0,RGB(255,128,64));
-  //DrawTextSA(hdc,lpString,nCount,lpRect,format);
-  tick=GetTickCount()-tick;
-  MAX=tick>MAX?tick:MAX;
-  MIN=(tick<MIN || MIN==0)?tick:MIN;
-  SUM+=(tick);
-  count++;
-  if (count>50)
-  {
-  sprintf(buf,"%d, %d-%d........\n",SUM/count,MIN,MAX);
-  SUM=0;
-  //    MAX=0; MIN=-1;
-  count=0;
-  {
-  HDC wnd=GetDC(NULL);
-  RECT r;
-  SetRect(&r,0,0,300,20);
-  DrawText(wnd,buf,-1,&r,0);
-  ReleaseDC(NULL,wnd);
-  } 
-  }
-  tick=0;
-  }
-  //return AlphaTextOut(hdc,lpString,nCount,lpRect,0,RGB(255,128,64));
-  */
 }
 
 
 BOOL ImageList_DrawEx_New( HIMAGELIST himl,int i,HDC hdcDst,int x,int y,int dx,int dy,COLORREF rgbBk,COLORREF rgbFg,UINT fStyle)
 {
-  HDC imDC;
-  HBITMAP oldBmp, imBmp, newbmp=NULL;
-  BITMAP imbt,immaskbt;
-  BYTE * imbits;
-  BYTE * imimagbits;
-  BYTE * immaskbits;
-  DWORD cx,cy,icy;
-  BYTE *t1, *t2, *t3;
-  IMAGEINFO imi;
-  //lockimagelist
-  BYTE hasmask=FALSE;
-  BYTE hasalpha=FALSE;
-  //if (1) return ImageList_DrawEx(himl,i,hdcDst,x,y,dx,dy,rgbBk,rgbFg,fStyle);
-  //CRITICAL_SECTION cs;
-  //InitializeCriticalSection(&cs);
-  //EnterCriticalSection(&cs);
-
-  ImageList_GetImageInfo(himl,i,&imi);
-  GetObject(imi.hbmImage,sizeof(BITMAP),&imbt);
-  GetObject(imi.hbmMask,sizeof(BITMAP),&immaskbt);
-  cy=imbt.bmHeight;
-
-  if (imbt.bmBitsPixel!=32)
+  HICON ic=ImageList_GetIcon(himl,i,0);
+  int ddx;
+  int ddy;
+  BYTE alpha=255;
+  HBITMAP hbmpold, hbmp;
+  if (fStyle&ILD_BLEND25) alpha=64;
+  else if (fStyle&ILD_BLEND50) alpha=128;
+  ImageList_GetIconSize(himl,&ddx,&ddy);  
+  ddx=dx?dx:ddx;
+  ddy=dy?dy:ddy;
+  if (alpha==255) 
   {
-	  BOOL res=ImageList_DrawEx(himl,i,hdcDst,x,y,dx,dy,rgbBk,rgbFg,fStyle);
-	  return res;
-	  /*
-	  HDC tempdc=CreateCompatibleDC(hdcDst);
-	  HBITMAP holdbmp, newbmp=CreateBitmap32Point(imi.rcImage.right-imi.rcImage.left,imi.rcImage.bottom-imi.rcImage.top,&imimagbits); 
-	  holdbmp=SelectOject(tempdc,newbmp);
-	  ImageList_DrawEx(himl,i,hdcDst,x,y,dx,dy,rgbBk,rgbFg,fStyle);		  	
-	  */
+    DrawIconExS(hdcDst,x,y,ic,dx?dx:ddx,dy?dy:ddy,0,NULL,DI_NORMAL);
   }
   else
   {
-	if (imbt.bmBits==NULL)
-	{
-		imimagbits=(BYTE*)malloc(cy*imbt.bmWidthBytes);
-		GetBitmapBits(imi.hbmImage,cy*imbt.bmWidthBytes,(void*)imimagbits);
-	}
-	else imimagbits=imbt.bmBits;
-  } 
-
-  if (immaskbt.bmBits==NULL)
-  {
-    immaskbits=(BYTE*)malloc(cy*immaskbt.bmWidthBytes);
-    GetBitmapBits(imi.hbmMask,cy*immaskbt.bmWidthBytes,(void*)immaskbits);
-  }
-  else immaskbits=immaskbt.bmBits;
-  icy=imi.rcImage.bottom-imi.rcImage.top;
-  cx=imi.rcImage.right-imi.rcImage.left;
-  imDC=CreateCompatibleDC(hdcDst);
-  imBmp=CreateBitmap32Point(cx,icy,&imbits);
-  oldBmp=SelectObject(imDC,imBmp);
-  {
-    int x; int y;
-    int bottom,right,top,h,left;
-    int hs,he;
-    //	int hs2,he2;
-    int mwb,mwb2,mwb3;
-    mwb=immaskbt.bmWidthBytes;
-    mwb2=imbt.bmWidthBytes;
-	{
-		BITMAP bmt={0};
-		GetObject(imBmp,sizeof(BITMAP),&bmt);
-		mwb3=bmt.bmWidthBytes;
-	}
-    bottom=imi.rcImage.bottom;
-    right=imi.rcImage.right;   
-    top=imi.rcImage.top;
-    h=imbt.bmHeight;
-    left=imi.rcImage.left;
-    hs=imi.rcImage.left*immaskbt.bmBitsPixel/8;
-    he=hs+(imi.rcImage.right-imi.rcImage.left)*immaskbt.bmBitsPixel/8;
-
-
-    for (y=top;(y<bottom)&&!hasmask; y++)
-    { 
-      t1=immaskbits+y*mwb;
-      for (x=hs; (x<he)&&!hasmask; x++)
-        hasmask|=(*(t1+x)!=0);
-    }
-    //hs2=imi.rcImage.left*imbt.bmBitsPixel/8;
-    //he2=hs2+(imi.rcImage.right-imi.rcImage.left)*imbt.bmBitsPixel/8;
-    for (y=top;(y<bottom)&&!hasalpha; y++)
+    hbmp=CreateBitmap32(ddx,ddy);
+    if (hbmp)
     {
-      t1=imimagbits+(cy-y-1)*mwb2;
-      for (x=imi.rcImage.left; (x<right)&&!hasalpha; x++)
-		  hasalpha|=(*(t1+(x<<2)+3)!=0);
-    }
-
-    for (y=0; y<(int)icy; y++)
-    {
-      t1=imimagbits+(h-y-1-top)*mwb2;
-      t2=imbits+(icy-y-1)*mwb3;
-      t3=immaskbits+(y+top)*mwb;
-      for (x=0; x<(int)cx; x++)
-      {
-        DWORD * src, *dest;               
-        BYTE mask=((1<<(7-x%8))&(*(t3+((x+left)>>3))))!=0;
-        src=(DWORD*)(t1+((x+left)<<2));
-        dest=(DWORD*)(t2+(x<<2));
-        if (hasalpha && !hasmask)
-          *dest=*src;
-        else
-        {
-          if (mask)
-            *dest=0;
-          else
-          {
-            BYTE a;
-            a=((BYTE*)src)[3]>0?((BYTE*)src)[3]:255;
-            ((BYTE*)dest)[3]=a;
-            ((BYTE*)dest)[0]=((BYTE*)src)[0];//*a/255;
-            ((BYTE*)dest)[1]=((BYTE*)src)[1];//*a/255;
-            ((BYTE*)dest)[2]=((BYTE*)src)[2];//*a/255;
-            dest=dest;
-          }
-        }
-      }
+      HDC hdc=CreateCompatibleDC(hdcDst);
+      BLENDFUNCTION bf={AC_SRC_OVER, 0, 255, AC_SRC_ALPHA };
+      bf.SourceConstantAlpha=alpha;    
+      hbmpold=SelectObject(hdc,hbmp);
+      DrawIconExS(hdc,0,0,ic,ddx,ddy,0,NULL,DI_NORMAL);
+      MyAlphaBlend(hdcDst,x,y,ddx,ddy,hdc,0,0,ddx,ddy,bf);
+      SelectObject(hdc,hbmpold);
+      DeleteObject(hbmp);
+      DeleteDC(hdc);
     }
   }
- // LeaveCriticalSection(&cs);
- // DeleteCriticalSection(&cs);
-  {
-    BLENDFUNCTION bf={AC_SRC_OVER, 0, (fStyle&ILD_BLEND25)?64:(fStyle&ILD_BLEND50)?128:255, AC_SRC_ALPHA };
-    MyAlphaBlend(hdcDst,x,y,cx,icy,imDC,0,0,cx,icy,bf);
-  }
-  if (immaskbt.bmBits==NULL) free(immaskbits);
-  if (imbt.bmBits==NULL) free(imimagbits);
-  SelectObject(imDC,oldBmp);
-  DeleteObject(imBmp);
-  //DeleteObject(imi.hbmImage);
-  //DeleteObject(imi.hbmMask);
-  DeleteDC(imDC);
-  //unlock it;
-  return 0;
-};
+  DestroyIcon(ic);
+  return TRUE;
+}
 
-//int ImageList_ReplaceIcon_FixAlphaServ (WPARAM w,LPARAM l)
-//{
-//	ImageListFixParam * pa=(ImageListFixParam*)w;
-//	if (!pa) return -1;
-//	return ImageList_ReplaceIcon_FixAlpha(pa->himl,pa->index,pa->hicon);
-//}
-//int ImageList_ReplaceIcon_FixAlpha(HIMAGELIST himl, int i, HICON hicon)
-//{
-//	int res=ImageList_ReplaceIcon(himl,i,hicon);
-////	if (res>=0) FixAlpha(himl,hicon,res);
-//	return res;
-//}
-//int ImageList_AddIcon_FixAlphaServ(WPARAM w,LPARAM l)
-//{
-//	ImageListFixParam * pa=(ImageListFixParam*)w;
-//	if (!pa) return -1;
-//	return ImageList_AddIcon_FixAlpha(pa->himl,pa->hicon);
-//}
-//int ImageList_AddIcon_FixAlpha(HIMAGELIST himl,HICON hicon)
-//{
-//	int res=ImageList_AddIcon(himl,hicon);
-////	if (res>=0) FixAlpha(himl,hicon,res);
-//	return res;
-//}
-//int FixAlphaServ (WPARAM w,LPARAM l)
-//{
-//	ImageListFixParam * pa=(ImageListFixParam*)w;
-//	if (!pa) return -1;
-//	return FixAlpha(pa->himl,pa->hicon,pa->index);
-//}
-//int FixAlpha(HIMAGELIST himl,HICON hicon, int res)
-//{
-//	{//Fix alpha channel
-//		IMAGEINFO imi;
-//		//return 0;
-//		ImageList_GetImageInfo(himl,res,&imi);
-//		{
-//			BITMAP color,mask;
-//			BYTE *mbi;
-//			GetObject(imi.hbmImage,sizeof(color),&color);
-//			GetObject(imi.hbmMask ,sizeof(mask),&mask);
-//			mbi=mir_alloc(mask.bmWidthBytes*mask.bmHeight);
-//			GetBitmapBits(imi.hbmMask, mask.bmWidthBytes*mask.bmHeight,mbi);
-//			if (color.bmBitsPixel !=32) return 0;
-//			{
-//				int x,y;
-//				BOOL wAlpha=0;
-//				BOOL noMask=1;
-//				{
-//					for (y=imi.rcImage.top;y<imi.rcImage.bottom;y++)
-//					{
-//						for (x=imi.rcImage.left; x<imi.rcImage.right; x++)
-//						{
-//							BYTE* byte=((BYTE*) color.bmBits)+(color.bmHeight-y-1)*color.bmWidthBytes+x*4;
-//							wAlpha|=(byte[3]>0);
-//							if (wAlpha&& noMask) break;
-//						}
-//						if (wAlpha&& noMask) break;
-//					}
-//				}
-//				if (!wAlpha && noMask)
-//				{
-//					for (y=imi.rcImage.top;y<imi.rcImage.bottom;y++)
-//						for (x=imi.rcImage.left; x<imi.rcImage.right; x++)
-//						{
-//							BYTE* byte=((BYTE*) color.bmBits)+(color.bmHeight-y-1)*color.bmWidthBytes+x*4;
-//							BYTE m,f,k;
-//							{
-//								BYTE* byte2=mbi+(y)*mask.bmWidthBytes+x*mask.bmBitsPixel/8;
-//								m=*byte2;
-//								k=1<<(7-x%8);
-//								f=(m&k)==0;
-//								byte[3]=f?255:0;
-//							}
-//						}
-//				}   
-//				mir_free(mbi);
-//			}
-//		}
-//	}
-//
-//	return res;   
-//}
-//
-//int FixAlphaOld(HIMAGELIST himl,HICON hicon, int res)
-//{
-//	{//Fix alpha channel
-//		IMAGEINFO imi;
-//		//return 0;
-//		ImageList_GetImageInfo(himl,res,&imi);
-//		{
-//			BITMAP color,mask;
-//			BYTE *mbi;
-//			GetObject(imi.hbmImage,sizeof(color),&color);
-//			GetObject(imi.hbmMask ,sizeof(mask),&mask);
-//			mbi=mir_alloc(mask.bmWidthBytes*mask.bmHeight);
-//			GetBitmapBits(imi.hbmMask, mask.bmWidthBytes*mask.bmHeight,mbi);
-//			if (color.bmBitsPixel !=32) return 0;
-//			{
-//				int x,y;
-//				BOOL wAlpha=0;
-//				BOOL noMask=1;
-//				{
-//					for (y=imi.rcImage.top;y<imi.rcImage.bottom;y++)
-//					{
-//						for (x=imi.rcImage.left; x<imi.rcImage.right; x++)
-//						{
-//							BYTE* byte=((BYTE*) color.bmBits)+(color.bmHeight-y-1)*color.bmWidthBytes+x*4;
-//							wAlpha|=(byte[3]>0);
-//							if (wAlpha&& noMask) break;
-//						}
-//						if (wAlpha&& noMask) break;
-//					}
-//				}
-//				if (!wAlpha && noMask)
-//				{
-//					for (y=imi.rcImage.top;y<imi.rcImage.bottom;y++)
-//						for (x=imi.rcImage.left; x<imi.rcImage.right; x++)
-//						{
-//							BYTE* byte=((BYTE*) color.bmBits)+(color.bmHeight-y-1)*color.bmWidthBytes+x*4;
-//							BYTE m,f,k;
-//							{
-//								BYTE* byte2=mbi+(y)*mask.bmWidthBytes+x*mask.bmBitsPixel/8;
-//								m=*byte2;
-//								k=1<<(7-x%8);
-//								f=(m&k)==0;
-//								byte[3]=f?255:0;
-//							}
-//						}
-//				}   
-//				mir_free(mbi);
-//			}
-//		}
-//	}
-//
-//	return res;   
-//}
-//
 BOOL DrawIconExServ(WPARAM w,LPARAM l)
 {
   DrawIconFixParam *p=(DrawIconFixParam*)w;
@@ -2427,6 +2565,7 @@ BOOL DrawIconExS(HDC hdcDst,int xLeft,int yTop,HICON hIcon,int cxWidth,int cyWid
 {
 
   ICONINFO ici;
+  BYTE alpha=(BYTE)((diFlags&0xFF000000)>>24);
 
 
   HDC imDC;
@@ -2444,6 +2583,7 @@ BOOL DrawIconExS(HDC hdcDst,int xLeft,int yTop,HICON hIcon,int cxWidth,int cyWid
   BYTE noMirrorMask=FALSE;
   BYTE hasalpha=FALSE;
   CRITICAL_SECTION cs;
+  alpha=alpha?alpha:255;
   InitializeCriticalSection(&cs);
   EnterCriticalSection(&cs);
   //return DrawIconEx(hdc,xLeft,yTop,hIcon,cxWidth,cyWidth,istepIfAniCur,hbrFlickerFreeDraw,DI_NORMAL);
@@ -2566,7 +2706,7 @@ BOOL DrawIconExS(HDC hdcDst,int xLeft,int yTop,HICON hIcon,int cxWidth,int cyWid
   LeaveCriticalSection(&cs);
   DeleteCriticalSection(&cs);
   {
-    BLENDFUNCTION bf={AC_SRC_OVER, 0, 255, AC_SRC_ALPHA };
+    BLENDFUNCTION bf={AC_SRC_OVER, 0, alpha, AC_SRC_ALPHA };
     MyAlphaBlend(hdcDst,xLeft,yTop,cxWidth, cyWidth, imDC,0,0, cx,icy,bf);
   }
 
@@ -2777,7 +2917,7 @@ int InvalidateFrameImage(WPARAM wParam, LPARAM lParam)       // Post request for
   {
     wndFrame *frm=FindFrameByItsHWND((HWND)wParam);
     sPaintRequest * pr=(sPaintRequest*)lParam;
-	if (!LayeredFlag) return InvalidateRect((HWND)wParam,pr?(RECT*)&(pr->rcUpdate):NULL,FALSE);
+    if (!LayeredFlag || (frm && frm->floating)) return InvalidateRect((HWND)wParam,pr?(RECT*)&(pr->rcUpdate):NULL,FALSE);
     if (frm) 
     {
       if (frm->PaintCallbackProc!=NULL)
@@ -3219,7 +3359,7 @@ int ValidateFrameImageProc(RECT * r)                                // Calling q
   { 
     int i;
     for(i=0;i<nFramescount;i++)
-      if (Frames[i].PaintCallbackProc && Frames[i].visible)
+      if (Frames[i].PaintCallbackProc && Frames[i].visible && !Frames[i].floating )
         if (Frames[i].bQueued || IsForceAllPainting)
           ValidateSingleFrameImage(&Frames[i],IsForceAllPainting);
   }
@@ -3403,3 +3543,271 @@ int SkinDrawImageAt(HDC hdc, RECT *rc)
 }
 
 HBITMAP GetCurrentWindowImage(){ return cachedWindow->hImageDIB;}
+
+/*
+ *  Glyph text routine
+ */
+
+SortedList ** AddTextGlyphObject()
+{
+  return NULL;
+}
+
+void DrawTextGlyphObject()
+{
+  return;
+}
+
+void DeleteTextGlyphObject(char * szGlyphTextID)
+{
+  return;
+}
+
+int SortTextGlyphObjectFunc(void * first, void * second)
+{
+  return strcmp(((GLYPHTEXT*)(((int*)first)[0]))->szGlyphTextID,((GLYPHTEXT*)(((int*)second)[0]))->szGlyphTextID);
+}
+
+DWORD HexToARGB(char * Hex)
+{
+    char buf[10]={0};
+    char buf2[11]={0};
+    char * st;
+    BYTE alpha;
+    DWORD AARRGGBB=0;
+    _snprintf(buf,10,"%s\n",Hex);
+    if (buf[1]=='x' || buf[1]=='X')
+        _snprintf(buf2,11,"0x%s\n",buf+2);
+    else
+        _snprintf(buf2,11,"0x%s\n",buf);
+    buf2[10]='\0';
+    AARRGGBB=strtoul(buf2,&st,16); 
+    alpha=(BYTE)((AARRGGBB&0xFF000000)>>24);
+    alpha=255-((alpha==0)?255:alpha); 
+    AARRGGBB=(alpha<<24)+((AARRGGBB&0x00FF0000)>>16)+((AARRGGBB&0x000000FF)<<16)+(AARRGGBB&0x0000FF00);
+    return AARRGGBB;
+}
+
+TCHAR *reappend(TCHAR *lfirst, TCHAR * lsecond, int len)
+{ 
+  int l1=lfirst?lstrlen(lfirst)*sizeof(TCHAR):0;
+  int l2=(len?len:lstrlen(lsecond))*sizeof(TCHAR);
+  int size=l1+l2+sizeof(TCHAR);
+  TCHAR *buf=mir_alloc(size);
+  if (lfirst) memcpy(buf,lfirst,l1);
+  memcpy(((BYTE*)buf)+l1,lsecond,l2+sizeof(TCHAR));
+  if (lfirst) mir_free(lfirst);
+  if (len) buf[(l1+l2+1)/sizeof(TCHAR)]=(TCHAR)'\0';
+  return buf;
+}
+
+TCHAR* replacevar(TCHAR *var)
+{
+  if (!var) return mir_strdupT(_T(""));
+  if (!lstrcmpi(var,TEXT("Profile")))
+  {
+    char buf[MAX_PATH]={0};
+    CallService(MS_DB_GETPROFILENAME,(WPARAM)MAX_PATH,(LPARAM)buf);
+    {
+      int i=strlen(buf);
+      while (buf[i]!='.' && i>0) i--;
+      buf[i]='\0';
+    }
+    mir_free(var);
+#ifdef UNICODE
+    return a2u(buf);
+#else
+	return mir_strdup(buf);
+#endif
+  } 
+
+  mir_free(var);
+  return mir_strdupT(_T(""));
+}
+TCHAR *parseText(TCHAR *stzText)
+{
+ /* if (lstrcmpi(stzText,TEXT("%Profile%")))
+    return mir_strdupT(stzText);
+  else
+  {
+    char buf[MAX_PATH]={0};
+    CallService(MS_DB_GETPROFILENAME,(WPARAM)MAX_PATH,(LPARAM)buf);
+    {
+      int i=strlen(buf);
+      while (buf[i]!='.' && i>0) i--;
+      buf[i]='\0';
+    }
+    return a2u(buf);
+  }
+  */
+  int len=lstrlen(stzText);
+  TCHAR *result=NULL;
+  int stpos=0;
+  int curpos=0;  
+  
+  while(curpos<len)
+  {
+    //1 find first %
+    while(curpos<len && stzText[curpos]!=(TCHAR)'%') curpos++;
+    if (curpos<len) //% found
+    {
+      if (curpos-stpos>0) 
+        result=reappend(result,stzText+stpos,curpos-stpos);
+      stpos=curpos+1;
+      curpos++;
+      //3 find second % 
+      while(curpos<len && stzText[curpos]!=(TCHAR)'%') curpos++;
+      if (curpos<len)
+      {
+        if (curpos-stpos>0) 
+        {
+          TCHAR *var=mir_alloc((curpos-stpos+1)*sizeof(TCHAR));
+          memcpy(var,stzText+stpos,(curpos-stpos)*sizeof(TCHAR));
+          var[curpos-stpos]=(TCHAR)'\0';
+          var=replacevar(var);
+          result=reappend(result,var,0);
+          mir_free(var);
+        }
+        else
+          result=reappend(result,_T("%"),0);
+        curpos++;
+        stpos=curpos;
+      }
+      else
+      {
+      //  if (curpos-stpos>0) 
+      //    result=reappend(result,stzText+stpos,curpos-stpos);
+        break;
+      }
+    }
+    else
+    {
+      if (curpos-stpos>0) 
+        result=reappend(result,stzText+stpos,curpos-stpos);
+      break;
+    }   
+  }
+  //TRACET(result);
+  return result;
+}
+/*
+*   Parse text object string, find glyph object and add text to it.
+*   szGlyphTextID and Define string is:
+*   t[szGlyphTextID]=s[HostObjectID],[Left],[Top],[Right],[Bottom],[LTRBHV],[FontID],[Color1],[reservedforColor2],[Text]
+*/
+void AddParseTextGlyphObject(char * szGlyphTextID,char * szDefineString,SKINOBJECTSLIST *Skin)
+{
+
+    GLYPHOBJECT *globj=NULL;
+    {     
+      char buf[255]={0};
+      GetParamN(szDefineString,buf,sizeof(buf),0,',',TRUE);
+      if (strlen(buf))
+      {
+        SKINOBJECTDESCRIPTOR * lpobj;
+        lpobj=FindObjectByName(buf,OT_GLYPHOBJECT,Skin);
+        if (lpobj)
+          globj=(GLYPHOBJECT*)lpobj->Data;
+      }
+      if (globj)
+      {
+        GLYPHTEXT * glText;
+        
+        if (!globj->plTextList)
+        {
+          globj->plTextList=li.List_Create(0,1);
+          globj->plTextList->sortFunc=SortTextGlyphObjectFunc;
+        }
+        glText=(GLYPHTEXT*)mir_alloc(sizeof(GLYPHTEXT));
+          memset(glText,0,sizeof(GLYPHTEXT));
+        glText->szGlyphTextID=mir_strdup(szGlyphTextID);
+        
+        glText->iLeft=atoi(GetParamN(szDefineString,buf,sizeof(buf),1,',',TRUE));
+        glText->iTop=atoi(GetParamN(szDefineString,buf,sizeof(buf),2,',',TRUE));
+        glText->iRight=atoi(GetParamN(szDefineString,buf,sizeof(buf),3,',',TRUE));
+        glText->iBottom=atoi(GetParamN(szDefineString,buf,sizeof(buf),4,',',TRUE));
+        {
+          memset(buf,0,6);
+          GetParamN(szDefineString,buf,sizeof(buf),5,',',TRUE);
+          buf[0]&=95; buf[1]&=95; buf[2]&=95; buf[3]&=95; buf[4]&=95; buf[5]&=95;   //to uppercase: &01011111 (0-95)
+          glText->RelativeFlags=
+            (buf[0]=='C'?1:((buf[0]=='R')?2:0))       //[BC][RC][BC][RC] --- Left relative
+           |(buf[1]=='C'?4:((buf[1]=='B')?8:0))       //  |   |   |--------- Top relative   
+           |(buf[2]=='C'?16:((buf[2]=='R')?32:0))     //  |   |--------------Right relative 
+           |(buf[3]=='C'?64:((buf[3]=='B')?128:0));   //  |------------------Bottom relative          
+          glText->dwFlags=(buf[4]=='C'?DT_CENTER:((buf[4]=='R')?DT_RIGHT:DT_LEFT))
+                         |(buf[5]=='C'?DT_VCENTER:((buf[5]=='B')?DT_BOTTOM:DT_TOP));
+        }
+        glText->szFontID=mir_strdup(GetParamN(szDefineString,buf,sizeof(buf),6,',',TRUE));
+       
+        glText->dwColor=HexToARGB(GetParamN(szDefineString,buf,sizeof(buf),7,',',TRUE));
+        glText->dwShadow=HexToARGB(GetParamN(szDefineString,buf,sizeof(buf),8,',',TRUE));
+#ifdef _UNICODE
+        glText->stValueText=a2u(GetParamN(szDefineString,buf,sizeof(buf),9,',',TRUE));
+        glText->stText=parseText(glText->stValueText);
+#else
+        glText->stValueText=mir_strdup(GetParamN(szDefineString,buf,sizeof(buf),9,',',TRUE));
+        glText->stText=parseText(glText->stValueText);
+#endif
+        li.List_Insert(globj->plTextList,(void*)glText,globj->plTextList->realCount);     
+        qsort(globj->plTextList->items,globj->plTextList->realCount,sizeof(void*),(int(*)(const void*, const void*))globj->plTextList->sortFunc);
+      }
+    }
+}
+
+
+/*
+*   Parse font definition string.
+*   szGlyphTextID and Define string is:
+*   f[szFontID]=s[FontTypefaceName],[size],[BIU]
+*/
+void AddParseSkinFont(char * szFontID,char * szDefineString,SKINOBJECTSLIST *Skin)
+{
+  //SortedList * gl_plSkinFonts=NULL;
+  SKINFONT * sf =NULL;
+  sf=(SKINFONT*)mir_alloc(sizeof(SKINFONT));
+  if (sf)
+  {
+    memset(sf,0,sizeof(SKINFONT));
+    {
+      char buf[255];    
+      int fntSize=0;
+      BOOL fntBold=FALSE, fntItalic=FALSE, fntUnderline=FALSE;
+      LOGFONTA logfont={0};    
+      logfont.lfCharSet=DEFAULT_CHARSET;
+      logfont.lfOutPrecision=OUT_DEFAULT_PRECIS;
+      logfont.lfClipPrecision=CLIP_DEFAULT_PRECIS;
+      logfont.lfQuality=DEFAULT_QUALITY;
+      logfont.lfPitchAndFamily=DEFAULT_PITCH|FF_DONTCARE;    
+
+      strncpy(logfont.lfFaceName,GetParamN(szDefineString,buf,sizeof(buf),0,',',TRUE),32);
+      logfont.lfHeight=atoi(GetParamN(szDefineString,buf,sizeof(buf),1,',',TRUE));
+      if (logfont.lfHeight<0)
+      {
+        HDC hdc=CreateCompatibleDC(NULL);        
+        logfont.lfHeight=(long)-MulDiv(logfont.lfHeight, GetDeviceCaps(hdc, LOGPIXELSY), 72);
+        DeleteDC(hdc);
+      }
+      logfont.lfHeight=-logfont.lfHeight;
+      GetParamN(szDefineString,buf,sizeof(buf),2,',',TRUE);
+      buf[0]&=95; buf[1]&=95; buf[2]&=95;
+      logfont.lfWeight=(buf[0]=='B')?FW_BOLD:FW_NORMAL;
+      logfont.lfItalic=(buf[1]=='I')?1:0;
+      logfont.lfUnderline=(buf[2]=='U')?1:0;
+      
+      sf->hFont=CreateFontIndirectA(&logfont);
+      if (sf->hFont)
+      {
+        sf->szFontID=mir_strdup(szFontID);
+        if (!gl_plSkinFonts)
+          gl_plSkinFonts=li.List_Create(0,1);
+        if (gl_plSkinFonts)
+        {
+          li.List_Insert(gl_plSkinFonts,(void*)sf,gl_plSkinFonts->realCount);
+        }
+      }
+      
+    }
+  }
+
+}
