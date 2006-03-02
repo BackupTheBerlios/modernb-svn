@@ -84,9 +84,10 @@ int ModernCalcRowHeight(struct ClcData *dat, HWND hwnd, struct ClcContact *conta
     tmp=max(tmp, ICON_HEIGHT);       
     tmp=max(tmp,dat->row_min_heigh);
     tmp+=dat->row_border*2;
-    tmp+=(contact->type == CLCIT_GROUP && 
-      contact->groupId==0 && 
-      contact->group->parent->cl.items[0]!=contact) ?dat->row_before_group_space:0;
+	if (contact->type == CLCIT_GROUP && 
+      contact->group->parent->groupId==0 && 
+      contact->group->parent->cl.items[0]!=contact)
+		tmp+=dat->row_before_group_space;
     if (item!=-1) dat->row_heights[item] = tmp;
     return tmp;
   }

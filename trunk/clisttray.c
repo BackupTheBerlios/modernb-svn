@@ -557,7 +557,7 @@ void TrayIconUpdateBase(char *szChangedProto)
 							changed=TrayIconSetBaseInfo(hIcon,NULL);						
 							//TrayIconUpdate(hIcon,NULL,NULL,1);
 
-							DestroyIcon(hIcon);
+							//DestroyIcon(hIcon);
 							DBFreeVariant(&dbv);
 							break;
 						}

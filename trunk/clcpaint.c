@@ -624,7 +624,7 @@ void ModernInternalPaintRowItems(HWND hwnd, HDC hdcMem, struct ClcData *dat, str
   BOOL InClistWindow=(dat->hWnd==pcli->hwndContactTree);
   int height=ModernCalcRowHeight(dat, hwnd, Drawing, -1);
   if(Drawing->type == CLCIT_GROUP && 
-      Drawing->groupId==0 && 
+	  Drawing->group->parent->groupId==0 && 
       Drawing->group->parent->cl.items[0]!=Drawing)
   {
 	  dg=dat->row_before_group_space;
@@ -2795,7 +2795,7 @@ void InternalPaintClc(HWND hwnd,struct ClcData *dat,HDC hdc,RECT *rcPaint)
           {
 			  RECT mrc=row_rc;
 			  if(Drawing->type == CLCIT_GROUP && 
-					Drawing->groupId==0 && 
+					Drawing->group->parent->groupId==0 && 
 					Drawing->group->parent->cl.items[0]!=Drawing)
 			{
 				mrc.top+=dat->row_before_group_space;
@@ -2873,7 +2873,16 @@ void InternalPaintClc(HWND hwnd,struct ClcData *dat,HDC hdc,RECT *rcPaint)
             request[6]='O';
             request[7]='v';
             request[8]='l';
-            SkinDrawGlyph(hdcMem,&row_rc,rcPaint,request);
+			{
+				RECT mrc=row_rc;
+				if(Drawing->type == CLCIT_GROUP && 
+					Drawing->group->parent->groupId==0 && 
+					Drawing->group->parent->cl.items[0]!=Drawing)
+				{
+					mrc.top+=dat->row_before_group_space;
+				}
+			    SkinDrawGlyph(hdcMem,&mrc,rcPaint,request);
+			}
             mir_free(request);
             request=NULL;
           }
