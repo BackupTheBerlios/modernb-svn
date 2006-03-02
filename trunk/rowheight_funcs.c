@@ -85,9 +85,7 @@ int ModernCalcRowHeight(struct ClcData *dat, HWND hwnd, struct ClcContact *conta
     tmp=max(tmp,dat->row_min_heigh);
     tmp+=dat->row_border*2;
     tmp+=(contact->type == CLCIT_GROUP && 
-      contact->group && 
-      contact->group->parent && 
-      contact->group->parent->groupId==0 && 
+      contact->groupId==0 && 
       contact->group->parent->cl.items[0]!=contact) ?dat->row_before_group_space:0;
     if (item!=-1) dat->row_heights[item] = tmp;
     return tmp;
@@ -134,7 +132,8 @@ int ModernCalcRowHeight(struct ClcData *dat, HWND hwnd, struct ClcContact *conta
               }
             }
             gl_RowTabAccess[i]->w=size.cx;
-            DeleteDC(hdc);
+			SelectObject(hdc,GetStockObject(DEFAULT_GUI_FONT));
+			DeleteDC(hdc);
           }
           gl_RowTabAccess[i]->h=tmp;
 
@@ -158,7 +157,8 @@ int ModernCalcRowHeight(struct ClcData *dat, HWND hwnd, struct ClcContact *conta
               ChangeToFont(hdc,dat,FONTID_SECONDLINE,NULL);
               GetTextSize(&size,hdc,dummyRect,contact->szSecondLineText,contact->plSecondLineText,0, dat->text_resize_smileys ? 0 : contact->iSecondLineMaxSmileyHeight);
               gl_RowTabAccess[i]->w=size.cx;
-              DeleteDC(hdc);
+              SelectObject(hdc,GetStockObject(DEFAULT_GUI_FONT));
+			  DeleteDC(hdc);
             }
           }
           gl_RowTabAccess[i]->h=tmp;
@@ -181,7 +181,8 @@ int ModernCalcRowHeight(struct ClcData *dat, HWND hwnd, struct ClcContact *conta
               ChangeToFont(hdc,dat,FONTID_THIRDLINE,NULL);
               GetTextSize(&size,hdc,dummyRect,contact->szThirdLineText,contact->plThirdLineText,0, dat->text_resize_smileys ? 0 : contact->iThirdLineMaxSmileyHeight);
               gl_RowTabAccess[i]->w=size.cx;
-              DeleteDC(hdc);
+              SelectObject(hdc,GetStockObject(DEFAULT_GUI_FONT));
+			  DeleteDC(hdc);
             }
           }
           gl_RowTabAccess[i]->h=tmp;			    
@@ -288,7 +289,8 @@ int ModernCalcRowHeight(struct ClcData *dat, HWND hwnd, struct ClcContact *conta
 
                 // Get text size
                 text_size.cy = DrawTextS(hdc, szResult, lstrlen(szResult), &rc, DT_CALCRECT | DT_NOPREFIX | DT_SINGLELINE);
-                DeleteDC(hdc);
+                SelectObject(hdc,GetStockObject(DEFAULT_GUI_FONT));
+				DeleteDC(hdc);
                 text_size.cx = rc.right - rc.left;
                 gl_RowTabAccess[i]->w=text_size.cx;
 

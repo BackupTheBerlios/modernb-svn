@@ -623,11 +623,9 @@ void ModernInternalPaintRowItems(HWND hwnd, HDC hdcMem, struct ClcData *dat, str
   int minheight=dat->row_min_heigh;
   BOOL InClistWindow=(dat->hWnd==pcli->hwndContactTree);
   int height=ModernCalcRowHeight(dat, hwnd, Drawing, -1);
-  if (Drawing->type == CLCIT_GROUP && 
-			  Drawing->group && 
-			  Drawing->group->parent && 
-			  Drawing->group->parent->groupId==0 && 
-			  Drawing->group->parent->cl.items[0]!=Drawing)
+  if(Drawing->type == CLCIT_GROUP && 
+      Drawing->groupId==0 && 
+      Drawing->group->parent->cl.items[0]!=Drawing)
   {
 	  dg=dat->row_before_group_space;
 	  free_row_rc.top+=dg;
@@ -2769,10 +2767,10 @@ void InternalPaintClc(HWND hwnd,struct ClcData *dat,HDC hdc,RECT *rcPaint)
 
           // **** Draw Background 
 
-          // Alternating grey
+          // Alternating grey		  
           if (style&CLS_GREYALTERNATE && line_num&1) 
           {
-              SkinDrawGlyph(hdcMem,&row_rc,rcPaint,"CL,ID=GreyAlternate");
+            SkinDrawGlyph(hdcMem,&row_rc,rcPaint,"CL,ID=GreyAlternate");
           }
           // Row background
           if (!dat->force_in_dialog)
@@ -2780,25 +2778,42 @@ void InternalPaintClc(HWND hwnd,struct ClcData *dat,HDC hdc,RECT *rcPaint)
             request=GetCLCContactRowBackObject(group,Drawing,indent,line_num,selected,hottrack,dat);
             //TRACE(request);
             //TRACE("\n");
-            SkinDrawGlyph(hdcMem,&row_rc,rcPaint,request);
+			{
+				RECT mrc=row_rc;
+				if (group->parent==0 
+					&& group->scanIndex!=0 
+					&& group->cl.items[group->scanIndex]->type==CLCIT_GROUP)
+				{
+					mrc.top+=dat->row_before_group_space;
+				}
+				SkinDrawGlyph(hdcMem,&mrc,rcPaint,request);
+			}
+
             //mir_free(request);
           }
           if (selected || hottrack)
-          { 
+          {
+			  RECT mrc=row_rc;
+			  if(Drawing->type == CLCIT_GROUP && 
+					Drawing->groupId==0 && 
+					Drawing->group->parent->cl.items[0]!=Drawing)
+			{
+				mrc.top+=dat->row_before_group_space;
+			}
             // Selection background (only if hole line - full/less)
             if (dat->HiLightMode == 1) // Full  or default
             {
               if (selected)
-                SkinDrawGlyph(hdcMem,&row_rc,rcPaint,"CL,ID=Selection");
+                SkinDrawGlyph(hdcMem,&mrc,rcPaint,"CL,ID=Selection");
               if(hottrack)
-                SkinDrawGlyph(hdcMem,&row_rc,rcPaint,"CL,ID=HotTracking");
+                SkinDrawGlyph(hdcMem,&mrc,rcPaint,"CL,ID=HotTracking");
             }
             else if (dat->HiLightMode == 2) // Less
             {
               if (selected)
-                SkinDrawGlyph(hdcMem,&row_rc,rcPaint,"CL,ID=Selection");      //instead of free_row_rc
+                SkinDrawGlyph(hdcMem,&mrc,rcPaint,"CL,ID=Selection");      //instead of free_row_rc
               if(hottrack)
-                SkinDrawGlyph(hdcMem,&row_rc,rcPaint,"CL,ID=HotTracking");
+                SkinDrawGlyph(hdcMem,&mrc,rcPaint,"CL,ID=HotTracking");
             }
           }
 
@@ -2868,7 +2883,6 @@ void InternalPaintClc(HWND hwnd,struct ClcData *dat,HDC hdc,RECT *rcPaint)
 
       // if (y > rcPaint->top - dat->row_heights[line_num] && y < rcPaint->bottom) 
       y += dat->row_heights[line_num];
-
       //increment by subcontacts
       if (group->cl.items && group->cl.items[group->scanIndex]->subcontacts!=NULL && group->cl.items[group->scanIndex]->type!=CLCIT_GROUP)
       {

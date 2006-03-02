@@ -754,6 +754,10 @@ int DrawSkinObject(SKINDRAWREQUEST * preq, GLYPHOBJECT * pobj)
   if(preq->rcClipRect.bottom-preq->rcClipRect.top*preq->rcClipRect.right-preq->rcClipRect.left==0)
     preq->rcClipRect=preq->rcDestRect;
   IntersectRect(&PRect,&preq->rcDestRect,&preq->rcClipRect);
+  if (IsRectEmpty(&PRect))
+  {
+	  return 0;
+  }
   if (mode==2)
   {   
     memdc=CreateCompatibleDC(preq->hDC);

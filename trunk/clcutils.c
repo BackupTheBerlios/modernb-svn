@@ -452,7 +452,7 @@ void LoadClcOptions(HWND hwnd, struct ClcData *dat)
 	// Row
 	dat->row_min_heigh = DBGetContactSettingWord(NULL,"CList","MinRowHeight",CLCDEFAULT_ROWHEIGHT);
 	dat->row_border = DBGetContactSettingWord(NULL,"CList","RowBorder",1);
-	dat->row_before_group_space = DBGetContactSettingWord(NULL,"ModernSkin","SpaceBeforeGroup",0);
+	dat->row_before_group_space =((hwnd!=pcli->hwndContactTree&&pcli->hwndContactTree!=NULL) || !DBGetContactSettingByte(NULL,"ModernData","UseAdvancedRowLayout",0))?0:DBGetContactSettingWord(NULL,"ModernSkin","SpaceBeforeGroup",0);
 	dat->row_variable_height = DBGetContactSettingByte(NULL,"CList","VariableRowHeight",1);
 	dat->row_align_left_items_to_left = DBGetContactSettingByte(NULL,"CList","AlignLeftItemsToLeft",1);
 	dat->row_hide_group_icon = DBGetContactSettingByte(NULL,"CList","HideGroupsIcon",0);
