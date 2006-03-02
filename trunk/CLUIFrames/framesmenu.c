@@ -30,8 +30,7 @@ static int AddContextFrameMenuItem(WPARAM wParam,LPARAM lParam)
 	tmi.position=mi->position;
 	tmi.pszName=mi->pszName;
 	
-	if(mi->flags&CMIF_ROOTPOPUP||mi->flags&CMIF_CHILDPOPUP)
-		tmi.root=(int)mi->pszPopupName;
+	if(mi->flags&CMIF_ROOTPOPUP||mi->flags&CMIF_CHILDPOPUP)	tmi.root=(int)mi->pszPopupName;
 	{
 		lpFrameMenuExecParam fmep;
 		fmep=(lpFrameMenuExecParam)malloc(sizeof(FrameMenuExecParam));
@@ -43,6 +42,7 @@ static int AddContextFrameMenuItem(WPARAM wParam,LPARAM lParam)
 			TRACE(buf);
 		}
 #endif
+		memset(fmep,0,sizeof(FrameMenuExecParam));
 		fmep->szServiceName=mir_strdup(mi->pszService);
 		fmep->Frameid=mi->popupPosition;
 		fmep->param1=(int)mi->pszContactOwner;

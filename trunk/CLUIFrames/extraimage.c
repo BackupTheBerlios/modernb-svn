@@ -334,6 +334,7 @@ void SetAllExtraIcons(HWND hwndList,HANDLE hContact)
 						if (dbv.pszVal) mir_free(dbv.pszVal);
 						DBFreeVariant(&dbv);
 					}
+					DBFreeVariant(&dbv);
 				}
 				SendMessage(hwndList,CLM_SETEXTRAIMAGE,(WPARAM)hItem,MAKELPARAM(ExtraToColumnNum(EXTRA_ICON_EMAIL),(showemail)?0:0xFF));	
 				if (dbv.pszVal!=NULL) mir_free(dbv.pszVal);
@@ -355,6 +356,7 @@ void SetAllExtraIcons(HWND hwndList,HANDLE hContact)
 						if (dbv.pszVal) mir_free(dbv.pszVal);
 						DBFreeVariant(&dbv);
 					}
+					DBFreeVariant(&dbv);
 				}
 				SendMessage(hwndList,CLM_SETEXTRAIMAGE,(WPARAM)hItem,MAKELPARAM(ExtraToColumnNum(EXTRA_ICON_SMS),(showsms)?1:0xFF));	
 				if (dbv.pszVal!=NULL) mir_free(dbv.pszVal);

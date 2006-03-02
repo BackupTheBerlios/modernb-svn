@@ -28,6 +28,7 @@ This file contains code related to new modern free positioned skinned buttons
 #include "SkinEngine.h"
 
 #define MODERNBUTTONCLASS "MirandaModernButtonClass"
+BOOL ModernButtonModuleIsLoaded=FALSE;
 
 static LRESULT CALLBACK ModernButtonWndProc(HWND hwndDlg, UINT msg,  WPARAM wParam, LPARAM lParam);
 int UnloadModernButtonModule(WPARAM wParam, LPARAM lParam);
@@ -79,18 +80,19 @@ static HWND hwndToolTips = NULL;
 
 int LoadModernButtonModule(void) 
 {
-  WNDCLASSEX wc;	
+  WNDCLASSEXA wc;	
   ZeroMemory(&wc, sizeof(wc));
   wc.cbSize         = sizeof(wc);
-  wc.lpszClassName  = TEXT(MODERNBUTTONCLASS);
+  wc.lpszClassName  = MODERNBUTTONCLASS;
   wc.lpfnWndProc    = ModernButtonWndProc;
   wc.hCursor        = LoadCursor(NULL, IDC_ARROW);
   wc.cbWndExtra     = sizeof(ModernButtonCtrl*);
   wc.hbrBackground  = 0;
   wc.style          = CS_GLOBALCLASS;
-  RegisterClassEx(&wc);
+  RegisterClassExA(&wc);
   InitializeCriticalSection(&csTips);
   HookEvent(ME_SYSTEM_SHUTDOWN, UnloadModernButtonModule);
+  ModernButtonModuleIsLoaded=TRUE;
   return 0;
 }
 
@@ -518,7 +520,8 @@ int AddButton(HWND parent,
               int MinWidth, int MinHeight)
 {
 //  if (!parent) return 0;
-  if (!Buttons)
+   if (!ModernButtonModuleIsLoaded) return 0;
+	if (!Buttons)
     Buttons=mir_alloc(sizeof(MButton));
   Buttons=mir_realloc(Buttons,sizeof(MButton)*(ButtonsCount+1));
   {
@@ -564,6 +567,7 @@ extern sCurrentWindowImageData * cachedWindow;
 int EraseButton(int l,int t,int r, int b)
 {
   DWORD i;
+  if (!ModernButtonModuleIsLoaded) return 0;
   if (!LayeredFlag) return 0;
   if (!cachedWindow) return 0;
   if (!cachedWindow->hImageDC ||!cachedWindow->hBackDC) return 0;
@@ -601,6 +605,7 @@ HWND CreateButtonWindow(ModernButtonCtrl * bct, HWND parent)
 int RedrawButtons(HDC hdc)
 {
   DWORD i;
+  if (!ModernButtonModuleIsLoaded) return 0;
   for(i=0; i<ButtonsCount; i++)
   {
     if (pcli->hwndContactList && Buttons[i].hwnd==NULL)
@@ -612,6 +617,7 @@ int RedrawButtons(HDC hdc)
 int DeleteButtons()
 {
   DWORD i;
+  if (!ModernButtonModuleIsLoaded) return 0;
   for(i=0; i<ButtonsCount; i++)
     if (Buttons[i].hwnd) DestroyWindow(Buttons[i].hwnd);
   if (Buttons) mir_free(Buttons);
@@ -628,6 +634,7 @@ int ReposButtons(HWND parent, BOOL draw, RECT * r)
   RECT clr;
   RECT rd;
   BOOL altDraw=FALSE;
+  if (!ModernButtonModuleIsLoaded) return 0;
 #ifdef _DEBUG
   {
 	  char buf[256];

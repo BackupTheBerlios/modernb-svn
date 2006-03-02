@@ -1317,7 +1317,7 @@ int CLUIFramesSetFrameOptions(WPARAM wParam,LPARAM lParam)
     Frames[pos].TitleBar.ShowTitleBarTip=FALSE;
     if(flag&F_SHOWTBTIP) Frames[pos].TitleBar.ShowTitleBarTip=TRUE;
 
-    SendMessage(Frames[pos].TitleBar.hwndTip,TTM_ACTIVATE,(WPARAM)Frames[pos].TitleBar.ShowTitleBarTip,0);
+    SendMessageA(Frames[pos].TitleBar.hwndTip,TTM_ACTIVATE,(WPARAM)Frames[pos].TitleBar.ShowTitleBarTip,0);
 
     style=(int)GetWindowLong(Frames[pos].hWnd,GWL_STYLE);
 	style|=!LayeredFlag?WS_BORDER:0;
@@ -1926,7 +1926,7 @@ static int UpdateTBToolTip(int framepos)
     ti.uFlags=TTF_IDISHWND|TTF_SUBCLASS ;
     ti.uId=(UINT)Frames[framepos].TitleBar.hwnd;
 
-    return(SendMessageA(Frames[framepos].TitleBar.hwndTip,TTM_UPDATETIPTEXT ,(WPARAM)0,(LPARAM)&ti));
+    return(SendMessageA(Frames[framepos].TitleBar.hwndTip,TTM_UPDATETIPTEXTA ,(WPARAM)0,(LPARAM)&ti));
   }	
 
 };
@@ -2020,7 +2020,7 @@ int CLUIFramesAddFrame(WPARAM wParam,LPARAM lParam)
 
 
   Frames[nFramescount].TitleBar.hwndTip 
-    =CreateWindowEx(0, TOOLTIPS_CLASS, NULL,
+    =CreateWindowExA(0, TOOLTIPS_CLASSA, NULL,
     WS_POPUP | TTS_NOPREFIX | TTS_ALWAYSTIP,
     CW_USEDEFAULT, CW_USEDEFAULT,
     CW_USEDEFAULT, CW_USEDEFAULT,
@@ -2127,9 +2127,9 @@ static int CLUIFramesRemoveFrame(WPARAM wParam,LPARAM lParam)
   Frames[pos].hWnd=(HWND)-1;
   DestroyWindow(Frames[pos].TitleBar.hwnd);
   Frames[pos].TitleBar.hwnd=(HWND)-1;
-  DestroyWindow(Frames[pos].ContainerWnd);
+  if(Frames[pos].ContainerWnd && Frames[pos].ContainerWnd!=(HWND)-1) DestroyWindow(Frames[pos].ContainerWnd);
   Frames[pos].ContainerWnd=(HWND)-1;
-  DestroyMenu(Frames[pos].TitleBar.hmenu);
+  if (Frames[pos].TitleBar.hmenu) DestroyMenu(Frames[pos].TitleBar.hmenu);
 
   RemoveItemFromList(pos,&Frames,&nFramescount);
 
@@ -2178,7 +2178,7 @@ int CLUIFrameMoveResize(const wndFrame *Frame)
     ShowWindowNew(Frame->TitleBar.hwnd,Frame->TitleBar.ShowTitleBar==TRUE?SW_SHOW/*NOACTIVATE*/:SW_HIDE);
   }
   else {
-    if (Frame->OwnerWindow)         
+    if (Frame->OwnerWindow && Frame->OwnerWindow!=(HWND)(-1)&& Frame->OwnerWindow!=(HWND)(-2))         
     {
       ShowWindowNew(Frame->OwnerWindow,SW_HIDE);
     }
@@ -4220,7 +4220,7 @@ int CLUIFrameSetFloat(WPARAM wParam,LPARAM lParam)
         SetParent(Frames[wParam].hWnd,pcli->hwndContactList);
         SetParent(Frames[wParam].TitleBar.hwnd,pcli->hwndContactList);
         Frames[wParam].floating=FALSE;
-        DestroyWindow(Frames[wParam].ContainerWnd);
+        if (Frames[wParam].ContainerWnd) DestroyWindow(Frames[wParam].ContainerWnd);
         Frames[wParam].ContainerWnd=0;
       }
     }
@@ -4308,7 +4308,7 @@ int CLUIFrameSetFloat(WPARAM wParam,LPARAM lParam)
     hwndtmp=(int)Frames[wParam].ContainerWnd;
     ulockfrm();
     CLUIFramesOnClistResize((WPARAM)pcli->hwndContactList,(LPARAM)0);
-    SendMessage((HWND)hwndtmp,WM_SIZE,0,0);
+    if (hwndtmp) SendMessage((HWND)hwndtmp,WM_SIZE,0,0);
 
 
     SetWindowPos((HWND)hwndtooltiptmp, HWND_TOPMOST,0, 0, 0, 0,SWP_NOMOVE | SWP_NOSIZE|SWP_NOACTIVATE  );
@@ -4325,7 +4325,7 @@ static CLUIFrameOnModulesLoad(WPARAM wParam,LPARAM lParam)
 static CLUIFrameOnModulesUnload(WPARAM wParam,LPARAM lParam)
 {
   //
-
+  if (!contMIVisible) return 0;
   CallService( MS_CLIST_REMOVECONTEXTFRAMEMENUITEM, ( LPARAM )contMIVisible, 1 );
   CallService( MS_CLIST_REMOVECONTEXTFRAMEMENUITEM, ( LPARAM )contMITitle, 1 );
   CallService( MS_CLIST_REMOVECONTEXTFRAMEMENUITEM, ( LPARAM )contMITBVisible, 1 );
@@ -4353,6 +4353,9 @@ static CLUIFrameOnModulesUnload(WPARAM wParam,LPARAM lParam)
   CallService( MO_REMOVEMENUITEM, ( LPARAM )contMIBorder, 1 );
   CallService( MO_REMOVEMENUITEM, ( LPARAM )contMIAlignRoot, 1 );
   CallService( MO_REMOVEMENUITEM, ( LPARAM )contMIPosRoot, 1 );
+
+  contMIVisible=0;
+  return 0;		
 }
 
 
@@ -4445,7 +4448,7 @@ int LoadCLUIFramesModule(void)
   FramesSysNotStarted=FALSE;
   return 0;
 }
-
+extern int MenuModulesShutdown(WPARAM wParam,LPARAM lParam);
 int UnloadMainMenu()
 {
 	CLUIFrameOnModulesUnload(0,0);
@@ -4454,6 +4457,7 @@ int UnloadMainMenu()
 		CallService(MS_CLIST_REMOVEMAINMENUITEM,(WPARAM)MainMIRoot,0); 
 		MainMIRoot=(HANDLE)-1;
 	}
+	MenuModulesShutdown(0,0);
 	return (int) MainMIRoot;
 }
 
@@ -4461,6 +4465,7 @@ int UnLoadCLUIFramesModule(void)
 {
   int i;
   FramesSysNotStarted=TRUE;
+  if(hBmpBackground) {DeleteObject(hBmpBackground); hBmpBackground=NULL;}
   CLUIFramesOnClistResize((WPARAM)pcli->hwndContactList,0);
   CLUIFramesStoreAllFrames();
   UnloadMainMenu();
@@ -4468,14 +4473,16 @@ int UnLoadCLUIFramesModule(void)
   //UnitFramesMenu();
   for (i=0;i<nFramescount;i++) {
     //		RemoveContextFrameMenuItem((WPARAM)Frames[i].,(LPARAM)0)
-    DestroyWindow(Frames[i].hWnd);
+	  if (Frames[i].hWnd!=pcli->hwndContactTree)
+		DestroyWindow(Frames[i].hWnd);	
     Frames[i].hWnd=(HWND)-1;
     DestroyWindow(Frames[i].TitleBar.hwnd);
     Frames[i].TitleBar.hwnd=(HWND)-1;
-    DestroyWindow(Frames[i].ContainerWnd);
+    if (Frames[i].ContainerWnd && Frames[i].ContainerWnd!=(HWND)(-2)&& Frames[i].ContainerWnd!=(HWND)(-1)) DestroyWindow(Frames[i].ContainerWnd);
     Frames[i].ContainerWnd=(HWND)-1;
-    DestroyMenu(Frames[i].TitleBar.hmenu);
-    DestroyWindow(Frames[i].OwnerWindow );
+    if (Frames[i].TitleBar.hmenu) DestroyMenu(Frames[i].TitleBar.hmenu);
+	if (Frames[i].OwnerWindow && Frames[i].OwnerWindow!=(HWND)(-2)&& Frames[i].OwnerWindow!=(HWND)(-1))
+		DestroyWindow(Frames[i].OwnerWindow );
     Frames[i].OwnerWindow=(HWND)-2;
 
     if (Frames[i].name!=NULL) free(Frames[i].name);

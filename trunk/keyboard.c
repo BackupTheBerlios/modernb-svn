@@ -207,7 +207,7 @@ int RegistersAllHotkey(HWND hwnd)
 		if(DBGetContactSettingByte(NULL, "SkinHotKeysOff", phi->name, 0)==0) {
 			if(!phi->aAtom) phi->aAtom=GlobalAddAtomA(phi->name);
 			WordToModAndVk((WORD)DBGetContactSettingWord(NULL,"SkinHotKeys",phi->name,0),&mod,&vk);
-			RegisterHotKey(hwnd,phi->aAtom,mod,vk);
+			if (vk!=0) RegisterHotKey(hwnd,phi->aAtom,mod,vk); 
 		}
 	}
 	return 0;

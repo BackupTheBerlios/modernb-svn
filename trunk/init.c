@@ -184,7 +184,7 @@ static ClcCacheEntryBase* fnCreateCacheItem( HANDLE hContact )
 }
 
 extern TCHAR *parseText(TCHAR *stzText);
-
+extern int LoadModernButtonModule();
 int __declspec(dllexport) CListInitialise(PLUGINLINK * link)
 {
 	int rc=0;
@@ -272,6 +272,7 @@ int __declspec(dllexport) CListInitialise(PLUGINLINK * link)
 	CreateServiceFunction(CLUI_SetDrawerService,SetDrawer);
 
 	///test///
+	LoadModernButtonModule();
 	LoadSkinModule();
 	rc=LoadContactListModule();
 	if (rc==0) rc=LoadCLCModule();
@@ -292,20 +293,22 @@ int __declspec(dllexport) Load(PLUGINLINK * link)
 	CListInitialise(link);
 	return 1;
 }
-
+extern void UnloadAvatarOverlayIcon();
 int __declspec(dllexport) Unload(void)
 {
 	TRACE("Unloading ClistMW\r\n");
 	if (IsWindow(pcli->hwndContactList)) DestroyWindow(pcli->hwndContactList);
 	//BGModuleUnload();
 	//    UnLoadContactListModule();
+	UnloadAvatarOverlayIcon();
 	UninitSkinHotKeys();
 	UnhookEvent(hSkinLoaded);
+	UnhookAll();
 	UnloadSkinModule();
 
 	pcli->hwndContactList=0;
 	TRACE("***&&& NEED TO UNHOOK ALL EVENTS &&&***\r\n");
-	UnhookAll();
+	
 	TRACE("Unloading ClistMW COMPLETE\r\n");
 	return 0;
 }
@@ -357,6 +360,7 @@ int MyUnhookEvent(HANDLE hHook)
 {
 	DWORD i;
 	//1. Find free
+	
 	for (i=0;i<hooksRecAlloced;i++)
 	{
 		if (hooksrec[i].hHook==hHook)
@@ -374,6 +378,7 @@ int UnhookAll()
 {
 	DWORD i;
 	TRACE("Unhooked Events:\n");
+	if (!hooksrec) return 0;
 	for (i=0;i<hooksRecAlloced;i++)
 	{
 		if (hooksrec[i].hHook!=NULL)
@@ -389,6 +394,7 @@ int UnhookAll()
 		}
 	}
 	mir_free(hooksrec);
+	hooksRecAlloced=0;
 	return 1;
 }
 

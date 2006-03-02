@@ -160,6 +160,7 @@
 #define IDD_OPT_ITEM_THIRD_LINE         391
 #define IDD_OPT_SKIN_COMPOSER           392
 #define IDI_ICON2                       396
+#define IDI_ICON3                       397
 #define IDC_RESETPROTOCOLDATA           1000
 #define IDC_SAVE                        1001
 #define IDC_DEFBKCOLOR                  1001
@@ -875,7 +876,7 @@
 // 
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
-#define _APS_NEXT_RESOURCE_VALUE        397
+#define _APS_NEXT_RESOURCE_VALUE        398
 #define _APS_NEXT_COMMAND_VALUE         40020
 #define _APS_NEXT_CONTROL_VALUE         1853
 #define _APS_NEXT_SYMED_VALUE           101

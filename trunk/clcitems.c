@@ -443,7 +443,7 @@ void RebuildEntireList(HWND hwnd,struct ClcData *dat)
 
 	hContact=(HANDLE)CallService(MS_DB_CONTACT_FINDFIRST,0,0);
 	while(hContact) {
-		pdisplayNameCacheEntry cacheEntry;
+		pdisplayNameCacheEntry cacheEntry=NULL;
 		cont=NULL;
 		cacheEntry=(pdisplayNameCacheEntry)pcli->pfnGetCacheEntry(hContact);
 

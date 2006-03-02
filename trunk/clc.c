@@ -73,6 +73,20 @@ struct AvatarOverlayIconConfig
 	{ "AVATAR_OVERLAY_PHONE", "On the phone", IDI_AVATAR_OVERLAY_PHONE, NULL},
 	{ "AVATAR_OVERLAY_LUNCH", "Out to lunch", IDI_AVATAR_OVERLAY_LUNCH, NULL}
 };
+
+void UnloadAvatarOverlayIcon()
+{
+	int i;
+	for (i = 0 ; i < MAX_REGS(avatar_overlay_icons) ; i++)
+	{
+		if (avatar_overlay_icons[i].icon) 
+		{
+			DestroyIcon(avatar_overlay_icons[i].icon);
+			avatar_overlay_icons[i].icon=NULL;
+		}
+	}
+}
+
 /*
 *	Smiley Add option is changed Event hook 
 */
@@ -304,7 +318,7 @@ int ClcProtoAck(WPARAM wParam,LPARAM lParam)
 				if (ack->szModule!= NULL) 
 					if(DBGetContactSettingByte(ack->hContact, ack->szModule, "ChatRoom", 0) != 0) return 0;
 			}
-			DBWriteContactSettingString(ack->hContact,"CList","StatusMsg","");
+			if (ack->hContact) DBWriteContactSettingString(ack->hContact,"CList","StatusMsg","");
 			//pcli->pfnClcBroadcast( INTM_STATUSMSGCHANGED,(WPARAM)ack->hContact,&a);              
 		}
 	}
@@ -1604,12 +1618,29 @@ LRESULT CALLBACK ContactListControlWndProc(HWND hwnd, UINT msg, WPARAM wParam, L
 		break;
 
 	case WM_DESTROY:
-		FreeDisplayNameCache(&dat->lCLCContactsCache);
-		if (!dat->use_avatar_service)
-			ImageArray_Free(&dat->avatar_cache, FALSE);
+		{
+			int i=0;
+			for(i=0;i<=FONTID_MODERN_MAX;i++) 
+			{
+				if(dat->fontModernInfo[i].hFont) DeleteObject(dat->fontModernInfo[i].hFont);
+				dat->fontModernInfo[i].hFont=NULL;
+			}
+			if (dat->hMenuBackground)
+			{
+				DeleteObject(dat->hMenuBackground);
+				dat->hMenuBackground=NULL;
+			}
+			{
+				ImageArray_Clear(&dat->avatar_cache);
+				DeleteDC(dat->avatar_cache.hdc);			
+			}
+			FreeDisplayNameCache(&dat->lCLCContactsCache);
+			if (!dat->use_avatar_service)
+				ImageArray_Free(&dat->avatar_cache, FALSE);
 
-		RowHeights_Free(dat);
-		break;
+			RowHeights_Free(dat);
+			break;
+		}
 	}
 	return saveContactListControlWndProc(hwnd, msg, wParam, lParam);
 }

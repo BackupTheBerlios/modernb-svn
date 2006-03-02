@@ -207,6 +207,17 @@ int UnloadSkinModule()
 {
 
   //unload services
+  UnloadSkin(&glObjectList);
+  if (cachedWindow)
+  {
+	  SelectObject(cachedWindow->hBackDC,cachedWindow->hBackOld);
+	  SelectObject(cachedWindow->hImageDC,cachedWindow->hImageOld);
+	  DeleteDC(cachedWindow->hBackDC);
+	  DeleteDC(cachedWindow->hImageDC);
+	  ReleaseDC(NULL,cachedWindow->hScreenDC);
+	  mir_free(cachedWindow);
+	  cachedWindow=NULL;
+  }
   DeleteCriticalSection(&skin_cs);
   GdiFlush();
   DestroyServiceFunction(MS_SKIN_REGISTEROBJECT);
@@ -1077,6 +1088,7 @@ int AddObjectDescriptorToSkinObjectList (LPSKINOBJECTDESCRIPTOR lpDescr, SKINOBJ
 {
   SKINOBJECTSLIST *sk;
   if (Skin) sk=Skin; else sk=&glObjectList;
+  if (!sk) return 0;
   if (boolstrcmpi(lpDescr->szObjectID,"_HEADER_")) return 0;
   {//check if new object allready presents.
     DWORD i=0;
@@ -2526,6 +2538,8 @@ BOOL ImageList_DrawEx_New( HIMAGELIST himl,int i,HDC hdcDst,int x,int y,int dx,i
   int ddy;
   BYTE alpha=255;
   HBITMAP hbmpold, hbmp;
+  if (ic==NULL)
+	  return FALSE;
   if (fStyle&ILD_BLEND25) alpha=64;
   else if (fStyle&ILD_BLEND50) alpha=128;
   ImageList_GetIconSize(himl,&ddx,&ddy);  
@@ -2551,7 +2565,12 @@ BOOL ImageList_DrawEx_New( HIMAGELIST himl,int i,HDC hdcDst,int x,int y,int dx,i
       DeleteDC(hdc);
     }
   }
-  DestroyIcon(ic);
+  {
+	  BOOL ret=DestroyIcon(ic);
+	  if (!ret)
+		  ret=ret;
+
+  }
   return TRUE;
 }
 
@@ -3188,34 +3207,46 @@ int ReCreateBackImage(BOOL Erase,RECT *w)
 		//-- Create New Cache
 		{
 			cachedWindow=(sCurrentWindowImageData*)mir_alloc(sizeof(sCurrentWindowImageData));
+			memset(cachedWindow,0,sizeof(sCurrentWindowImageData));
 			cachedWindow->hScreenDC=GetDC(NULL);
 			cachedWindow->hBackDC=CreateCompatibleDC(cachedWindow->hScreenDC);
 			cachedWindow->hImageDC=CreateCompatibleDC(cachedWindow->hScreenDC);
 			cachedWindow->Width=wnd.right-wnd.left;
 			cachedWindow->Height=wnd.bottom-wnd.top;
-			cachedWindow->hImageDIB=CreateBitmap32Point(cachedWindow->Width,cachedWindow->Height,&(cachedWindow->hImageDIBByte));
-			cachedWindow->hBackDIB=CreateBitmap32Point(cachedWindow->Width,cachedWindow->Height,&(cachedWindow->hBackDIBByte));
-			cachedWindow->hImageOld=SelectObject(cachedWindow->hImageDC,cachedWindow->hImageDIB);
-			cachedWindow->hBackOld=SelectObject(cachedWindow->hBackDC,cachedWindow->hBackDIB);
+			if (cachedWindow->Width!=0 && cachedWindow->Height!=0)
+			{
+				cachedWindow->hImageDIB=CreateBitmap32Point(cachedWindow->Width,cachedWindow->Height,&(cachedWindow->hImageDIBByte));
+				cachedWindow->hBackDIB=CreateBitmap32Point(cachedWindow->Width,cachedWindow->Height,&(cachedWindow->hBackDIBByte));
+				cachedWindow->hImageOld=SelectObject(cachedWindow->hImageDC,cachedWindow->hImageDIB);
+				cachedWindow->hBackOld=SelectObject(cachedWindow->hBackDC,cachedWindow->hBackDIB);
+			}
 		}
 		IsNewCache=1;
 	}   
-	if (cachedWindow->Width!=wnd.right-wnd.left || cachedWindow->Height!=wnd.bottom-wnd.top)
+	if (cachedWindow->Width!=wnd.right-wnd.left || cachedWindow->Height!=wnd.bottom-wnd.top)		
 	{
-		HBITMAP hb1,hb2;
+		HBITMAP hb1=NULL,hb2=NULL;
 		cachedWindow->Width=wnd.right-wnd.left;
 		cachedWindow->Height=wnd.bottom-wnd.top;
-		hb1=CreateBitmap32Point(cachedWindow->Width,cachedWindow->Height,&(cachedWindow->hImageDIBByte));
-		hb2=CreateBitmap32Point(cachedWindow->Width,cachedWindow->Height,&(cachedWindow->hImageDIBByte)); 
-		SelectObject(cachedWindow->hImageDC,hb1);
-		SelectObject(cachedWindow->hBackDC,hb2);
-		DeleteObject(cachedWindow->hImageDIB);
-		DeleteObject(cachedWindow->hBackDIB);
+		if (cachedWindow->Width!=0 && cachedWindow->Height!=0)
+		{
+			hb1=CreateBitmap32Point(cachedWindow->Width,cachedWindow->Height,&(cachedWindow->hImageDIBByte));
+			hb2=CreateBitmap32Point(cachedWindow->Width,cachedWindow->Height,&(cachedWindow->hImageDIBByte)); 
+			SelectObject(cachedWindow->hImageDC,hb1);
+			SelectObject(cachedWindow->hBackDC,hb2);
+		}
+		else
+		{
+			SelectObject(cachedWindow->hImageDC,cachedWindow->hImageOld);
+			SelectObject(cachedWindow->hBackDC,cachedWindow->hBackOld);
+		}
+		if (cachedWindow->hImageDIB) DeleteObject(cachedWindow->hImageDIB);
+		if (cachedWindow->hBackDIB) DeleteObject(cachedWindow->hBackDIB);
 		cachedWindow->hImageDIB=hb1;
 		cachedWindow->hBackDIB=hb2;
 		IsNewCache=1;
 	}
-	if (Erase || IsNewCache)
+	if ((Erase || IsNewCache )&& (cachedWindow->Width!=0 && cachedWindow->Height!=0))
 	{
 	
 		hb2=CreateBitmap32(cachedWindow->Width,cachedWindow->Height); 
@@ -3276,7 +3307,7 @@ int DrawNonFramedObjects(BOOL Erase,RECT *r)
 }
 int ValidateFrameImageProc(RECT * r)                                // Calling queued frame paint procs and refresh image
 {
-  RECT wnd;
+	RECT wnd={0};
   BOOL IsNewCache=0;
   BOOL IsForceAllPainting=0;
 
@@ -3482,7 +3513,7 @@ int JustUpdateWindowImageRect(RECT * rty)
       SetWindowLong(pcli->hwndContactList,GWL_EXSTYLE, GetWindowLong(pcli->hwndContactList, GWL_EXSTYLE) |WS_EX_LAYERED);
     SetAlpha(CURRENT_ALPHA);
 
-    res=MyUpdateLayeredWindow(pcli->hwndContactList,cachedWindow->hScreenDC,&dest,&sz,cachedWindow->hImageDC,&src,0,&bf,ULW_ALPHA);
+    res=MyUpdateLayeredWindow(pcli->hwndContactList,cachedWindow->hScreenDC,&dest,&sz,cachedWindow->hImageDC,&src,RGB(1,1,1),&bf,ULW_ALPHA);
   }
   else InvalidateRect(pcli->hwndContactList,NULL,TRUE);
   //{

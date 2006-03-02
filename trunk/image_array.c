@@ -164,7 +164,7 @@ HBITMAP ImageArray_Free(LP_IMAGE_ARRAY_DATA iad, BOOL keep_bitmap)
 void ImageArray_Clear(LP_IMAGE_ARRAY_DATA iad)
 {
 	HDC tmpdc = CreateCompatibleDC(iad->hdc);
-	DeleteDC(iad->hdc);
+	if (iad->hdc) DeleteDC(iad->hdc);
 	iad->hdc = tmpdc;
 
 	if (iad->img != NULL)

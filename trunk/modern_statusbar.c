@@ -442,6 +442,10 @@ LRESULT CALLBACK ModernStatusProc(HWND hwnd,UINT msg,WPARAM wParam,LPARAM lParam
 		SelectObject(hdc2,hbmpo);
 		DeleteObject(hbmp);
 		DeleteDC(hdc2);
+		{
+			HFONT hf=GetStockObject(DEFAULT_GUI_FONT);
+			SelectObject(hdc,hf);
+		}
 		ReleaseDC(hwnd,hdc);
 		ValidateRect(hwnd,NULL);
 	}

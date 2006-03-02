@@ -334,7 +334,11 @@ int MO_ModifyMenuItem(WPARAM wParam,LPARAM lParam)
   if(pmiparam->flags&CMIM_ICON) {
     pimi->mi.hIcon=pmiparam->hIcon;
     if(pmiparam->hIcon!=NULL) pimi->iconId=ImageList_ReplaceIcon(MenuObjects[objidx].hMenuIcons,pimi->iconId,pmiparam->hIcon);
-    else pimi->iconId=-1;	  //fixme, should remove old icon & shuffle all iconIds
+	else
+	{
+		TRACE("Known potential GDI leak \n");
+		pimi->iconId=-1;	 // FS#23 //fixme, should remove old icon & shuffle all iconIds
+	}
   }
   if(pmiparam->flags&CMIM_HOTKEY) {
     pimi->mi.hotKey=pmiparam->hotKey;

@@ -689,6 +689,7 @@ void Cache_GetSecondLineText(struct ClcData *dat, struct ClcContact *contact)
   else
     contact->szSecondLineText=NULL;
   Text[120-MAXEXTRACOLUMNS-1]='\0';
+  if (contact->szSecondLineText) 
 	Cache_ReplaceSmileys(dat, contact, contact->szSecondLineText, lstrlen(contact->szSecondLineText), &contact->plSecondLineText, 
     &contact->iSecondLineMaxSmileyHeight,dat->second_line_draw_smileys);
 
@@ -709,6 +710,7 @@ void Cache_GetThirdLineText(struct ClcData *dat, struct ClcContact *contact)
   else
     contact->szThirdLineText=NULL;
   Text[120-MAXEXTRACOLUMNS-1]='\0';
+  if (contact->szThirdLineText) 
 	Cache_ReplaceSmileys(dat, contact, contact->szThirdLineText, lstrlen(contact->szThirdLineText), &contact->plThirdLineText, 
 		&contact->iThirdLineMaxSmileyHeight,dat->third_line_draw_smileys);
 }

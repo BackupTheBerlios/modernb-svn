@@ -293,9 +293,6 @@ static int AddContactMenuItem(WPARAM wParam,LPARAM lParam)
     CallService(MO_SETOPTIONSMENUITEM,(WPARAM)0,(LPARAM)&op);
   }
   return(op.Handle);
-
-
-
 }
 static int BuildContactMenu(WPARAM wParam,LPARAM lParam)
 {
@@ -612,6 +609,7 @@ int StatusMenuCheckService(WPARAM wParam, LPARAM lParam)
 			if (timi &&  timi->mi.pszName)
 			{
 				int curProtoStatus=0;
+				BOOL IconNeedDestroy=FALSE;
 				char * prot;
 				if (smep)
 					prot=GetUniqueProtoName(smep->proto);
@@ -622,16 +620,19 @@ int StatusMenuCheckService(WPARAM wParam, LPARAM lParam)
 				if (curProtoStatus>=ID_STATUS_OFFLINE && curProtoStatus<ID_STATUS_IDLE)
 				{
 				//	timi->iconId=pcli->pfnIconFromStatusMode(timi->mi.pszName,curProtoStatus);
-					timi->mi.hIcon=LoadSkinnedProtoIcon(prot,curProtoStatus);
+					timi->mi.hIcon=LoadSkinnedProtoIcon(prot,curProtoStatus);				
 				}
 				else
 				{
 					timi->mi.hIcon=(HICON)CallProtoService(prot,PS_LOADICON,PLI_PROTOCOL|PLIF_SMALL,0);
+					IconNeedDestroy=TRUE;
 				}
 				if (timi->mi.hIcon)
 				{
 					timi->mi.flags|=CMIM_ICON;
 					CallService(MO_MODIFYMENUITEM,(WPARAM)timi->globalid,(LPARAM)(&(timi->mi)));
+					if (IconNeedDestroy) 
+						DestroyIcon(timi->mi.hIcon);
 				}
 			}
 		}
@@ -1223,18 +1224,13 @@ static int MenuProtoAck(WPARAM wParam,LPARAM lParam)
     return 0;
 }
 
-
-
-
-
-
-
-
-
-
-
-
-static int MenuModulesShutdown(WPARAM wParam,LPARAM lParam) {
+int MenuModulesShutdown(WPARAM wParam,LPARAM lParam)
+{
+  
+  RecurciveDeleteMenu(hStatusMenu);
+  RecurciveDeleteMenu(hMainMenu);
+  DestroyMenu(hMainMenu);
+  DestroyMenu(hStatusMenu);
   UnhookEvent(hAckHook);
   return 0;
 }

@@ -643,13 +643,13 @@ void LoadClcOptions(HWND hwnd, struct ClcData *dat)
 		DBVARIANT dbv={0};
 		dat->bkColour=DBGetContactSettingDword(NULL,"CLC","BkColour",CLCDEFAULT_BKCOLOUR);
 		if(dat->hBmpBackground) {DeleteObject(dat->hBmpBackground); dat->hBmpBackground=NULL;}
-		if(DBGetContactSettingByte(NULL,"CLC","UseBitmap",CLCDEFAULT_USEBITMAP)) {
+		/*if(DBGetContactSettingByte(NULL,"CLC","UseBitmap",CLCDEFAULT_USEBITMAP)) {
 			if(!DBGetContactSetting(NULL,"CLC","BkBitmap",&dbv)) {
 				dat->hBmpBackground=(HBITMAP)CallService(MS_UTILS_LOADBITMAP,0,(LPARAM)dbv.pszVal);
 				mir_free(dbv.pszVal);
 				DBFreeVariant(&dbv);
 			}
-		}
+		}*/
 		dat->backgroundBmpUse=DBGetContactSettingWord(NULL,"CLC","BkBmpUse",CLCDEFAULT_BKBMPUSE);
 
 		dat->MenuBkColor=DBGetContactSettingDword(NULL,"Menu","BkColour",CLCDEFAULT_BKCOLOUR);

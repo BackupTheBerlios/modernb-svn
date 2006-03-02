@@ -48,6 +48,7 @@ extern BYTE CALLED_FROM_SHOWHIDE;
 #define MENU_STATUSMENU         0xFFFF1235
 
 extern BOOL TransparentFlag;
+extern int UnhookAll();
 extern void Docking_GetMonitorRectFromWindow(HWND hWnd,RECT *rc);
 extern sCurrentWindowImageData * cachedWindow;
 int BehindEdge_State;
@@ -88,6 +89,7 @@ extern void (*savedLoadCluiGlobalOpts)(void);
 BOOL CheckOwner(HWND hwnd)
 {
 	HWND midWnd,hwndClui;
+	if (!hwnd) return FALSE;
 	hwndClui=(HWND)CallService(MS_CLUI_GETHWND,0,0);
 	midWnd=GetAncestor(hwnd,GA_ROOTOWNER);
 	if(midWnd==hwndClui) return TRUE;
@@ -386,7 +388,12 @@ void ChangeWindowMode()
 		hRgn1=CreateRoundRectRgn(0,0,(r.right-r.left+1),(r.bottom-r.top+1),h,h);
 		if ((DBGetContactSettingByte(NULL,"CLC","RoundCorners",0)) && (!CallService(MS_CLIST_DOCKINGISDOCKED,0,0)))
 			SetWindowRgn(pcli->hwndContactList,hRgn1,1); 
-		else SetWindowRgn(pcli->hwndContactList,NULL,1);
+		else 
+		{
+			DeleteObject(hRgn1);
+			SetWindowRgn(pcli->hwndContactList,NULL,1);
+		}
+
 		RedrawWindow(pcli->hwndContactList,NULL,NULL,RDW_INVALIDATE|RDW_ERASE|RDW_FRAME|RDW_UPDATENOW|RDW_ALLCHILDREN);   
 	} 			
 	IsInChangingMode=FALSE;
@@ -1405,6 +1412,12 @@ HICON LoadIconFromExternalFile(char *filename,int i,boolean UseLibrary,boolean r
 	{		
 		hIcon=ExtractIconFromPath(szFullPath);
 		if (hIcon) return hIcon;
+		if (UseLibrary)
+		{
+			_snprintf(szFullPath, sizeof(szFullPath), "%s,%d", szMyPath, internalidx);
+			hIcon=ExtractIconFromPath(szFullPath);
+			if (hIcon) return hIcon;		
+		}
 	}
 	else
 	{
@@ -1783,7 +1796,7 @@ int DrawMenuBackGround(HWND hwnd, HDC hdc, int item)
 	if (!dat) return 1;
 	GetWindowRect(hwnd,&ra);
 	{
-		MENUBARINFO mbi;
+		MENUBARINFO mbi={0};
 		mbi.cbSize=sizeof(MENUBARINFO);
 		GetMenuBarInfo(hwnd,OBJID_MENU, 0, &mbi);
 		if (!(mbi.rcBar.right-mbi.rcBar.left>0 && mbi.rcBar.bottom-mbi.rcBar.top>0)) return 1;
@@ -2135,7 +2148,7 @@ LRESULT CALLBACK ContactListWndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM l
 	case WM_NCPAINT:
 	{
 			int r = DefWindowProc(hwnd, msg, wParam, lParam);
-			if (DBGetContactSettingByte(NULL,"CLUI","ShowMainMenu",SETTING_SHOWMAINMENU_DEFAULT))
+			if (!LayeredFlag && DBGetContactSettingByte(NULL,"CLUI","ShowMainMenu",SETTING_SHOWMAINMENU_DEFAULT))
 			{
 				HDC hdc;
 				hdc=NULL;
@@ -2167,6 +2180,7 @@ LRESULT CALLBACK ContactListWndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM l
 			HDC paintDC;
 
 			GetClientRect(hwnd,&w);
+			if (!(w.right>0 && w.bottom>0)) return DefWindowProc(hwnd, msg, wParam, lParam); 
 			//OffsetRect(&w,-w.left,-w.top);
 			paintDC = GetDC(hwnd);
 
@@ -2176,6 +2190,7 @@ LRESULT CALLBACK ContactListWndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM l
 			//else
 			//	w2=ps.rcPaint;
 			hdc=CreateCompatibleDC(paintDC);
+			
 			hbmp=CreateBitmap32(w.right,w.bottom);
 			oldbmp=SelectObject(hdc,hbmp);
 			//FillRect(hdc,&w2,GetSysColorBrush(COLOR_BTNFACE));
@@ -2412,7 +2427,11 @@ LRESULT CALLBACK ContactListWndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM l
 					hRgn1=CreateRoundRectRgn(0,0,(r.right-r.left+1),(r.bottom-r.top+1),h,h);
 					if ((DBGetContactSettingByte(NULL,"CLC","RoundCorners",0)) && (!CallService(MS_CLIST_DOCKINGISDOCKED,0,0)))
 						SetWindowRgn(hwnd,hRgn1,1); 
-					else SetWindowRgn(hwnd,NULL,1);
+					else
+					{
+						DeleteObject(hRgn1);
+						SetWindowRgn(hwnd,NULL,1);
+					}
 					RedrawWindow(hwnd,NULL,NULL,RDW_INVALIDATE|RDW_ERASE|RDW_FRAME|RDW_UPDATENOW|RDW_ALLCHILDREN);   
 				} 			
 			}
@@ -2581,12 +2600,12 @@ LRESULT CALLBACK ContactListWndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM l
 		}
 
 	case WM_TIMER:
+		if (Miranda_Terminated()) return 0;
 		if ((int)wParam>=TM_STATUSBARUPDATE&&(int)wParam<=TM_STATUSBARUPDATE+64)
-		{
-
+		{		
 			int status,i;
-
 			ProtoTicks *pt=NULL;
+			if (!pcli->hwndStatus) return 0;
 			for (i=0;i<64;i++)
 			{
 
@@ -2626,13 +2645,6 @@ LRESULT CALLBACK ContactListWndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM l
 
 			}
 			SkinInvalidateFrame(pcli->hwndStatus,NULL,0);
-
-
-			//SendMessage(pcli->hwndStatus,WM_PAINT,0,0);
-			//UpdateWindow(pcli->hwndStatus);
-
-			//SkinUpdateWindow(NULL,pcli->hwndStatus); 
-			//TRACE("SkinUpdateWindow on WM_TIMER\n");
 			break;
 		}
 		else if ((int)wParam==TM_SMOTHALPHATRANSITION)
@@ -3107,14 +3119,21 @@ LRESULT CALLBACK ContactListWndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM l
 			ANIMATION_IS_IN_PROGRESS=0;  		
 			SleepEx(100,TRUE);
 			CallService(MS_CLIST_FRAMES_REMOVEFRAME,(WPARAM)hFrameContactTree,(LPARAM)0);
-			DestroyWindow(pcli->hwndContactTree);
-			UnLoadCLUIFramesModule();		
+			//DestroyWindow(pcli->hwndContactTree);
+			pcli->hwndContactTree=NULL;
+			pcli->hwndStatus=NULL;
+			
+
+			UnLoadCLUIFramesModule();	
+			pcli->hwndStatus=NULL;
 			ImageList_Destroy(himlMirandaIcon);
 			DBWriteContactSettingByte(NULL,"CList","State",(BYTE)state);
 			UnloadSkin(&glObjectList);
 			FreeLibrary(hUserDll);
 			pcli->hwndContactList=NULL;
+			pcli->hwndStatus=NULL;
 			PostQuitMessage(0);
+			UnhookAll();
 			return 0;
 	}	}
 
@@ -3265,6 +3284,7 @@ void LoadCLUIModule(void)
 {
 	hFrameContactTree=0;
 	TRACE("Load CLUI Module\n");
+	//LoadModernButtonModule();
 	CreateServiceFunction(MS_CLIST_GETSTATUSMODE,GetGlobalStatus);
 	hUserDll = LoadLibrary(TEXT("user32.dll"));
 	if (hUserDll)
@@ -3332,7 +3352,7 @@ void LoadCLUIModule(void)
 	//CreateServiceFunction("TestService",TestService);
 	CreateServiceFunction(MS_CLUI_SHOWMAINMENU,CList_ShowMainMenu);
 	CreateServiceFunction(MS_CLUI_SHOWSTATUSMENU,CList_ShowStatusMenu);
-	LoadModernButtonModule();
+	
 	ReloadCLUIOptions();
 	pcli->hwndStatus=(HWND)CreateModernStatusBar(pcli->hwndContactList);
 }
