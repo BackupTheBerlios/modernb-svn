@@ -159,6 +159,7 @@ int OnMoving(HWND hwnd,RECT *lParam)
 int SetAlpha(BYTE Alpha)
 {
   int i;
+
   for(i=0;i<nFramescount;i++){
 
     if (!Frames[i].floating && Frames[i].OwnerWindow!=NULL &&Frames[i].OwnerWindow!=(HWND)-2 && Frames[i].visible && !Frames[i].needhide )
@@ -258,11 +259,18 @@ int OnShowHide(HWND hwnd, int mode)
   lockfrm();
   for(i=0;i<nFramescount;i++){
     if (!Frames[i].floating && Frames[i].OwnerWindow!=(HWND)0 &&Frames[i].OwnerWindow!=(HWND)-2)
-    {
-	  ulockfrm();	
-      ShowWindow(Frames[i].OwnerWindow,(mode==SW_HIDE||!Frames[i].visible||Frames[i].needhide)?SW_HIDE:mode);
-      ShowWindow(Frames[i].hWnd,(mode==SW_HIDE||!Frames[i].visible||Frames[i].needhide)?SW_HIDE:mode);
-	  lockfrm();
+	{
+	  { 
+		//Try to avoid crash on exit due to unlock.
+		HWND owner=Frames[i].OwnerWindow;
+		HWND Frmhwnd=Frames[i].hWnd;
+		BOOL visible=Frames[i].visible;
+		BOOL needhide=Frames[i].needhide;
+		//ulockfrm();	
+		ShowWindow(owner,(mode==SW_HIDE||!visible||needhide)?SW_HIDE:mode);
+		ShowWindow(Frmhwnd,(mode==SW_HIDE||!visible||needhide)?SW_HIDE:mode);
+		//lockfrm();
+	  }
       if (mode!=SW_HIDE)
       {
         SetWindowPos(Frames[i].OwnerWindow,HWND_TOP,0,0,0,0,SWP_NOMOVE|SWP_NOSIZE|SWP_NOACTIVATE);
@@ -3839,10 +3847,11 @@ LRESULT CALLBACK CLUIFrameSubContainerProc(HWND hwnd, UINT msg, WPARAM wParam, L
         BYTE alpha;
         if ((wParam!=WA_INACTIVE || ((HWND)lParam==hwnd) || GetParent((HWND)lParam)==hwnd))
         {
-          alpha=DBGetContactSettingByte(NULL,"CList","Alpha",SETTING_ALPHA_DEFAULT);
-          SetWindowPos((GetParent((HWND)lParam)),HWND_TOPMOST,0,0,0,0,SWP_NOSIZE|SWP_NOMOVE|SWP_NOACTIVATE);            
-          TRACE("SMOTH ALPHA CALLED FROM DEACTIVATION_3\n");
-          SmoothAlphaTransition(hwnd, alpha, 1);
+			HWND hw=lParam?GetParent((HWND)lParam):0;
+			alpha=DBGetContactSettingByte(NULL,"CList","Alpha",SETTING_ALPHA_DEFAULT);
+			if (hw) SetWindowPos(hw,HWND_TOPMOST,0,0,0,0,SWP_NOSIZE|SWP_NOMOVE|SWP_NOACTIVATE);            
+			TRACE("SMOTH ALPHA CALLED FROM DEACTIVATION_3\n");
+			SmoothAlphaTransition(hwnd, alpha, 1);
         }
       }
 

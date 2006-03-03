@@ -153,6 +153,7 @@ int NewStatusPaintCallbackProc(HWND hWnd, HDC hDC, RECT * rcPaint, HRGN rgn, DWO
 extern HFONT TitleBarFont;
 int ModernDrawStatusBar(HWND hwnd, HDC hDC)
 {
+  if (hwnd==(HWND)-1) return 0;
   if (GetParent(hwnd)==pcli->hwndContactList)
     return ModernDrawStatusBarWorker(hwnd,hDC);
   else

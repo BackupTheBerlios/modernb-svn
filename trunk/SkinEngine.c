@@ -719,7 +719,11 @@ HBITMAP CreateBitmap32Point(int cx, int cy, void ** bits)
     DIB_RGB_COLORS,
     (void **)&ptPixels, 
     NULL, 0);
-  assert(ptPixels!=NULL); 
+  if (ptPixels==NULL) 
+  {
+	  MessageBoxA(NULL,"Object not allocated. Check GDI object count","ERROR",MB_OK|MB_ICONERROR); 
+	  DebugBreak();
+  }
   if (bits!=NULL) *bits=ptPixels;  
   return DirectBitmap;
 }
@@ -2740,6 +2744,7 @@ BOOL DrawIconExS(HDC hdcDst,int xLeft,int yTop,HICON hIcon,int cxWidth,int cyWid
   if(no32bit)DeleteObject(tBmp);
   DeleteObject(ici.hbmColor);
   DeleteObject(ici.hbmMask);
+  SelectObject(imDC,GetStockObject(DEFAULT_GUI_FONT));
   DeleteDC(imDC);
   //unlock it;
 
@@ -3001,7 +3006,7 @@ int ValidateSingleFrameImage(wndFrame * Frame, BOOL SkipBkgBlitting)            
   //#endif
 
   if (!cachedWindow) { TRACE("ValidateSingleFrameImage calling without cached\n"); return 0;}
-  if (!Frame->PaintCallbackProc)  { TRACE("ValidateSingleFrameImage calling without FrameProc\n"); return 0;}
+  if (Frame->hWnd==(HWND)-1 && !Frame->PaintCallbackProc)  { TRACE("ValidateSingleFrameImage calling without FrameProc\n"); return 0;}
   { // if ok update image 
     HDC hdc;
     HBITMAP o,n;
@@ -3324,6 +3329,7 @@ int ValidateFrameImageProc(RECT * r)                                // Calling q
   //#endif
   if (r) wnd=*r;
   else GetWindowRect(pcli->hwndContactList,&wnd);
+  if (wnd.right-wnd.left==0 || wnd.bottom-wnd.top==0) return 0;
   LOCK_UPDATING=1;
   //-- Check cached.
   if (cachedWindow==NULL)
@@ -3450,7 +3456,9 @@ void ApplyTransluency()
 	HWND hwnd=(HWND)CallService(MS_CLUI_GETHWND,0,0);
 	BOOL layered=(GetWindowLong(hwnd, GWL_EXSTYLE) & WS_EX_LAYERED)?TRUE:FALSE;
 	
-	IsTransparancy=SmoothAnimation ||TransparentFlag;
+	IsTransparancy=SmoothAnimation || TransparentFlag;
+	if (!TransparentFlag && !SmoothAnimation && CURRENT_ALPHA!=0)
+		CURRENT_ALPHA=255;
 	if (!LayeredFlag && (/*(CURRENT_ALPHA==255)||*/(MySetLayeredWindowAttributesNew && IsTransparancy)))
 	{
 		//if (CURRENT_ALPHA==255)
@@ -3492,6 +3500,7 @@ int JustUpdateWindowImageRect(RECT * rty)
 
   RECT rect;
   SIZE sz={0};
+
   if (!LayeredFlag)
   {
 	  ApplyTransluency();

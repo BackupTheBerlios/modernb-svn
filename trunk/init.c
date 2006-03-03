@@ -296,13 +296,15 @@ int __declspec(dllexport) Load(PLUGINLINK * link)
 extern void UnloadAvatarOverlayIcon();
 int __declspec(dllexport) Unload(void)
 {
-	TRACE("Unloading ClistMW\r\n");
+	TRACE("Unloading ClistMW\r\n");	
 	if (IsWindow(pcli->hwndContactList)) DestroyWindow(pcli->hwndContactList);
+	Sleep(100);
 	//BGModuleUnload();
 	//    UnLoadContactListModule();
 	UnloadAvatarOverlayIcon();
 	UninitSkinHotKeys();
 	UnhookEvent(hSkinLoaded);
+	Sleep(100);
 	UnhookAll();
 	UnloadSkinModule();
 

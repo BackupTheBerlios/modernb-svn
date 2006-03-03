@@ -497,12 +497,12 @@ int StatusMenuCheckService(WPARAM wParam, LPARAM lParam)
 	smep=(StatusMenuExecParam *)pcpp->MenuItemOwnerData;
 	if (smep && !smep->status && smep->custom)
 	{
-		if (WildCompare(smep->svc,"*\\SetXStatus*",255))
+		if (WildCompare(smep->svc,"*XStatus*",255))
 		{
 			//TODO Set parent icon/text as current
 			//Get parent menu ID
 			TMO_IntMenuItem * timiParent;
-			if (WildCompare(smep->svc,"*\\SetXStatus0",255))
+			if (WildCompare(smep->svc,"*XStatus0",255))
 				reset=TRUE;
 			else 
 				reset=FALSE;

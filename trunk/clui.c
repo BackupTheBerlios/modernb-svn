@@ -261,7 +261,8 @@ void ChangeWindowMode()
 	IsInChangingMode=TRUE;
 	TransparentFlag=IsWinVer2000Plus()&&DBGetContactSettingByte( NULL,"CList","Transparent",SETTING_TRANSPARENT_DEFAULT);
 	SmoothAnimation=IsWinVer2000Plus()&&DBGetContactSettingByte(NULL, "CLUI", "FadeInOut", 1);
-
+	if (TransparentFlag==0 && CURRENT_ALPHA!=0)
+		CURRENT_ALPHA=255;
 	//2- Calculate STYLES and STYLESEX
 	if (!LayeredFlag)
 	{
@@ -2520,7 +2521,7 @@ LRESULT CALLBACK ContactListWndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM l
 				BYTE alpha;
 				if (wParam!=WA_INACTIVE || CheckOwner((HWND)lParam)|| IsOption || ((HWND)lParam==hwnd) || GetParent((HWND)lParam)==hwnd) alpha=DBGetContactSettingByte(NULL,"CList","Alpha",SETTING_ALPHA_DEFAULT);
 				else 
-					alpha=DBGetContactSettingByte(NULL,"CList","AutoAlpha",SETTING_AUTOALPHA_DEFAULT);
+					alpha=TransparentFlag?DBGetContactSettingByte(NULL,"CList","AutoAlpha",SETTING_AUTOALPHA_DEFAULT):255;
 				SmoothAlphaTransition(hwnd, alpha, 1);
 				if(IsOption) DefWindowProc(hwnd,msg,wParam,lParam);
 				else   return 1; 	
@@ -2687,7 +2688,7 @@ LRESULT CALLBACK ContactListWndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM l
 			if(transparentFocus) SmoothAlphaTransition(hwnd, (BYTE)DBGetContactSettingByte(NULL,"CList","Alpha",SETTING_ALPHA_DEFAULT), 1);
 			else  
 			{
-				SmoothAlphaTransition(hwnd, (BYTE)DBGetContactSettingByte(NULL,"CList","AutoAlpha",SETTING_AUTOALPHA_DEFAULT), 1);
+				SmoothAlphaTransition(hwnd, (BYTE)(TransparentFlag?DBGetContactSettingByte(NULL,"CList","AutoAlpha",SETTING_AUTOALPHA_DEFAULT):255), 1);
 			}
 		}
 		if(!transparentFocus) KillTimer(hwnd,TM_AUTOALPHA);

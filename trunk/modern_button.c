@@ -199,7 +199,11 @@ int PaintWorker(HWND hwnd, HDC whdc)
   }
   SelectObject(hdc,oldbmp);
   DeleteObject(bmp);
-  if (!whdc || !LayeredFlag) DeleteDC(hdc);
+  if (!whdc || !LayeredFlag) 
+  {	
+	  SelectObject(hdc, GetStockObject(DEFAULT_GUI_FONT));
+	  DeleteDC(hdc);
+  }
 //  if (sdc) 
 //    ReleaseDC(GetParent(hwnd),sdc);
   return 0;

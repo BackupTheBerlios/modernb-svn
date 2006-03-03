@@ -781,7 +781,7 @@ BOOL FindMenuHanleByGlobalID(HMENU hMenu, int globalID, MenuItemData * itdat)
 static void InsertMenuItemWithSeparators(HMENU hMenu,int uItem,BOOL fByPosition,MENUITEMINFOA *lpmii,ListParam *param)
 {
   int thisItemPosition,needSeparator,itemidx;
-  MENUITEMINFOA mii;
+  MENUITEMINFOA mii={0};
   PMO_IntMenuItem MenuItems=NULL;
   PMO_IntMenuItem pimi=NULL;	
 
@@ -862,6 +862,7 @@ static void InsertMenuItemWithSeparators(HMENU hMenu,int uItem,BOOL fByPosition,
 //wparam started hMenu
 //lparam ListParam*
 //result hMenu
+extern int RecurciveDeleteMenu(HMENU hMenu);
 int MO_BuildMenu(WPARAM wParam,LPARAM lParam)
 {
   int res;
@@ -876,7 +877,9 @@ int MO_BuildMenu(WPARAM wParam,LPARAM lParam)
   lp=(ListParam *)lParam;
   pimoidx=GetMenuObjbyId(lp->MenuObjectHandle);
   if (pimoidx==-1){return(0);};
-
+  //TODO //DeleteOld?
+  if (wParam)
+	  RecurciveDeleteMenu((HMENU)wParam);
   res=(int)BuildRecursiveMenu((HMENU)wParam,(ListParam *)lParam);
 
   tick=GetTickCount()-tick;
@@ -920,7 +923,7 @@ DBFreeVariant(&dbv);
 };
 */
 /**************************************/
-
+extern int RecurciveDeleteMenu(HMENU hMenu);
 HMENU BuildRecursiveMenu(HMENU hMenu,ListParam *param)
 {
   int i,j;
@@ -940,7 +943,9 @@ HMENU BuildRecursiveMenu(HMENU hMenu,ListParam *param)
   char *onAddproc=NULL;
   char MenuNameItems[256];
 
+
   if(param==NULL) return(NULL);
+
   pimoidx=GetMenuObjbyId(param->MenuObjectHandle);
   if (pimoidx==-1){return(NULL);};
   //pimo=&MenuObjects[pimoidx];
@@ -1079,8 +1084,7 @@ HMENU BuildRecursiveMenu(HMENU hMenu,ListParam *param)
           InsertMenuItemWithSeparators(hMenu,i,TRUE,&mii,&localparam);
           localparam.rootlevel=getGlobalId(param->MenuObjectHandle,MenuItems[j].id);//MenuItems[j].id|cntFlag;
           BuildRecursiveMenu(hSubMenu,&localparam);
-
-          continue;
+		  continue;
         }
 
         i=WhereToPlace(hMenu,mi,&mii,&localparam);
