@@ -1044,7 +1044,6 @@ HMENU BuildRecursiveMenu(HMENU hMenu,ListParam *param)
     mii.fMask=MIIM_SUBMENU|MIIM_TYPE|MIIM_DATA;
     mii.dwItemData=getGlobalId(param->MenuObjectHandle,MenuItems[j].id);
     hSubMenu=NULL;
-
     if(rootlevel!=(int)MenuItems[j].mi.root)
       continue;
 
@@ -1079,11 +1078,10 @@ HMENU BuildRecursiveMenu(HMENU hMenu,ListParam *param)
           mii.dwTypeData=str;
           };
 #endif
-
-
           InsertMenuItemWithSeparators(hMenu,i,TRUE,&mii,&localparam);
           localparam.rootlevel=getGlobalId(param->MenuObjectHandle,MenuItems[j].id);//MenuItems[j].id|cntFlag;
-          BuildRecursiveMenu(hSubMenu,&localparam);
+		  MenuItems[j].hSubMenu=hSubMenu;
+		  BuildRecursiveMenu(hSubMenu,&localparam);		  
 		  continue;
         }
 

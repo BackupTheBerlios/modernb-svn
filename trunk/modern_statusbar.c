@@ -394,8 +394,9 @@ int ModernDrawStatusBarWorker(HWND hWnd, HDC hDC)
   return 0;
 }
 
-
-
+extern TMO_IntMenuItem * GetMenuItemByGlobalID(int globalMenuID);
+extern MenuProto * menusProto;
+extern int AllocedProtos;
 LRESULT CALLBACK ModernStatusProc(HWND hwnd,UINT msg,WPARAM wParam,LPARAM lParam)
 {
   switch (msg)
@@ -594,8 +595,12 @@ LRESULT CALLBACK ModernStatusProc(HWND hwnd,UINT msg,WPARAM wParam,LPARAM lParam
           else
           {
             hMenu=(HMENU)CallService(MS_CLIST_MENUGETSTATUS,0,0);
-
-            if(allocedItemData>1 && GetSubMenu(hMenu,i)) hMenu=GetSubMenu(hMenu,i);
+			
+            if(allocedItemData>1 && menusProto && i<AllocedProtos)// && GetSubMenu(hMenu,i)) hMenu=GetSubMenu(hMenu,i);
+			{			
+				TMO_IntMenuItem * it=GetMenuItemByGlobalID((int)menusProto[i].menuID);
+				hMenu=it->hSubMenu;
+			}
           }
           ClientToScreen(hwnd,&pt);
           {

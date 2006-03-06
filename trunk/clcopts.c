@@ -1044,11 +1044,11 @@ struct CheckBoxToStyleEx_t {
           {
             int i=0;
             int count=MAXPREDEFINEDEFFECTS;
-            int itemid=SendDlgItemMessage(hwndDlg,IDC_EFFECT_NAME,CB_ADDSTRING,0,(LPARAM)Translate(_T("<none>")));
+            int itemid=SendDlgItemMessage(hwndDlg,IDC_EFFECT_NAME,CB_ADDSTRING,0,(LPARAM)TranslateTS(_T("<none>")));
             SendDlgItemMessage(hwndDlg,IDC_FONTID,CB_SETITEMDATA,itemid,0);
             for (i=0;i<count;i++)
             {
-              itemid=SendDlgItemMessage(hwndDlg,IDC_EFFECT_NAME,CB_ADDSTRING,0,(LPARAM)Translate(ModernEffectNames[i]));
+              itemid=SendDlgItemMessage(hwndDlg,IDC_EFFECT_NAME,CB_ADDSTRING,0,(LPARAM)TranslateTS(ModernEffectNames[i]));
               SendDlgItemMessage(hwndDlg,IDC_EFFECT_NAME,CB_SETITEMDATA,itemid,i+1);
               SendDlgItemMessage(hwndDlg,IDC_EFFECT_NAME,CB_SETCURSEL,0,0);
             }

@@ -774,6 +774,20 @@ case TIM_CALLBACK:
 	{
 		ShowHide(0,0);				
 	}
+	else if ((GetAsyncKeyState(VK_CONTROL)&0x8000) && msg->lParam == WM_LBUTTONDOWN && !DBGetContactSettingByte(NULL,"CList","Tray1Click",SETTING_TRAY1CLICK_DEFAULT))
+	{
+		POINT pt;	
+		HMENU hMenu;
+		hMenu=(HMENU)CallService(MS_CLIST_MENUGETSTATUS,(WPARAM)0,(LPARAM)0);
+		OnTrayRightClick=1;
+		IS_WM_MOUSE_DOWN_IN_TRAY=1;
+		SetForegroundWindow(msg->hwnd);
+		SetFocus(msg->hwnd);
+		GetCursorPos(&pt);
+		TrackPopupMenu(hMenu, TPM_TOPALIGN | TPM_LEFTALIGN|TPM_LEFTBUTTON, pt.x, pt.y, 0, msg->hwnd, NULL);
+		OnTrayRightClick=0;
+		IS_WM_MOUSE_DOWN_IN_TRAY=0;
+	}
 	else if (msg->lParam==WM_MBUTTONDOWN ||msg->lParam==WM_LBUTTONDOWN ||msg->lParam==WM_RBUTTONDOWN)
 	{
 		IS_WM_MOUSE_DOWN_IN_TRAY=1;
@@ -820,6 +834,7 @@ case TIM_CALLBACK:
 
 		TrackPopupMenu(hMenu, TPM_TOPALIGN | TPM_LEFTALIGN|TPM_LEFTBUTTON, pt.x, pt.y, 0, msg->hwnd, NULL);
 	}
+	
 	*((LRESULT*)lParam)=0;
 	return TRUE;
 

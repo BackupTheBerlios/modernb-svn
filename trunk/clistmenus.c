@@ -501,13 +501,25 @@ int StatusMenuCheckService(WPARAM wParam, LPARAM lParam)
 		{
 			//TODO Set parent icon/text as current
 			//Get parent menu ID
+			BOOL check=FALSE;
 			TMO_IntMenuItem * timiParent;
+			int XStatus=CallProtoService(smep->proto,"/GetXStatus",0,0);
+			{
+				char buf[255];
+				_snprintf(buf,sizeof(buf),"*XStatus%d",XStatus);
+				if (WildCompare(smep->svc,buf,255))	check=TRUE;
+			}
 			if (WildCompare(smep->svc,"*XStatus0",255))
 				reset=TRUE;
 			else 
 				reset=FALSE;
+			
 			timi=GetMenuItemByGlobalID(pcpp->MenuItemHandle);
-			if (timi->mi.flags&CMIF_CHECKED || reset)
+			if (check)
+				timi->mi.flags|=CMIF_CHECKED;
+			else
+				timi->mi.flags&=~CMIF_CHECKED;
+			if (timi->mi.flags&CMIF_CHECKED || reset || check)
 			{
 				timiParent=GetMenuItemByGlobalID(timi->mi.root);
 				if (timiParent)
@@ -711,9 +723,11 @@ int FreeOwnerDataStatusMenu (WPARAM wParam,LPARAM lParam)
 
   if (smep!=NULL) {
     if (smep->custom)
+	{
       FreeAndNil(&smep->proto);
-    else
+   // else
       FreeAndNil(&smep->svc);
+	}
     FreeAndNil(&smep);
   }
 
@@ -843,15 +857,10 @@ int GetProtoIndexByPos(PROTOCOLDESCRIPTOR ** proto, int protoCnt, int Pos)
   }
   return -1;
 }
-typedef struct _menuProto 
-{
-  char *szProto;
-  HANDLE menuID;
-  HANDLE hasAdded;
-} MenuProto;
-static int AllocedProtos=0;
-static MenuProto * menusProto=NULL;
-static MenuProto menusProtoSingle={0};
+
+int AllocedProtos=0;
+MenuProto * menusProto=NULL;
+MenuProto menusProtoSingle={0};
 int MenuModulesLoaded(WPARAM wParam,LPARAM lParam)
 {
   int i,j,protoCount=0,networkProtoCount,s;
@@ -1466,6 +1475,17 @@ static int AddStatusMenuItem(WPARAM wParam,LPARAM lParam)
     memset(smep,0,sizeof(StatusMenuExecParam));
     smep->custom = TRUE;
     smep->svc=mir_strdup(mi->pszService);
+//	if (mp)
+//		smep->proto=mir_strdup(mp.szProto);
+//	else
+	{
+		char *buf=mir_strdup(mi->pszService);
+		int i=0;
+		while(buf[i]!='\0' && buf[i]!='/') i++;
+		buf[i]='\0';
+		smep->proto=mir_strdup(buf);
+		mir_free(buf);
+	}
     tmi.ownerdata=smep;
   }; 
   op.Handle=(int)CallService(MO_ADDNEWMENUITEM,(WPARAM)hStatusMenuObject,(LPARAM)&tmi);  

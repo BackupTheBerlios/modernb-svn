@@ -24,6 +24,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #define _COMMON_HEADERS_H_ 1
 
 
+
 #if defined(UNICODE)
 #define _UNICODE 1
 #define UNICODE_AWARE 1
@@ -121,6 +122,12 @@ extern HINSTANCE g_hInst;
   * easy search and replace
 
 */
+typedef  struct _menuProto 
+{
+  char *szProto;
+  HANDLE menuID;
+  HANDLE hasAdded;
+} MenuProto;
 
 extern struct LIST_INTERFACE li;
 extern struct MM_INTERFACE memoryManagerInterface;
@@ -221,6 +228,8 @@ extern void Utf8Decode( char* str, wchar_t** ucs2 );
 #ifdef _DEBUG
 #define DeleteObject(a) DebugDeleteObject(a)
 #endif 
+
+
 
 extern BOOL DebugDeleteObject(HGDIOBJ a);
 extern BOOL ModernDeleteDC(HDC hdc);
