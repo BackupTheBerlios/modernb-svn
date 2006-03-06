@@ -147,9 +147,10 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #define FONTID_CONTACT_TIME	18
 #define FONTID_CLOSEDGROUPS 19
 #define FONTID_CLOSEDGROUPCOUNTS 20
+#define FONTID_STATUSBAR_PROTONAME 21
 
 
-#define FONTID_MODERN_MAX 20
+#define FONTID_MODERN_MAX 21
 
 struct ClcGroup;
 
@@ -258,6 +259,14 @@ struct ClcContact {
 
 #define TEXT_TEXT_MAX_LENGTH 1024
 
+struct ClcModernFontInfo {
+	HFONT hFont;
+	int fontHeight,changed;
+	COLORREF colour;
+  BYTE effect;
+  COLORREF effectColour1;
+  COLORREF effectColour2;
+};
 
 struct ClcData {
 	struct ClcGroup list;
@@ -391,7 +400,7 @@ struct ClcData {
 	BOOL third_line_xstatus_has_priority;
 	BOOL third_line_show_status_if_no_away;
 	BOOL third_line_use_name_and_message_for_xstatus;
-	struct ClcFontInfo fontModernInfo[FONTID_MODERN_MAX+1];
+	struct ClcModernFontInfo fontModernInfo[FONTID_MODERN_MAX+1];
 	HWND hWnd;
 };
 
@@ -443,7 +452,7 @@ void PaintClc(HWND hwnd,struct ClcData *dat,HDC hdc,RECT *rcPaint);
 //clcopts.c
 int ClcOptInit(WPARAM wParam,LPARAM lParam);
 DWORD GetDefaultExStyle(void);
-void GetFontSetting(int i,LOGFONTA *lf,COLORREF *colour);
+void GetFontSetting(int i,LOGFONTA *lf,COLORREF *colour,BYTE *effect, COLORREF *eColour1,COLORREF *eColour2);
 
 //clistsettings.c
 TCHAR* GetContactDisplayNameW( HANDLE hContact, int mode );

@@ -160,7 +160,7 @@ static int AddMainMenuItem(WPARAM wParam,LPARAM lParam)
   CLISTMENUITEM *mi=(CLISTMENUITEM*)lParam;
   TMO_MenuItem tmi;
   OptParam op;
- TRACE("AddMainMenuItem\n");
+ //TRACE("AddMainMenuItem\n");
   if(mi->cbSize!=sizeof(CLISTMENUITEM)) return 0;
 
   memset(&tmi,0,sizeof(tmi));

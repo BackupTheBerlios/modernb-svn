@@ -67,13 +67,22 @@ BOOL IsForegroundWindow(HWND hwnd)
   return FALSE;
 
 }
+extern BOOL ResetEffect(HDC);
+extern BOOL SelectEffect(HDC hdc, BYTE EffectID, DWORD FirstColor, DWORD SecondColor);
+
 
 HFONT ChangeToFont(HDC hdc,struct ClcData *dat,int id,int *fontHeight)
 {
   HFONT res;
+  if (!dat)
+  {
+    dat=(struct ClcData*)GetWindowLong(pcli->hwndContactTree,0);
+  }
   res=SelectObject(hdc,dat->fontModernInfo[id].hFont);
   SetTextColor(hdc,dat->fontModernInfo[id].colour);
   if(fontHeight) *fontHeight=dat->fontModernInfo[id].fontHeight;
+  if (dat->fontModernInfo[id].effect==0) ResetEffect(hdc);
+  else SelectEffect(hdc,dat->fontModernInfo[id].effect-1,dat->fontModernInfo[id].effectColour1,dat->fontModernInfo[id].effectColour2);
   return res;
 }
 
@@ -345,7 +354,7 @@ void GetTextSize(SIZE *text_size, HDC hdcMem, RECT free_row_rc, TCHAR *szText, S
 }
 
 
-void DrawTextSSmiley(HDC hdcMem, RECT free_rc, SIZE text_size, TCHAR *szText, int len, SortedList *plText, UINT uTextFormat)
+void DrawTextSSmiley(HDC hdcMem, RECT free_rc, SIZE text_size, TCHAR *szText, int len, SortedList *plText, UINT uTextFormat, BOOL ResizeSizeSmiley)
 {
   if (szText == NULL)
   {
@@ -419,7 +428,7 @@ void DrawTextSSmiley(HDC hdcMem, RECT free_rc, SIZE text_size, TCHAR *szText, in
             LONG fac_width, fac_height;
             len -= piece->len;
 
-            if (piece->smiley_height > row_height)
+						if (piece->smiley_height > row_height && ResizeSizeSmiley)
             {
               factor = row_height / (float) piece->smiley_height;
             }
@@ -439,7 +448,7 @@ void DrawTextSSmiley(HDC hdcMem, RECT free_rc, SIZE text_size, TCHAR *szText, in
               text_rc.top += (row_height - fac_height) >> 1;
 
               DrawIconExS(hdcMem, text_rc.left, text_rc.top, piece->smiley, 
-                fac_width, fac_height, 0, NULL, DI_NORMAL); 
+                fac_width, fac_height, 0, NULL, DI_NORMAL|(factor<=1)?128:0); //TO DO enchance drawing quality
             }
             else
             {
@@ -829,11 +838,11 @@ void ModernInternalPaintRowItems(HWND hwnd, HDC hdcMem, struct ClcData *dat, str
             else if(hottrack)
               SetHotTrackColour(hdcMem,dat);
 			if (dat->text_rtl!=0) RTLrect(&nameRect, free_row_rc.right, dx);
-            DrawTextSSmiley(hdcMem, nameRect, text_size, Drawing->szText, lstrlen(Drawing->szText), Drawing->plText, uTextFormat);
+            DrawTextSSmiley(hdcMem, nameRect, text_size, Drawing->szText, lstrlen(Drawing->szText), Drawing->plText, uTextFormat, dat->text_resize_smileys);
             if(selected && dat->szQuickSearch[0] != '\0') 
             {
               SetTextColor(hdcMem, dat->quickSearchColour);
-              DrawTextSSmiley(hdcMem, nameRect, text_size, Drawing->szText, lstrlen(dat->szQuickSearch), Drawing->plText, uTextFormat);
+              DrawTextSSmiley(hdcMem, nameRect, text_size, Drawing->szText, lstrlen(dat->szQuickSearch), Drawing->plText, uTextFormat, dat->text_resize_smileys);
             }
             if(szCounts && strlen(szCounts)>0)
             {
@@ -905,11 +914,11 @@ void ModernInternalPaintRowItems(HWND hwnd, HDC hdcMem, struct ClcData *dat, str
       else if(hottrack)
         SetHotTrackColour(hdcMem,dat);
 	  if (dat->text_rtl!=0) RTLrect(&text_rect, free_row_rc.right, dx);
-      DrawTextSSmiley(hdcMem, text_rect, text_size, Drawing->szText, lstrlen(Drawing->szText), Drawing->plText, uTextFormat);
+      DrawTextSSmiley(hdcMem, text_rect, text_size, Drawing->szText, lstrlen(Drawing->szText), Drawing->plText, uTextFormat, dat->text_resize_smileys);
       if(selected && dat->szQuickSearch[0] != '\0') 
       {
          SetTextColor(hdcMem, dat->quickSearchColour);
-         DrawTextSSmiley(hdcMem, text_rect, text_size, Drawing->szText, lstrlen(dat->szQuickSearch), Drawing->plText, uTextFormat);
+         DrawTextSSmiley(hdcMem, text_rect, text_size, Drawing->szText, lstrlen(dat->szQuickSearch), Drawing->plText, uTextFormat, dat->text_resize_smileys);
       }
       if (Drawing->type == CLCIT_GROUP && szCounts && szCounts[0] && counts_rc.right-counts_rc.left>0)
       {
@@ -988,11 +997,11 @@ void ModernInternalPaintRowItems(HWND hwnd, HDC hdcMem, struct ClcData *dat, str
               SetTextColor(hdcMem,dat->selTextColour);
             else if(hottrack)
               SetHotTrackColour(hdcMem,dat);
-            DrawTextSSmiley(hdcMem, p_rect, text_size, Drawing->szText, lstrlen(Drawing->szText), Drawing->plText, uTextFormat);
+            DrawTextSSmiley(hdcMem, p_rect, text_size, Drawing->szText, lstrlen(Drawing->szText), Drawing->plText, uTextFormat, dat->text_resize_smileys);
             if(selected && dat->szQuickSearch[0] != '\0') 
             {
               SetTextColor(hdcMem, dat->quickSearchColour);
-              DrawTextSSmiley(hdcMem, p_rect, text_size, Drawing->szText, lstrlen(dat->szQuickSearch), Drawing->plText, uTextFormat);
+              DrawTextSSmiley(hdcMem, p_rect, text_size, Drawing->szText, lstrlen(dat->szQuickSearch), Drawing->plText, uTextFormat, dat->text_resize_smileys);
             }
             Drawing->pos_rename_rect=p_rect;
             {
@@ -1077,11 +1086,11 @@ void ModernInternalPaintRowItems(HWND hwnd, HDC hdcMem, struct ClcData *dat, str
               SetTextColor(hdcMem,dat->selTextColour);
             else if(hottrack)
               SetHotTrackColour(hdcMem,dat);
-            DrawTextSSmiley(hdcMem, nameRect, text_size, Drawing->szText, lstrlen(Drawing->szText), Drawing->plText, uTextFormat);
+            DrawTextSSmiley(hdcMem, nameRect, text_size, Drawing->szText, lstrlen(Drawing->szText), Drawing->plText, uTextFormat, dat->text_resize_smileys);
             if(selected && dat->szQuickSearch[0] != '\0') 
             {
               SetTextColor(hdcMem, dat->quickSearchColour);
-              DrawTextSSmiley(hdcMem, nameRect, text_size, Drawing->szText, lstrlen(dat->szQuickSearch), Drawing->plText, uTextFormat);
+              DrawTextSSmiley(hdcMem, nameRect, text_size, Drawing->szText, lstrlen(dat->szQuickSearch), Drawing->plText, uTextFormat, dat->text_resize_smileys);
             }
             if(szCounts && strlen(szCounts)>0)
             {
@@ -1113,7 +1122,7 @@ void ModernInternalPaintRowItems(HWND hwnd, HDC hdcMem, struct ClcData *dat, str
           ChangeToFont(hdcMem,dat,FONTID_SECONDLINE,NULL);
           uTextFormat = uTextFormat | DT_END_ELLIPSIS|DT_SINGLELINE;
           if (Drawing->type==CLCIT_CONTACT)
-            DrawTextSSmiley(hdcMem, p_rect, text_size, Drawing->szSecondLineText, lstrlen(Drawing->szSecondLineText), Drawing->plSecondLineText, uTextFormat);
+            DrawTextSSmiley(hdcMem, p_rect, text_size, Drawing->szSecondLineText, lstrlen(Drawing->szSecondLineText), Drawing->plSecondLineText, uTextFormat, dat->text_resize_smileys);
           break;
         }
       case TC_TEXT3:
@@ -1131,7 +1140,7 @@ void ModernInternalPaintRowItems(HWND hwnd, HDC hdcMem, struct ClcData *dat, str
           ChangeToFont(hdcMem,dat,FONTID_THIRDLINE,NULL);
           uTextFormat = uTextFormat | DT_END_ELLIPSIS|DT_SINGLELINE;
           if (Drawing->type==CLCIT_CONTACT)
-            DrawTextSSmiley(hdcMem, p_rect, text_size, Drawing->szThirdLineText, lstrlen(Drawing->szThirdLineText), Drawing->plThirdLineText, uTextFormat);
+            DrawTextSSmiley(hdcMem, p_rect, text_size, Drawing->szThirdLineText, lstrlen(Drawing->szThirdLineText), Drawing->plThirdLineText, uTextFormat, dat->text_resize_smileys);
           break;
         }
       case TC_STATUS:
@@ -1329,8 +1338,8 @@ void ModernInternalPaintRowItems(HWND hwnd, HDC hdcMem, struct ClcData *dat, str
 							  BitBlt(hdcMem, p_rect.left, p_rect.top, w, h,hdcTmp2,0,0,SRCCOPY);
 							  SelectObject(hdcTmp2,bmo2);
 							  SelectObject(hdcTmp,bmo);
-							  DeleteDC(hdcTmp);
-							  DeleteDC(hdcTmp2);
+							  ModernDeleteDC(hdcTmp);
+							  ModernDeleteDC(hdcTmp2);
 							  DeleteObject(b2);
 							}
 							else {
@@ -1340,7 +1349,7 @@ void ModernInternalPaintRowItems(HWND hwnd, HDC hdcMem, struct ClcData *dat, str
 							  hbmTempAvOld = SelectObject(hdcTempAv,Drawing->avatar_data->hbmPic);
 							  MyAlphaBlend(hdcMem, p_rect.left, p_rect.top, w, h, hdcTempAv, 0, 0,Drawing->avatar_data->bmWidth,Drawing->avatar_data->bmHeight, bf);
 							  SelectObject(hdcTempAv, hbmTempAvOld);
-							  DeleteDC(hdcTempAv);
+							  ModernDeleteDC(hdcTempAv);
 							}
 						  }
 						}
@@ -1744,8 +1753,8 @@ void InternalPaintRowItems(HWND hwnd, HDC hdcMem, struct ClcData *dat, struct Cl
                   BitBlt(hdcMem, rc.left, rc.top, w, h,hdcTmp2,0,0,SRCCOPY);
                   SelectObject(hdcTmp2,bmo2);
                   SelectObject(hdcTmp,bmo);
-                  DeleteDC(hdcTmp);
-                  DeleteDC(hdcTmp2);
+                  ModernDeleteDC(hdcTmp);
+                  ModernDeleteDC(hdcTmp2);
                   DeleteObject(b2);
                 }
                 else {
@@ -1755,7 +1764,7 @@ void InternalPaintRowItems(HWND hwnd, HDC hdcMem, struct ClcData *dat, struct Cl
                   hbmTempAvOld = SelectObject(hdcTempAv,Drawing->avatar_data->hbmPic);
                   MyAlphaBlend(hdcMem, rc.left, rc.top, w, h, hdcTempAv, 0, 0,Drawing->avatar_data->bmWidth,Drawing->avatar_data->bmHeight, bf);
                   SelectObject(hdcTempAv, hbmTempAvOld);
-                  DeleteDC(hdcTempAv);
+                  ModernDeleteDC(hdcTempAv);
                 }
               }
             }
@@ -2453,14 +2462,14 @@ void InternalPaintRowItems(HWND hwnd, HDC hdcMem, struct ClcData *dat, struct Cl
                 rc.right = rc.left + text_size.cx;
             }
 
-            DrawTextSSmiley(hdcMem, rc, text_size, Drawing->szText, lstrlen(Drawing->szText), Drawing->plText, uTextFormat);
+            DrawTextSSmiley(hdcMem, rc, text_size, Drawing->szText, lstrlen(Drawing->szText), Drawing->plText, uTextFormat, dat->text_resize_smileys);
 
             //DrawTextS(hdcMem,Drawing->szText,lstrlenA(Drawing->szText),&rc,uTextFormat);
 
             if(selected && dat->szQuickSearch[0] != '\0') 
             {
               SetTextColor(hdcMem, dat->quickSearchColour);
-              DrawTextSSmiley(hdcMem, rc, text_size, Drawing->szText, lstrlen(dat->szQuickSearch), Drawing->plText, uTextFormat);
+              DrawTextSSmiley(hdcMem, rc, text_size, Drawing->szText, lstrlen(dat->szQuickSearch), Drawing->plText, uTextFormat, dat->text_resize_smileys);
             }
             free_rc.top = rc.bottom;
           }
@@ -2484,7 +2493,7 @@ void InternalPaintRowItems(HWND hwnd, HDC hdcMem, struct ClcData *dat, struct Cl
 
               ChangeToFont(hdcMem,dat,FONTID_SECONDLINE,NULL);
               DrawTextSSmiley(hdcMem, rc, second_line_text_size, Drawing->szSecondLineText, lstrlen(Drawing->szSecondLineText), 
-                Drawing->plSecondLineText, uTextFormat);
+                Drawing->plSecondLineText, uTextFormat, dat->text_resize_smileys);
 
               free_rc.top = rc.bottom;
             }
@@ -2510,7 +2519,7 @@ void InternalPaintRowItems(HWND hwnd, HDC hdcMem, struct ClcData *dat, struct Cl
               ChangeToFont(hdcMem,dat,FONTID_THIRDLINE,NULL);
               //DrawTextS(hdcMem,Drawing->szThirdLineText,lstrlenA(Drawing->szThirdLineText),&rc,uTextFormat);
               DrawTextSSmiley(hdcMem, rc, third_line_text_size, Drawing->szThirdLineText, lstrlen(Drawing->szThirdLineText), 
-                Drawing->plThirdLineText, uTextFormat);
+                Drawing->plThirdLineText, uTextFormat, dat->text_resize_smileys);
 
               free_rc.top = rc.bottom;
             }
@@ -2638,13 +2647,13 @@ void InternalPaintClc(HWND hwnd,struct ClcData *dat,HDC hdc,RECT *rcPaint)
     //	{
     //		SelectObject(hdcMem,oldbmp);
     //		DeleteObject(hBmpOsb);
-    //		DeleteDC(hdcMem);
+    //		ModernDeleteDC(hdcMem);
     //	}
     //	if (grey && (!LayeredFlag))
     //	{
     //		SelectObject(hdcMem2,oldbmp2);
     //		DeleteObject(hBmpOsb2);
-    //		DeleteDC(hdcMem2);
+    //		ModernDeleteDC(hdcMem2);
     //	}
     //	return;
     //}
@@ -2704,7 +2713,7 @@ void InternalPaintClc(HWND hwnd,struct ClcData *dat,HDC hdc,RECT *rcPaint)
 
           /*		SelectObject(hdcMem,oldbmp);
           DeleteObject(hBmpOsb);
-          DeleteDC(hdcMem);
+          ModernDeleteDC(hdcMem);
           //LeaveCriticalSection(&(dat->lockitemCS));
           return;
           */
@@ -2972,13 +2981,13 @@ void InternalPaintClc(HWND hwnd,struct ClcData *dat,HDC hdc,RECT *rcPaint)
   {
     SelectObject(hdcMem,oldbmp);
     DeleteObject(hBmpOsb);
-    DeleteDC(hdcMem);
+    ModernDeleteDC(hdcMem);
   }
   if (grey && (!LayeredFlag))
   {
     SelectObject(hdcMem2,oldbmp2);
     DeleteObject(hBmpOsb2);
-    DeleteDC(hdcMem2);
+    ModernDeleteDC(hdcMem2);
   }
 
 

@@ -787,6 +787,17 @@ LRESULT CALLBACK ContactListControlWndProc(HWND hwnd, UINT msg, WPARAM wParam, L
 			case VK_RETURN: pcli->pfnDoSelectionDefaultAction(hwnd,dat); SetCapture(hwnd); return 0;
 			case VK_F2: BeginRenameSelection(hwnd,dat); SetCapture(hwnd);return 0;
 			case VK_DELETE: pcli->pfnDeleteFromContactList(hwnd,dat); SetCapture(hwnd);return 0;
+      case VK_ESCAPE: 
+        {
+          if((dat->dragStage&DRAGSTAGEM_STAGE)==DRAGSTAGE_ACTIVE)
+          {
+            dat->iDragItem=-1;
+			      dat->iInsertionMark=-1;
+            dat->dragStage=0;
+            ReleaseCapture();
+          }
+          return 0;
+        }
 			default:
 				{	NMKEY nmkey;
 					nmkey.hdr.hwndFrom=hwnd;
@@ -1632,7 +1643,7 @@ LRESULT CALLBACK ContactListControlWndProc(HWND hwnd, UINT msg, WPARAM wParam, L
 			}
 			{
 				ImageArray_Clear(&dat->avatar_cache);
-				DeleteDC(dat->avatar_cache.hdc);			
+				ModernDeleteDC(dat->avatar_cache.hdc);			
 			}
 			FreeDisplayNameCache(&dat->lCLCContactsCache);
 			if (!dat->use_avatar_service)

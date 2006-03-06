@@ -232,8 +232,13 @@ extern "C" bool AlphaBlengGDIPlus(HDC hdcDest,int nXOriginDest,int nYOriginDest,
 			0.0f, 0.0f, 0.0f, 0.0f, 1.0f
 	};
 	attr.SetColorMatrix(&ClrMatrix, ColorMatrixFlagsDefault,ColorAdjustTypeBitmap);
-	if (nWidthDest<nWidthSrc && nHeightDest<nHeightSrc)
+  
+ if (bf->BlendFlags&128 && nWidthDest<nWidthSrc && nHeightDest<nHeightSrc)
+  {
 		g.SetInterpolationMode(InterpolationModeHighQualityBicubic);
+    g.SetPixelOffsetMode(PixelOffsetModeHalf);
+    attr.SetGamma((REAL)0.8,ColorAdjustTypeBitmap);
+  }
 	else
 	{
 		g.SetInterpolationMode(InterpolationModeLowQuality);

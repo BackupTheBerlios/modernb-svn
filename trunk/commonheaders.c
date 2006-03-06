@@ -246,6 +246,11 @@ BOOL DebugDeleteObject(HGDIOBJ a)
 	return res;
 }
 
+BOOL ModernDeleteDC(HDC hdc)
+{
+  ResetEffect(hdc);
+  return DeleteDC(hdc);
+}
 #ifdef _DEBUG
 #define DeleteObject(a) DebugDeleteObject(a)
 #endif 

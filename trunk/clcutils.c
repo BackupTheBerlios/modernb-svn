@@ -186,7 +186,7 @@ void RecalcScrollBar(HWND hwnd,struct ClcData *dat)
 	RECT clRect;
 	NMCLISTCONTROL nm;
 
-	TRACE("RecalcScrollBar\r\n");
+	//TRACE("RecalcScrollBar\r\n");
 	RowHeights_CalcRowHeights(dat, hwnd);
 
 	GetClientRect(hwnd,&clRect);
@@ -421,7 +421,7 @@ void LoadClcOptions(HWND hwnd, struct ClcData *dat)
 		HDC hdc=GetDC(hwnd);
 		for(i=0;i<=FONTID_MODERN_MAX;i++) {
 			if(!dat->fontModernInfo[i].changed && dat->fontModernInfo[i].hFont) DeleteObject(dat->fontModernInfo[i].hFont);
-			GetFontSetting(i,&lf,&dat->fontModernInfo[i].colour);
+      GetFontSetting(i,&lf,&dat->fontModernInfo[i].colour,&dat->fontModernInfo[i].effect,&dat->fontModernInfo[i].effectColour1,&dat->fontModernInfo[i].effectColour2);
 			{
 				LONG height;
 				HDC hdc=GetDC(NULL);

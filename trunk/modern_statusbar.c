@@ -97,7 +97,7 @@ LOGFONTA LoadLogFontFromDB(char * section, char * id, DWORD * color)
       HDC hdc=CreateCompatibleDC(NULL);
       int h=(int)(BYTE)DBGetContactSettingByte(NULL,section,ApendSubSetting(buf,sizeof(buf),id,"Size"),10);
       logfont.lfHeight=(long)-MulDiv(h, GetDeviceCaps(hdc, LOGPIXELSY), 72);
-      DeleteDC(hdc);
+      ModernDeleteDC(hdc);
     }
     *color=DBGetContactSettingDword(NULL,section,ApendSubSetting(buf,sizeof(buf),id,"Col"),0);
     mir_free(facename);
@@ -161,7 +161,7 @@ int ModernDrawStatusBar(HWND hwnd, HDC hDC)
   return 0;
 }
 
-//
+extern HFONT ChangeToFont(HDC hdc,struct ClcData *dat,int id,int *fontHeight);
 int ModernDrawStatusBarWorker(HWND hWnd, HDC hDC)
 {
   RECT rc;
@@ -169,12 +169,14 @@ int ModernDrawStatusBarWorker(HWND hWnd, HDC hDC)
   int iconY, textY;
   int spaceWidth;
   int maxwidth=0;
+
   GetClientRect(hWnd,&rc);
 
 
   SkinDrawGlyph(hDC,&rc,&rc,"Main,ID=StatusBar"); //TBD
-  hOldFont=SelectObject(hDC,sbdat.BarFont);
-  SetTextColor(hDC,sbdat.fontColor);
+  hOldFont=ChangeToFont(hDC,NULL,FONTID_STATUSBAR_PROTONAME,NULL);
+//  hOldFont=SelectObject(hDC,sbdat.BarFont);
+//  SetTextColor(hDC,sbdat.fontColor);
   {
 	  SIZE textSize={0};
     GetTextExtentPoint32A(hDC," ",1,&textSize);
@@ -310,7 +312,7 @@ int ModernDrawStatusBarWorker(HWND hWnd, HDC hDC)
     else if (sbdat.Align==2) //right
       aligndx=(rectwidth-SumWidth);
     // Draw in rects
-	SetEffect(sbdat.TextEffectID,sbdat.TextEffectColor1,sbdat.TextEffectColor2);
+  	//SelectEffect(hDC,sbdat.TextEffectID,sbdat.TextEffectColor1,sbdat.TextEffectColor2);
     {
       RECT r=rc;
       r.top+=sbdat.rectBorders.top;
@@ -384,7 +386,6 @@ int ModernDrawStatusBarWorker(HWND hWnd, HDC hDC)
 
       }
     }
-	ResetEffect();
     if (ProtoWidth) mir_free(ProtoWidth);
   }
 
@@ -442,7 +443,7 @@ LRESULT CALLBACK ModernStatusProc(HWND hwnd,UINT msg,WPARAM wParam,LPARAM lParam
 			hdc2,rc.left,rc.top,SRCCOPY);
 		SelectObject(hdc2,hbmpo);
 		DeleteObject(hbmp);
-		DeleteDC(hdc2);
+		ModernDeleteDC(hdc2);
 		{
 			HFONT hf=GetStockObject(DEFAULT_GUI_FONT);
 			SelectObject(hdc,hf);
@@ -471,7 +472,7 @@ LRESULT CALLBACK ModernStatusProc(HWND hwnd,UINT msg,WPARAM wParam,LPARAM lParam
         hdc2,ps.rcPaint.left,ps.rcPaint.top,SRCCOPY);
       SelectObject(hdc2,hbmpo);
       DeleteObject(hbmp);
-      DeleteDC(hdc2);
+      ModernDeleteDC(hdc2);
       ps.fErase=FALSE;
       EndPaint(hwnd,&ps);
     }

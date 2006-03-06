@@ -283,7 +283,7 @@ void Cache_DestroySmileyList( SortedList* p_list )
 		}
 		li.List_Destroy( p_list );
 	}
-	free(p_list);
+	mir_free(p_list);
 	
 }
 
@@ -345,7 +345,7 @@ void Cache_ReplaceSmileys(struct ClcData *dat, struct ClcContact *contact, TCHAR
 	}
 
 	// Lets add smileys
-	*plText = li.List_Create( 0, 10 );
+	*plText = li.List_Create( 0, 1 );
 
 	do
 	{
@@ -896,7 +896,7 @@ void Cache_GetAvatar(struct ClcData *dat, struct ClcContact *contact)
 							HBITMAP obmp=SelectObject(dcMem, hBmp);						
 							StretchBlt(hdc, 0, 0, width_clip, height_clip,dcMem, 0, 0, bm.bmWidth, bm.bmHeight, SRCCOPY);
 							SelectObject(dcMem,obmp);
-							DeleteDC(dcMem);
+							ModernDeleteDC(dcMem);
 						}
             {
               RECT rtr={0};
@@ -906,8 +906,8 @@ void Cache_GetAvatar(struct ClcData *dat, struct ClcContact *contact)
             }
 
             hDrawBmp = GetCurrentObject(hdc, OBJ_BITMAP);
-			SelectObject(hdc,oldBmp);
-            DeleteDC(hdc);
+			      SelectObject(hdc,oldBmp);
+            ModernDeleteDC(hdc);
 
 						// Add to list
 						if (old_pos >= 0)

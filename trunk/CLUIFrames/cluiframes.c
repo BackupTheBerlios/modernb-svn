@@ -3139,7 +3139,7 @@ int DrawTitleBar(HDC hdcMem2,RECT rect,int Frameid)
   DeleteObject(b1);
   SelectObject(hdcMem,hoTTBFont);
   SelectObject(hdcMem,hoBrush);
-  DeleteDC(hdcMem);
+  ModernDeleteDC(hdcMem);
   return 0;
 }
 //int OldDrawTitleBar(HDC dc,RECT rect,int Frameid)
@@ -3249,7 +3249,7 @@ int DrawTitleBar(HDC hdcMem2,RECT rect,int Frameid)
 //  SelectObject(hdcMem,hoBmp);
 //  SelectObject(hdcMem,hoBrush);
 //  SelectObject(hdcMem,hoTTBFont);
-//  DeleteDC(hdcMem);
+//  ModernDeleteDC(hdcMem);
 //  DeleteObject(hBack);
 //  DeleteObject(hBmpOsb);
 //  //EndPaint(hwnd, &paintStruct);

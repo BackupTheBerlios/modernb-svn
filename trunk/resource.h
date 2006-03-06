@@ -376,6 +376,7 @@
 #define IDC_NOTCHECKFONTSIZE            1266
 #define IDC_COLOUR_MENU_SELECTED        1266
 #define IDC_COLOUR_MENUSELECTED         1266
+#define IDC_EFFECT_COLOUR1              1266
 #define IDC_HOTCOLOUR                   1267
 #define IDC_COLOUR_FRAMES               1267
 #define IDC_VARIABLE_ROW_HEIGHT         1267
@@ -384,6 +385,7 @@
 #define IDC_VARIABLE_ROW_HEIGHT2        1268
 #define IDC_BKGCOLOUR                   1269
 #define IDC_VARIABLE_ROW_HEIGHT3        1269
+#define IDC_EFFECT_COLOUR2              1269
 #define IDC_TXTCOLOUR                   1270
 #define IDC_FILENAME                    1271
 #define IDC_SCROLL                      1277
@@ -413,6 +415,7 @@
 #define IDC_TILEH                       1300
 #define IDC_SCRIPT                      1300
 #define IDC_TILEV                       1301
+#define IDC_EFFECT_NAME                 1301
 #define IDC_GAMMACORRECT                1302
 #define IDC_TILEVROWH                   1302
 #define IDC_INTERESTS                   1305
@@ -497,7 +500,9 @@
 #define IDC_STSAMETEXT                  1382
 #define IDC_STASTEXT                    1383
 #define IDC_STSIZETEXT                  1384
+#define IDC_STSAMETEXT2                 1384
 #define IDC_STCOLOURTEXT                1385
+#define IDC_STSAMETEXT3                 1385
 #define IDC_STHORZBAR                   1386
 #define IDC_MIRANDA                     1388
 #define IDC_STATUSBAR                   1389
@@ -811,6 +816,8 @@
 #define IDC_R_SPLIT                     1850
 #define IDC_PREVIEW_IMAGE               1851
 #define IDC_TITLEBAR_STATIC             1852
+#define IDC_EFFECT_COLOUR_TEXT1         1853
+#define IDC_EFFECT_COLOUR_SPIN1         1854
 #define IDC_CLSORT1                     6666
 #define IDC_CLSORT2                     6667
 #define IDC_CLSORT3                     6668
@@ -841,8 +848,10 @@
 #define IDC_TOPMARGIN                   11801
 #define IDC_BOTTOMMARGIN                11802
 #define IDC_RIGHTMARGINSPIN             11803
+#define IDC_EFFECT_COLOUR_TEXT2         11803
 #define IDC_TOPMARGINSPIN               11804
 #define IDC_BOTTOMMARGINSPIN            11805
+#define IDC_EFFECT_COLOUR_SPIN2         11806
 #define IDC_LEFTMARGIN2                 12931
 #define IDC_LEFTMARGINSPIN4             12981
 #define IDI_SEARCHALL                   32548
@@ -878,7 +887,7 @@
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        398
 #define _APS_NEXT_COMMAND_VALUE         40020
-#define _APS_NEXT_CONTROL_VALUE         1853
+#define _APS_NEXT_CONTROL_VALUE         1855
 #define _APS_NEXT_SYMED_VALUE           101
 #endif
 #endif

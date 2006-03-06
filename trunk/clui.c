@@ -505,10 +505,11 @@ int BehindEdge_Show()
 	return 0;
 }
 
-
+extern BOOL ON_SETALLEXTRAICON_CYCLE;
 BOOL skinInvalidateRect(HWND hWnd, CONST RECT* lpRect,BOOL bErase )
 {
-
+  if (ON_SETALLEXTRAICON_CYCLE)
+    return FALSE;
 	if (IsInMainWindow(hWnd) && LayeredFlag)// && IsWindowVisible(hWnd))
 	{
 		if (IsWindowVisible(hWnd))
@@ -871,7 +872,7 @@ int FreeWindowImage(struct sUpdatingWindow * sUpdate)
 {   
 	TRACE("--- Free update image--------\n"); 
 	SelectObject(sUpdate->offscreenDC,sUpdate->oldBitmap);
-	DeleteDC(sUpdate->offscreenDC);
+	ModernDeleteDC(sUpdate->offscreenDC);
 	ReleaseDC(pcli->hwndContactList,sUpdate->screenDC);
 	DeleteObject(sUpdate->currentBitmap);
 
@@ -1915,7 +1916,7 @@ int DrawMenuBackGround(HWND hwnd, HDC hdc, int item)
 	StretchBlt(hdc,x,y,destw,desth,hdcBmp,0,0,bmp.bmWidth,bmp.bmHeight,SRCCOPY);
 	}
 	SelectObject(hdcBmp,oldbm);
-	DeleteDC(hdcBmp);
+	ModernDeleteDC(hdcBmp);
 
 	}                  
 
@@ -2202,7 +2203,7 @@ LRESULT CALLBACK ContactListWndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM l
 			//BitBlt(paintDC,w2.left,w2.top,w2.right-w2.left,w2.bottom-w2.top,hdc,w2.left,w2.top,SRCCOPY);
 			SelectObject(hdc,oldbmp);
 			DeleteObject(hbmp);
-			DeleteDC(hdc);
+			ModernDeleteDC(hdc);
 			ReleaseDC(hwnd,paintDC);
 			ValidateRect(hwnd,NULL);
 			//SkinDrawWindowBack(hwnd,ps.hdc,&ps.rcPaint,"Main Window/Backgrnd");
@@ -2306,8 +2307,8 @@ LRESULT CALLBACK ContactListWndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM l
 
 	case M_CREATECLC:
 		CreateCLC(hwnd);
-		ShowHide((WPARAM)hwnd,(LPARAM)1); 
-		SendMessage(pcli->hwndContactTree,CLM_AUTOREBUILD,0,0);
+    if (DBGetContactSettingByte(NULL,"CList","ShowOnStart",0)) ShowHide((WPARAM)hwnd,(LPARAM)1); 
+		PostMessage(pcli->hwndContactTree,CLM_AUTOREBUILD,0,0);
 		return 0;
 
 	case  WM_LBUTTONDOWN:
@@ -2722,7 +2723,7 @@ LRESULT CALLBACK ContactListWndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM l
 			{
 				BehindEdge_Hide(); 
 			}
-			TRACE("BRINGOUT TIMER\n");
+			//TRACE("BRINGOUT TIMER\n");
 		}
 		else if ((int)wParam==TM_BRINGINTIMEOUT)
 		{

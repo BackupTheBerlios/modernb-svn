@@ -831,13 +831,13 @@ static BOOL CALLBACK DlgSkinOpts(HWND hwndDlg, UINT msg, WPARAM wParam, LPARAM l
 					imgOldbmp=SelectObject(imgDC,hPreviewBitmap);                 
 					MyAlphaBlend(memDC,imgPos.x,imgPos.y,dWidth,dHeight,imgDC,0,0,bmp.bmWidth,bmp.bmHeight,bf);
 					SelectObject(imgDC,imgOldbmp);
-					DeleteDC(imgDC);
+					ModernDeleteDC(imgDC);
 				}
 			}
 			BitBlt(dis->hDC,dis->rcItem.left,dis->rcItem.top,mWidth,mHeight,memDC,0,0,SRCCOPY);
 			SelectObject(memDC,holdbmp);
 			DeleteObject(hbmp);
-			DeleteDC(memDC);
+			ModernDeleteDC(memDC);
 		}
 		break;
 	case WM_NOTIFY:

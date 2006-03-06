@@ -223,3 +223,6 @@ extern void Utf8Decode( char* str, wchar_t** ucs2 );
 #endif 
 
 extern BOOL DebugDeleteObject(HGDIOBJ a);
+extern BOOL ModernDeleteDC(HDC hdc);
+extern BOOL ResetEffect(HDC hdc);
+extern BOOL SelectEffect(HDC hdc, BYTE EffectID, DWORD FirstColor, DWORD SecondColor);

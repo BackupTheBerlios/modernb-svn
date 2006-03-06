@@ -31,6 +31,11 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #include "shlwapi.h"
 #include "mod_skin_selector.h"
 #include "commonprototypes.h"
+#include "math.h"
+
+#define _EFFECTENUM_FULL_H
+  #include "effectenum.h"
+#undef _EFFECTENUM_FULL_H
 
 //Definition
 #define ScaleBord 2
@@ -42,6 +47,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 int LOCK_UPDATING=0;
 BYTE UseKeyColor=1;
 DWORD KeyColor=RGB(255,0,255);
+
 //type definition
 
 
@@ -103,12 +109,14 @@ extern BOOL AlphaBlengGDIPlus(HDC hdcDest,int nXOriginDest,int nYOriginDest,int 
 
 BOOL MyAlphaBlend(HDC hdcDest,int nXOriginDest,int nYOriginDest,int nWidthDest,int nHeightDest,HDC hdcSrc,int nXOriginSrc,int nYOriginSrc,int nWidthSrc,int nHeightSrc,BLENDFUNCTION blendFunction)
 {
-  if (!gdiPlusFail && 0) //Use gdi+ engine
+  if (!gdiPlusFail && blendFunction.BlendFlags&128 ) //Use gdi+ engine
   {
+    //
 	  return AlphaBlengGDIPlus( hdcDest,nXOriginDest,nYOriginDest,nWidthDest,nHeightDest,
 								hdcSrc,nXOriginSrc,nYOriginSrc,nWidthSrc,nHeightSrc,
 								&blendFunction);
   }
+  blendFunction.BlendFlags&=~128;
   return AlphaBlend(hdcDest,nXOriginDest,nYOriginDest,nWidthDest,nHeightDest,hdcSrc,nXOriginSrc,nYOriginSrc,nWidthSrc,nHeightSrc,blendFunction);
 }
 
@@ -212,8 +220,8 @@ int UnloadSkinModule()
   {
 	  SelectObject(cachedWindow->hBackDC,cachedWindow->hBackOld);
 	  SelectObject(cachedWindow->hImageDC,cachedWindow->hImageOld);
-	  DeleteDC(cachedWindow->hBackDC);
-	  DeleteDC(cachedWindow->hImageDC);
+	  ModernDeleteDC(cachedWindow->hBackDC);
+	  ModernDeleteDC(cachedWindow->hImageDC);
 	  ReleaseDC(NULL,cachedWindow->hScreenDC);
 	  mir_free(cachedWindow);
 	  cachedWindow=NULL;
@@ -383,7 +391,7 @@ BOOL SkFillRectangle(HDC hDest, HDC hSource, RECT * rFill, RECT * rGlyph, RECT *
     {
       SelectObject(mem2dc,oldbmp);
       DeleteObject(mem2bmp);
-      DeleteDC(mem2dc);
+      ModernDeleteDC(mem2dc);
     }
     return 1;
   }
@@ -484,7 +492,7 @@ BOOL SkFillRectangle(HDC hDest, HDC hSource, RECT * rFill, RECT * rGlyph, RECT *
     }
     SelectObject(mem2dc,oldbmp);
     DeleteObject(mem2bmp);
-    DeleteDC(mem2dc);
+    ModernDeleteDC(mem2dc);
   }
   else if (mode==FM_TILE_HORZ && (rGlyph->right-rGlyph->left>0)&& (rGlyph->bottom-rGlyph->top>0)&&(rFill->bottom-rFill->top)>0 && (rFill->right-rFill->left)>0)
   {
@@ -573,7 +581,7 @@ BOOL SkFillRectangle(HDC hDest, HDC hSource, RECT * rFill, RECT * rGlyph, RECT *
     }
     SelectObject(mem2dc,oldbmp);
     DeleteObject(mem2bmp);
-    DeleteDC(mem2dc);
+    ModernDeleteDC(mem2dc);
   }
   else if (mode==FM_TILE_BOTH && (rGlyph->right-rGlyph->left>0) && (rGlyph->bottom-rGlyph->top>0))
   {
@@ -674,7 +682,7 @@ BOOL SkFillRectangle(HDC hDest, HDC hSource, RECT * rFill, RECT * rGlyph, RECT *
     }
     SelectObject(mem2dc,oldbmp);
     DeleteObject(mem2bmp);
-    DeleteDC(mem2dc);
+    ModernDeleteDC(mem2dc);
   }
   return 1;
 
@@ -772,7 +780,7 @@ int DrawSkinObject(SKINDRAWREQUEST * preq, GLYPHOBJECT * pobj)
       if (mode==2)
       {
         SelectObject(memdc,oldbmp);
-        DeleteDC(memdc);
+        ModernDeleteDC(memdc);
         DeleteObject(membmp);
       }
       return 0;
@@ -1023,12 +1031,12 @@ int DrawSkinObject(SKINDRAWREQUEST * preq, GLYPHOBJECT * pobj)
     {
 
       if (oldglyph) SelectObject(glyphdc,oldglyph);
-      if (glyphdc) DeleteDC(glyphdc);
+      if (glyphdc) ModernDeleteDC(glyphdc);
     }    
     if (mode==2)
     {
       SelectObject(memdc,oldbmp);
-      DeleteDC(memdc);
+      ModernDeleteDC(memdc);
       DeleteObject(membmp);
     }
 
@@ -1314,8 +1322,8 @@ HBITMAP intLoadGlyphImageByImageDecoder(char * szFileName)
       BitBlt(dc32,0,0,bmpInfo.bmWidth,bmpInfo.bmHeight,dc24,0,0,SRCCOPY);
       SelectObject(dc24,obmp24);
       SelectObject(dc32,obmp32);
-      DeleteDC(dc24);
-      DeleteDC(dc32);
+      ModernDeleteDC(dc24);
+      ModernDeleteDC(dc32);
       DeleteObject(hBitmap);
       hBitmap=hBitmap32;
       PreMultiplyChanells(hBitmap,0);
@@ -1509,12 +1517,14 @@ int EnumGetMasksProc(const char *szSetting,LPARAM lParam)
            char * value;
            value=DBGetStringA(NULL,SKIN,szSetting);
            AddParseTextGlyphObject((char*)szSetting,value,CURRENTSKIN);
+           mir_free(value);
         }
         else if (WildCompare((char *)szSetting,"f*",0) && CURRENTSKIN)
         {
            char * value;
            value=DBGetStringA(NULL,SKIN,szSetting);
            AddParseSkinFont((char*)szSetting,value,CURRENTSKIN);
+           mir_free(value);
         }
         return 1;
 }
@@ -1955,8 +1965,8 @@ int AlphaTextOutServ(WPARAM w,LPARAM l)
 BYTE weight[256];
 BYTE weight2[256];
 BYTE weightfilled=0;
-#include "math.h"
-typedef signed char sbyte;
+
+
 
 _inline void SetMatrix( sbyte * matrix,
 					   sbyte a, sbyte b, sbyte c, 
@@ -1968,52 +1978,9 @@ _inline void SetMatrix( sbyte * matrix,
 	matrix[6]=g;	matrix[7]=h;	matrix[8]=i;
 }
 
-typedef  struct _MODERNEFFECTMATRIX
-{
-	sbyte matrix[25];
-	BYTE  topEffect;
-	BYTE  leftEffect;
-	BYTE  rightEffect;
-	BYTE  bottomEffect;
-	BYTE  cycleCount;	  //low 7 bits
-}MODERNEFFECTMATRIX;
-
-typedef  struct _MODERNEFFECT
-{
-	BYTE EffectID;
-	MODERNEFFECTMATRIX EffectMatrix;
-	DWORD EffectColor1;
-	DWORD EffectColor2;
-}MODERNEFFECT;
-
-#define MAXPREDEFINEDEFFECTS 3
-
-char * ModernEffectNames[]={"Outline","Outline smooth","Smooth bump"};
-
-MODERNEFFECTMATRIX ModernEffectsEnum[]={
-	{   //Outline
-		{	0,	0,	0,	0,	 0,
-			0,	16, 16, 16, 0,
-			0,	16,	32, 16, 0,
-			0,	16,	16,	16,	 0,
-			0,	0,	0,	0,	 0   },	1,1,1,1,1},
-	
-	{  //Outline smooth
-		{	4,	4,	4,	4,	 4,
-			4,	8,  8,  8,   4,
-			4,	8,	32, 8,   4,
-			4,	8,	8,	8,	 4,
-			4,	4,	4,	4,	 4   },	2,2,2,2,1},
-	
-	{  //Smooth bump
-		{	-2,   2,  2,  2,  2,
-			-2,	-16, 16, 16,  2,
-			-2,	-16, 48, 16,  2,
-			-2,	-16,-16, 16,  2,
-			-2,	 -2, -2, -2, -2 },	2,2,2,2,1+0x80}
-};
 
 MODERNEFFECT CurrentEffect={-1,{0},0,0};
+
 	
 void SetEffect(BYTE EffectID, DWORD FirstColor, DWORD SecondColor)
 {
@@ -2027,14 +1994,82 @@ void SetEffect(BYTE EffectID, DWORD FirstColor, DWORD SecondColor)
 		CurrentEffect.EffectColor2=SecondColor;
 	}
 }
+extern struct LIST_INTERFACE li;
+SortedList * EffectStack=NULL;
+typedef  struct _EFFECTSSTACKITEM {
+  HDC hdc;
+  BYTE EffectID;
+  DWORD FirstColor;
+  DWORD SecondColor;
+} EFFECTSSTACKITEM;
 
-void ResetEffect()
+
+BOOL ResetEffect(HDC hdc)
 {
-	CurrentEffect.EffectID=-1;
+  int i;
+  if (!EffectStack || !EffectStack->realCount) return TRUE;
+  for (i=0; i<EffectStack->realCount; i++)
+     if (EffectStack->items[i] && ((EFFECTSSTACKITEM*)(EffectStack->items[i]))->hdc==hdc)
+      {
+        EFFECTSSTACKITEM * effect=(EFFECTSSTACKITEM*)(EffectStack->items[i]);
+        mir_free(effect);
+        li.List_Remove(EffectStack,i);
+        return TRUE;
+      }
+  return FALSE;
+};
+
+BOOL SelectEffect(HDC hdc, BYTE EffectID, DWORD FirstColor, DWORD SecondColor)
+{
+	if (EffectID>MAXPREDEFINEDEFFECTS) return 0; 
+  if (EffectID==-1) return ResetEffect(hdc);
+  if (!EffectStack)
+  {
+    EffectStack=li.List_Create(0,1);
+  }
+  {
+    int i;
+    for (i=0; i<EffectStack->realCount; i++)
+      if (EffectStack->items[i] && ((EFFECTSSTACKITEM*)(EffectStack->items[i]))->hdc==hdc)
+      {
+        EFFECTSSTACKITEM * effect=(EFFECTSSTACKITEM*)(EffectStack->items[i]);
+        effect->EffectID=EffectID;		    
+		    effect->FirstColor=FirstColor;
+		    effect->SecondColor=SecondColor;
+        return TRUE;
+      }
+  }
+  {
+      EFFECTSSTACKITEM * effect=(EFFECTSSTACKITEM *) mir_alloc(sizeof(EFFECTSSTACKITEM));
+      effect->hdc=hdc;
+      effect->EffectID=EffectID;
+		  effect->FirstColor=FirstColor;
+		  effect->SecondColor=SecondColor;
+      li.List_Insert(EffectStack, effect, 0);
+      return TRUE;
+  }	  
+  return FALSE;
 }
 
+BOOL GetEffect(HDC hdc, MODERNEFFECT * modernEffect)
+{
+  int i=0;
+  if (!EffectStack || !EffectStack->realCount) return FALSE;
+  if (!modernEffect) return FALSE;
+  for (i=0; i<EffectStack->realCount; i++)
+      if (EffectStack->items[i] && ((EFFECTSSTACKITEM*)(EffectStack->items[i]))->hdc==hdc)
+      {
+        EFFECTSSTACKITEM * effect=(EFFECTSSTACKITEM*)(EffectStack->items[i]);
+        modernEffect->EffectID=effect->EffectID;		    
+		    modernEffect->EffectColor1=effect->FirstColor;
+		    modernEffect->EffectColor2=effect->SecondColor;
+        modernEffect->EffectMatrix=ModernEffectsEnum[effect->EffectID];
+        return TRUE;
+      }
+  return FALSE;
+}
 
-BOOL DrawTextEffect(BYTE* destPt,BYTE* maskPt, DWORD width, DWORD height)
+BOOL DrawTextEffect(BYTE* destPt,BYTE* maskPt, DWORD width, DWORD height, MODERNEFFECT *effect)
 {
 	sbyte *buf;
 	sbyte *outbuf;
@@ -2054,25 +2089,27 @@ BOOL DrawTextEffect(BYTE* destPt,BYTE* maskPt, DWORD width, DWORD height)
 	int maxX=0;
 	int minY=height;
 	int maxY=0;
-	if (CurrentEffect.EffectID==0xFF) return FALSE;
+	if (effect->EffectID==0xFF) return FALSE;
 	buf=(BYTE*)malloc(width*height*sizeof(BYTE));
 	{
-		matrix=CurrentEffect.EffectMatrix.matrix;
-		mcTopStart=2-CurrentEffect.EffectMatrix.topEffect;
-		mcBottomEnd=3+CurrentEffect.EffectMatrix.bottomEffect;
-		mcLeftStart=2-CurrentEffect.EffectMatrix.leftEffect;
-		mcRightEnd=3+CurrentEffect.EffectMatrix.rightEffect;
-		effectCount=CurrentEffect.EffectMatrix.cycleCount;
+		matrix=effect->EffectMatrix.matrix;
+		mcTopStart=2-effect->EffectMatrix.topEffect;
+		mcBottomEnd=3+effect->EffectMatrix.bottomEffect;
+		mcLeftStart=2-effect->EffectMatrix.leftEffect;
+		mcRightEnd=3+effect->EffectMatrix.rightEffect;
+		effectCount=effect->EffectMatrix.cycleCount;
 	}
-	al=255-((BYTE)(CurrentEffect.EffectColor1>>24));
-	rl=GetRValue(CurrentEffect.EffectColor1);
-	gl=GetGValue(CurrentEffect.EffectColor1);
-	bl=GetBValue(CurrentEffect.EffectColor1);
-	rd=GetRValue(CurrentEffect.EffectColor2);
-	gd=GetGValue(CurrentEffect.EffectColor2);
-	bd=GetBValue(CurrentEffect.EffectColor2);
-	ad=255-((BYTE)(CurrentEffect.EffectColor2>>24));
-
+	al=255-((BYTE)(effect->EffectColor1>>24));
+	rl=GetRValue(effect->EffectColor1);
+	gl=GetGValue(effect->EffectColor1);
+	bl=GetBValue(effect->EffectColor1);
+	rd=GetRValue(effect->EffectColor2);
+	gd=GetGValue(effect->EffectColor2);
+	bd=GetBValue(effect->EffectColor2);
+	ad=255-((BYTE)(effect->EffectColor2>>24));
+	rd=GetRValue(effect->EffectColor2);
+	gd=GetGValue(effect->EffectColor2);
+	bd=GetBValue(effect->EffectColor2);
 	
 	//Fill buffer by mid values of image
 	for (y=0; y<height; y++)
@@ -2156,7 +2193,8 @@ BOOL DrawTextEffect(BYTE* destPt,BYTE* maskPt, DWORD width, DWORD height)
 					{ b1=bl; r1=rl; g1=gl; a1=al; sign=1;}
 					else if (val<0 && sign>0)
 					{ b1=bd; r1=rd; g1=gd; a1=ad; sign=-1;}
-						
+					
+					absVal=absVal*a1/255;				
 
 					destline[0]=((destline[0]*(128-absVal))+absVal*b1)/128;
 					destline[1]=((destline[1]*(128-absVal))+absVal*g1)/128;
@@ -2405,7 +2443,9 @@ int AlphaTextOut (HDC hDC, LPCTSTR lpString, int nCount, RECT * lpRect, UINT for
         TextOut(memdc,2,2,lpString,nCount);
     }
 	{
-		DrawTextEffect(bufbits,bits,sz.cx,sz.cy);	
+    MODERNEFFECT effect={0};
+    if (GetEffect(hDC,&effect)) 
+		DrawTextEffect(bufbits,bits,sz.cx,sz.cy,&effect);	
 	}
     //RenderText
    //if (1)
@@ -2498,12 +2538,12 @@ int AlphaTextOut (HDC hDC, LPCTSTR lpString, int nCount, RECT * lpRect, UINT for
       DeleteObject(hbmp);
       SelectObject(bufDC,bufoldbmp);
       DeleteObject(bufbmp);
-      DeleteDC(bufDC);
+      ModernDeleteDC(bufDC);
     }	
   }
   }
   SelectObject(memdc,holdfnt);
-  DeleteDC(memdc); 
+  ModernDeleteDC(memdc); 
   if (noDIB) free(destBits);
   return 0;
 }
@@ -2570,7 +2610,7 @@ BOOL ImageList_DrawEx_New( HIMAGELIST himl,int i,HDC hdcDst,int x,int y,int dx,i
       MyAlphaBlend(hdcDst,x,y,ddx,ddy,hdc,0,0,ddx,ddy,bf);
       SelectObject(hdc,hbmpold);
       DeleteObject(hbmp);
-      DeleteDC(hdc);
+      ModernDeleteDC(hdc);
     }
   }
   {
@@ -2648,7 +2688,7 @@ BOOL DrawIconExS(HDC hdcDst,int xLeft,int yTop,HICON hIcon,int cxWidth,int cyWid
 		noMirrorMask=TRUE;
 	}
 	SelectObject(tempDC1,otBmp);
-    DeleteDC(tempDC1);
+    ModernDeleteDC(tempDC1);
   }
 
   if (imbt.bmBits==NULL)
@@ -2733,7 +2773,7 @@ BOOL DrawIconExS(HDC hdcDst,int xLeft,int yTop,HICON hIcon,int cxWidth,int cyWid
   LeaveCriticalSection(&cs);
   DeleteCriticalSection(&cs);
   {
-    BLENDFUNCTION bf={AC_SRC_OVER, 0, alpha, AC_SRC_ALPHA };
+    BLENDFUNCTION bf={AC_SRC_OVER, diFlags&128, alpha, AC_SRC_ALPHA };   
     MyAlphaBlend(hdcDst,xLeft,yTop,cxWidth, cyWidth, imDC,0,0, cx,icy,bf);
   }
 
@@ -2745,7 +2785,7 @@ BOOL DrawIconExS(HDC hdcDst,int xLeft,int yTop,HICON hIcon,int cxWidth,int cyWid
   DeleteObject(ici.hbmColor);
   DeleteObject(ici.hbmMask);
   SelectObject(imDC,GetStockObject(DEFAULT_GUI_FONT));
-  DeleteDC(imDC);
+  ModernDeleteDC(imDC);
   //unlock it;
 
 
@@ -2808,7 +2848,7 @@ BOOL DrawIconExS(HDC hdcDst,int xLeft,int yTop,HICON hIcon,int cxWidth,int cyWid
   int res;
 
   SelectObject(memDC,ob);
-  res=DeleteDC(memDC);
+  res=ModernDeleteDC(memDC);
   res=DeleteObject(hbitmap);
   DeleteObject(ici.hbmColor);
   DeleteObject(ici.hbmMask);
@@ -3180,7 +3220,7 @@ int ValidateSingleFrameImage(wndFrame * Frame, BOOL SkipBkgBlitting)            
 
     SelectObject(hdc,o);
     DeleteObject(n);
-    DeleteDC(hdc);
+    ModernDeleteDC(hdc);
   }
   return 1;
 }
@@ -3830,7 +3870,7 @@ void AddParseSkinFont(char * szFontID,char * szDefineString,SKINOBJECTSLIST *Ski
       {
         HDC hdc=CreateCompatibleDC(NULL);        
         logfont.lfHeight=(long)-MulDiv(logfont.lfHeight, GetDeviceCaps(hdc, LOGPIXELSY), 72);
-        DeleteDC(hdc);
+        ModernDeleteDC(hdc);
       }
       logfont.lfHeight=-logfont.lfHeight;
       GetParamN(szDefineString,buf,sizeof(buf),2,',',TRUE);

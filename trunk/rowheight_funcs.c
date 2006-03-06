@@ -134,7 +134,7 @@ int ModernCalcRowHeight(struct ClcData *dat, HWND hwnd, struct ClcContact *conta
             }
             gl_RowTabAccess[i]->w=size.cx;
 			SelectObject(hdc,GetStockObject(DEFAULT_GUI_FONT));
-			DeleteDC(hdc);
+			ModernDeleteDC(hdc);
           }
           gl_RowTabAccess[i]->h=tmp;
 
@@ -159,7 +159,7 @@ int ModernCalcRowHeight(struct ClcData *dat, HWND hwnd, struct ClcContact *conta
               GetTextSize(&size,hdc,dummyRect,contact->szSecondLineText,contact->plSecondLineText,0, dat->text_resize_smileys ? 0 : contact->iSecondLineMaxSmileyHeight);
               gl_RowTabAccess[i]->w=size.cx;
               SelectObject(hdc,GetStockObject(DEFAULT_GUI_FONT));
-			  DeleteDC(hdc);
+			  ModernDeleteDC(hdc);
             }
           }
           gl_RowTabAccess[i]->h=tmp;
@@ -183,7 +183,7 @@ int ModernCalcRowHeight(struct ClcData *dat, HWND hwnd, struct ClcContact *conta
               GetTextSize(&size,hdc,dummyRect,contact->szThirdLineText,contact->plThirdLineText,0, dat->text_resize_smileys ? 0 : contact->iThirdLineMaxSmileyHeight);
               gl_RowTabAccess[i]->w=size.cx;
               SelectObject(hdc,GetStockObject(DEFAULT_GUI_FONT));
-			  DeleteDC(hdc);
+			  ModernDeleteDC(hdc);
             }
           }
           gl_RowTabAccess[i]->h=tmp;			    
@@ -291,7 +291,7 @@ int ModernCalcRowHeight(struct ClcData *dat, HWND hwnd, struct ClcContact *conta
                 // Get text size
                 text_size.cy = DrawTextS(hdc, szResult, lstrlen(szResult), &rc, DT_CALCRECT | DT_NOPREFIX | DT_SINGLELINE);
                 SelectObject(hdc,GetStockObject(DEFAULT_GUI_FONT));
-				DeleteDC(hdc);
+				ModernDeleteDC(hdc);
                 text_size.cx = rc.right - rc.left;
                 gl_RowTabAccess[i]->w=text_size.cx;
 

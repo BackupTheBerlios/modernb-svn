@@ -248,6 +248,7 @@ void SetAllExtraIcons(HWND hwndList,HANDLE hContact)
 	int em,pr,sms,a1,a2,w1,c1;
 	int tick=0;
 	int inphcont=(int)hContact;
+  TRACE("Start Set All ExtraIcons\n");
 	ON_SETALLEXTRAICON_CYCLE=1;
 	hcontgiven=(hContact!=0);
 
@@ -296,6 +297,7 @@ void SetAllExtraIcons(HWND hwndList,HANDLE hContact)
 			DBVARIANT dbv={0};
 			boolean showweb;	
 			showweb=FALSE;
+      
 			if (ExtraToColumnNum(EXTRA_ICON_WEB)!=-1)
 			{
 
@@ -312,7 +314,7 @@ void SetAllExtraIcons(HWND hwndList,HANDLE hContact)
 					}
 				}
 
-				PostMessage(hwndList,CLM_SETEXTRAIMAGE,(WPARAM)hItem,MAKELPARAM(ExtraToColumnNum(EXTRA_ICON_WEB),(showweb)?2:0xFF));	
+				SendMessage(hwndList,CLM_SETEXTRAIMAGE,(WPARAM)hItem,MAKELPARAM(ExtraToColumnNum(EXTRA_ICON_WEB),(showweb)?2:0xFF));	
 				if (dbv.pszVal!=NULL) mir_free(dbv.pszVal);
 			}
 		}		
@@ -389,7 +391,7 @@ void SetAllExtraIcons(HWND hwndList,HANDLE hContact)
 		DBWriteContactSettingDword((HANDLE)0,"CLUI","PF:Last SetAllExtraIcons Time:",tick);
 	}	
 	ON_SETALLEXTRAICON_CYCLE=0;
-	//skinInvalidateRect(hwndList,NULL,FALSE);
+	skinInvalidateRect(hwndList,NULL,FALSE);
 	Sleep(0);
 
 
