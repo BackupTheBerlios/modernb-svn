@@ -1625,7 +1625,7 @@ void InternalPaintRowItems(HWND hwnd, HDC hdcMem, struct ClcData *dat, struct Cl
             {
               // Make bounds -> keep aspect radio
               // Clipping width and height
-              width = dat->avatars_maxheight_size;
+			  width = dat->avatars_maxheight_size;
               height = dat->avatars_maxheight_size;       
               if (height * Drawing->avatar_data->bmWidth / Drawing->avatar_data->bmHeight <= width)
               {

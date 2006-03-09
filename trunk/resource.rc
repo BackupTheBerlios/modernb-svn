@@ -1264,11 +1264,10 @@ BEGIN
     CONTROL         "Draw overlay icons",IDC_AVATAR_OVERLAY_ICONS,"Button",
                     BS_AUTOCHECKBOX | WS_TABSTOP,7,104,246,8
     LTEXT           "Size:",IDC_AVATAR_SIZE_L,7,88,18,8
-    LTEXT           "pixels",IDC_AVATAR_SIZE_PIXELS,75,88,18,8
-    EDITTEXT        IDC_AVATAR_SIZE,34,87,35,12,ES_NUMBER
+    EDITTEXT        IDC_AVATAR_SIZE,170,87,35,12,ES_NUMBER
     CONTROL         "",IDC_AVATAR_SIZE_SPIN,"msctls_updown32",
                     UDS_SETBUDDYINT | UDS_ALIGNRIGHT | UDS_ARROWKEYS | 
-                    UDS_NOTHOUSANDS | UDS_HOTTRACK,58,87,11,12
+                    UDS_NOTHOUSANDS | UDS_HOTTRACK,194,87,11,12
     CONTROL         "Round corners of avatars",IDC_AVATAR_ROUND_CORNERS,
                     "Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,47,246,8
     CONTROL         "Ignore size for row height calcs",
@@ -1290,6 +1289,13 @@ BEGIN
                     "Button",BS_AUTORADIOBUTTON,29,128,224,8
     CONTROL         "Contact icon",IDC_AVATAR_OVERLAY_ICON_CONTACT,"Button",
                     BS_AUTORADIOBUTTON,29,139,186,8
+    LTEXT           "pixels",IDC_AVATAR_SIZE_PIXELS2,210,89,18,8
+    RTEXT           "height",IDC_AVATAR_SIZE_PIXELS3,121,88,44,8
+    EDITTEXT        IDC_AVATAR_WIDTH,78,87,35,12,ES_NUMBER
+    CONTROL         "",IDC_AVATAR_WIDTH_SPIN,"msctls_updown32",
+                    UDS_SETBUDDYINT | UDS_ALIGNRIGHT | UDS_ARROWKEYS | 
+                    UDS_NOTHOUSANDS | UDS_HOTTRACK,102,87,11,12
+    RTEXT           "Max width",IDC_AVATAR_SIZE_PIXELS,31,89,44,8
 END
 
 IDD_OPT_ITEM_ICON DIALOGEX 0, 0, 260, 85

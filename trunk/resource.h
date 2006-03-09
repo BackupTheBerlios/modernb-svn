@@ -638,7 +638,10 @@
 #define IDC_AVATAR_SIZE_SPIN2           1623
 #define IDC_AVATAR_CUSTOM_CORNER_SIZE_SPIN 1623
 #define IDC_ROW_BORDER_SPIN2            1624
+#define IDC_AVATAR_WIDTH                1624
 #define IDC_ROW_BORDER_SPIN3            1625
+#define IDC_AVATAR_SIZE_SPIN3           1625
+#define IDC_AVATAR_WIDTH_SPIN           1625
 #define IDC_BUTTON1                     1633
 #define IDC_BUTTON_BROWSE               1633
 #define IDC_UP                          1633
@@ -756,10 +759,12 @@
 #define IDC_COLOUR_KEYCOLOR             1805
 #define IDC_COLOUR_KEY                  1805
 #define IDC_IGNORE_SIZE                 1805
+#define IDC_AVATAR_SIZE_PIXELS2         1805
 #define IDC_LIST1                       1806
 #define IDC_OBJECTSLIST                 1806
 #define IDC_IGNORE_SIZE2                1806
 #define IDC_ALIGN_RIGHT                 1806
+#define IDC_AVATAR_SIZE_PIXELS3         1806
 #define IDC_CHECK2                      1807
 #define IDC_OBJECTSLIST2                1807
 #define IDC_SKINS_LIST                  1807

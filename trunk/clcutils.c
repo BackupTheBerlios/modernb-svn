@@ -479,6 +479,7 @@ void LoadClcOptions(HWND hwnd, struct ClcData *dat)
 		dat->avatars_draw_overlay = DBGetContactSettingByte(NULL,"CList","AvatarsDrawOverlay",0);
 		dat->avatars_overlay_type = DBGetContactSettingByte(NULL,"CList","AvatarsOverlayType",SETTING_AVATAR_OVERLAY_TYPE_NORMAL);
 		dat->avatars_maxheight_size = DBGetContactSettingWord(NULL,"CList","AvatarsSize",30);
+		dat->avatars_maxwidth_size = DBGetContactSettingWord(NULL,"CList","AvatarsWidth",0);
 	}
 	else
 	{
@@ -492,6 +493,7 @@ void LoadClcOptions(HWND hwnd, struct ClcData *dat)
 		dat->avatars_draw_overlay = 0;
 		dat->avatars_overlay_type = SETTING_AVATAR_OVERLAY_TYPE_NORMAL;
 		dat->avatars_maxheight_size = 30;
+		dat->avatars_maxwidth_size = 0;
 	}
 
 	// Icon

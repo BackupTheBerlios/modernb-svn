@@ -2072,11 +2072,11 @@ LRESULT CALLBACK ContactListWndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM l
 				dr = &(monInfo.rcWork);
 
 				// Left side
-				if ( wp->x < dr->left + 10 && wp->x > dr->left - 10)
+				if ( wp->x < dr->left + 10 && wp->x > dr->left - 10 && BehindEdgeSettings!=1)
 					wp->x = dr->left;
 
 				// Right side
-				if ( dr->right - wp->x - wp->cx <10 && dr->right - wp->x - wp->cx > -10)
+				if ( dr->right - wp->x - wp->cx <10 && dr->right - wp->x - wp->cx > -10 && BehindEdgeSettings!=2)
 					wp->x = dr->right - wp->cx;
 
 				// Top side
