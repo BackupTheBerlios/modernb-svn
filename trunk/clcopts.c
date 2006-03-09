@@ -35,9 +35,9 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #define SAMEASF_COLOUR 8
 #define SAMEASF_EFFECT 128
 
-static WORD fontSameAsDefault[]={0x00FF,0x0B00,0x0F00,0x0700,0x0B00,0x0104,0x0D00,0x0B02,0x0900,0x0D00,
-0x0F00,0x0F00,0x0F00,0x0F00,0x0F00,0x0F00,0x0F00,0x0F00,0x0F00,0x0104,0x0D00,0x00FF};
-static TCHAR *fontSizes[]={_T("6"),_T("7"),_T("8"),_T("10"),_T("14"),_T("16"),_T("18"),_T("20"),_T("24"),_T("28")};
+static WORD fontSameAsDefault[]={0x00FF,0x8B00,0x8F00,0x8700,0x8B00,0x8104,0x8D00,0x8B02,0x8900,0x8D00,
+0x8F00,0x8F00,0x8F00,0x8F00,0x8F00,0x8F00,0x8F00,0x8F00,0x8F00,0x8104,0x8D00,0x00FF};
+static TCHAR *fontSizes[]={_T("6"),_T("7"),_T("8"),_T("9"),_T("10"),_T("12"),_T("14"),_T("16"),_T("18"),_T("20"),_T("24"),_T("28")};
 static int fontListOrder[]={FONTID_CONTACTS,FONTID_INVIS,FONTID_OFFLINE,FONTID_OFFINVIS,FONTID_NOTONLIST,FONTID_OPENGROUPS,FONTID_OPENGROUPCOUNTS,FONTID_CLOSEDGROUPS,FONTID_CLOSEDGROUPCOUNTS,FONTID_DIVIDERS,FONTID_SECONDLINE,FONTID_THIRDLINE,
 FONTID_AWAY,FONTID_DND,FONTID_NA,FONTID_OCCUPIED,FONTID_CHAT,FONTID_INVISIBLE,FONTID_PHONE,FONTID_LUNCH,FONTID_CONTACT_TIME,FONTID_STATUSBAR_PROTONAME};
 
@@ -954,6 +954,7 @@ struct CheckBoxToStyleEx_t {
         ShowWindowNew(GetDlgItem(hwndDlg,IDC_SAMESIZE),expert?SW_SHOW:SW_HIDE);
         ShowWindowNew(GetDlgItem(hwndDlg,IDC_SAMESTYLE),expert?SW_SHOW:SW_HIDE);
         ShowWindowNew(GetDlgItem(hwndDlg,IDC_SAMECOLOUR),expert?SW_SHOW:SW_HIDE);
+		ShowWindowNew(GetDlgItem(hwndDlg,IDC_SAMEEFFECT),expert?SW_SHOW:SW_HIDE);
         ShowWindowNew(GetDlgItem(hwndDlg,IDC_STSIZETEXT),expert?SW_HIDE:SW_SHOW);
         ShowWindowNew(GetDlgItem(hwndDlg,IDC_STCOLOURTEXT),expert?SW_HIDE:SW_SHOW);
         SetDlgItemTextA(hwndDlg,IDC_STASTEXT,Translate(expert?"as:":"based on:"));
@@ -1004,6 +1005,7 @@ struct CheckBoxToStyleEx_t {
           WORD sameAs;
           char str[32];
 
+ 
           for(i=0;i<=FONTID_MODERN_MAX;i++) {
             fontId=fontListOrder[i];
             GetFontSetting(fontId,&lf,&colour,&effect,&eColour1,&eColour2);
@@ -1037,7 +1039,7 @@ struct CheckBoxToStyleEx_t {
             itemId=SendDlgItemMessage(hwndDlg,IDC_FONTID,CB_ADDSTRING,0,(LPARAM)TranslateTS(szFontIdDescr[fontId]));
             SendDlgItemMessage(hwndDlg,IDC_FONTID,CB_SETITEMDATA,itemId,fontId);
           }
-          SendDlgItemMessage(hwndDlg,IDC_FONTID,CB_SETCURSEL,0,0);
+
           for(i=0;i<sizeof(fontSizes)/sizeof(fontSizes[0]);i++)
             SendDlgItemMessage(hwndDlg,IDC_FONTSIZE,CB_ADDSTRING,0,(LPARAM)fontSizes[i]);
           }    
@@ -1053,7 +1055,9 @@ struct CheckBoxToStyleEx_t {
               SendDlgItemMessage(hwndDlg,IDC_EFFECT_NAME,CB_SETCURSEL,0,0);
             }
           }
-
+		  SendDlgItemMessage(hwndDlg,IDC_EFFECT_COLOUR_SPIN1,UDM_SETRANGE,0,MAKELONG(255,0));
+		  SendDlgItemMessage(hwndDlg,IDC_EFFECT_COLOUR_SPIN2,UDM_SETRANGE,0,MAKELONG(255,0));
+		  SendDlgItemMessage(hwndDlg,IDC_FONTID,CB_SETCURSEL,0,0);
           //SendDlgItemMessage(hwndDlg,IDC_ROWHEIGHTSPIN,UDM_SETRANGE,0,MAKELONG(255,0));
           //SendDlgItemMessage(hwndDlg,IDC_ROWHEIGHTSPIN,UDM_SETPOS,0,MAKELONG(DBGetContactSettingByte(NULL,"CLC","RowHeight",CLCDEFAULT_ROWHEIGHT),0));
           SendMessage(hwndDlg,M_REBUILDFONTGROUP,0,0);
@@ -1065,13 +1069,13 @@ struct CheckBoxToStyleEx_t {
           SendDlgItemMessage(hwndDlg,IDC_SELCOLOUR,CPM_SETCOLOUR,0,DBGetContactSettingDword(NULL,"CLC","SelTextColour",CLCDEFAULT_SELTEXTCOLOUR));
           SendDlgItemMessage(hwndDlg,IDC_QUICKCOLOUR,CPM_SETDEFAULTCOLOUR,0,CLCDEFAULT_QUICKSEARCHCOLOUR);
           SendDlgItemMessage(hwndDlg,IDC_QUICKCOLOUR,CPM_SETCOLOUR,0,DBGetContactSettingDword(NULL,"CLC","QuickSearchColour",CLCDEFAULT_QUICKSEARCHCOLOUR));
-			SendDlgItemMessage(hwndDlg,IDC_EFFECT_COLOUR_SPIN1,UDM_SETRANGE,0,MAKELONG(255,0));
-			SendDlgItemMessage(hwndDlg,IDC_EFFECT_COLOUR_SPIN2,UDM_SETRANGE,0,MAKELONG(255,0));
-          CheckDlgButton(hwndDlg,IDC_HILIGHTMODE,DBGetContactSettingByte(NULL,"CLC","HiLightMode",0)==0?BST_CHECKED:BST_UNCHECKED);
+		  
+       
+		  CheckDlgButton(hwndDlg,IDC_HILIGHTMODE,DBGetContactSettingByte(NULL,"CLC","HiLightMode",0)==0?BST_CHECKED:BST_UNCHECKED);
           CheckDlgButton(hwndDlg,IDC_HILIGHTMODE1,DBGetContactSettingByte(NULL,"CLC","HiLightMode",0)==1?BST_CHECKED:BST_UNCHECKED);
           CheckDlgButton(hwndDlg,IDC_HILIGHTMODE2,DBGetContactSettingByte(NULL,"CLC","HiLightMode",0)==2?BST_CHECKED:BST_UNCHECKED);
           CheckDlgButton(hwndDlg,IDC_HILIGHTMODE3,DBGetContactSettingByte(NULL,"CLC","HiLightMode",0)==3?BST_CHECKED:BST_UNCHECKED);
-
+          
           return TRUE;
         case M_REBUILDFONTGROUP:	//remake all the needed controls when the user changes the font selector at the top
           {	int i=SendDlgItemMessage(hwndDlg,IDC_FONTID,CB_GETITEMDATA,SendDlgItemMessage(hwndDlg,IDC_FONTID,CB_GETCURSEL,0,0),0);
@@ -1103,6 +1107,7 @@ struct CheckBoxToStyleEx_t {
           CheckDlgButton(hwndDlg,IDC_SAMESIZE,fontSettings[wParam].sameAsFlags&SAMEASF_SIZE?BST_CHECKED:BST_UNCHECKED);
           CheckDlgButton(hwndDlg,IDC_SAMESTYLE,fontSettings[wParam].sameAsFlags&SAMEASF_STYLE?BST_CHECKED:BST_UNCHECKED);
           CheckDlgButton(hwndDlg,IDC_SAMECOLOUR,fontSettings[wParam].sameAsFlags&SAMEASF_COLOUR?BST_CHECKED:BST_UNCHECKED);
+		  CheckDlgButton(hwndDlg,IDC_SAMEEFFECT,fontSettings[wParam].sameAsFlags&SAMEASF_EFFECT?BST_CHECKED:BST_UNCHECKED);
           break;
         case M_FILLSCRIPTCOMBO:		  //fill the script combo box and set the selection to the value for fontid wParam
           {	LOGFONTA lf={0};
@@ -1135,6 +1140,7 @@ struct CheckBoxToStyleEx_t {
           EnableWindow(GetDlgItem(hwndDlg,IDC_SAMESIZE),fontSettings[wParam].sameAs!=0xFF);
           EnableWindow(GetDlgItem(hwndDlg,IDC_SAMESTYLE),fontSettings[wParam].sameAs!=0xFF);
           EnableWindow(GetDlgItem(hwndDlg,IDC_SAMECOLOUR),fontSettings[wParam].sameAs!=0xFF);
+		  EnableWindow(GetDlgItem(hwndDlg,IDC_SAMEEFFECT),fontSettings[wParam].sameAs!=0xFF);
           if(SendMessage(GetParent(hwndDlg),PSM_ISEXPERT,0,0)) {
             EnableWindow(GetDlgItem(hwndDlg,IDC_TYPEFACE),fontSettings[wParam].sameAs==0xFF || !(fontSettings[wParam].sameAsFlags&SAMEASF_FACE));
             EnableWindow(GetDlgItem(hwndDlg,IDC_SCRIPT),fontSettings[wParam].sameAs==0xFF || !(fontSettings[wParam].sameAsFlags&SAMEASF_FACE));
@@ -1143,6 +1149,16 @@ struct CheckBoxToStyleEx_t {
             EnableWindow(GetDlgItem(hwndDlg,IDC_ITALIC),fontSettings[wParam].sameAs==0xFF || !(fontSettings[wParam].sameAsFlags&SAMEASF_STYLE));
             EnableWindow(GetDlgItem(hwndDlg,IDC_UNDERLINE),fontSettings[wParam].sameAs==0xFF || !(fontSettings[wParam].sameAsFlags&SAMEASF_STYLE));
             EnableWindow(GetDlgItem(hwndDlg,IDC_COLOUR),fontSettings[wParam].sameAs==0xFF || !(fontSettings[wParam].sameAsFlags&SAMEASF_COLOUR));
+			{
+				BOOL Ena=fontSettings[wParam].sameAs==0xFF || !(fontSettings[wParam].sameAsFlags&SAMEASF_EFFECT);
+				EnableWindow(GetDlgItem(hwndDlg,IDC_EFFECT_NAME),Ena);
+				EnableWindow(GetDlgItem(hwndDlg,IDC_EFFECT_COLOUR1),Ena);
+				EnableWindow(GetDlgItem(hwndDlg,IDC_EFFECT_COLOUR2),Ena);
+				EnableWindow(GetDlgItem(hwndDlg,IDC_EFFECT_COLOUR_TEXT1),Ena);
+				EnableWindow(GetDlgItem(hwndDlg,IDC_EFFECT_COLOUR_TEXT2),Ena);
+				EnableWindow(GetDlgItem(hwndDlg,IDC_EFFECT_COLOUR_SPIN1),Ena);
+				EnableWindow(GetDlgItem(hwndDlg,IDC_EFFECT_COLOUR_SPIN2),Ena);
+			}
           }
           else {
             EnableWindow(GetDlgItem(hwndDlg,IDC_TYPEFACE),TRUE);
@@ -1199,6 +1215,12 @@ struct CheckBoxToStyleEx_t {
             fontSettings[wParam].style=fontSettings[fontSettings[wParam].sameAs].style;
           if(fontSettings[wParam].sameAsFlags&SAMEASF_COLOUR)
             fontSettings[wParam].colour=fontSettings[fontSettings[wParam].sameAs].colour;
+		  if(fontSettings[wParam].sameAsFlags&SAMEASF_EFFECT)
+		  {
+            fontSettings[wParam].Effect=fontSettings[fontSettings[wParam].sameAs].Effect;
+			fontSettings[wParam].EffectColor1=fontSettings[fontSettings[wParam].sameAs].EffectColor1;
+			fontSettings[wParam].EffectColor2=fontSettings[fontSettings[wParam].sameAs].EffectColor2;
+		  }			  
           break;
         case M_RECALCOTHERFONTS:	//recalculate the 'same as' settings for all fonts but wParam
           {	int i;
@@ -1209,7 +1231,13 @@ struct CheckBoxToStyleEx_t {
           break;
           }
         case M_SAVEFONT:	//save the font settings from the controls to font wParam
-          fontSettings[wParam].sameAsFlags=(IsDlgButtonChecked(hwndDlg,IDC_SAMETYPE)?SAMEASF_FACE:0)|(IsDlgButtonChecked(hwndDlg,IDC_SAMESIZE)?SAMEASF_SIZE:0)|(IsDlgButtonChecked(hwndDlg,IDC_SAMESTYLE)?SAMEASF_STYLE:0)|(IsDlgButtonChecked(hwndDlg,IDC_SAMECOLOUR)?SAMEASF_COLOUR:0);
+          fontSettings[wParam].sameAsFlags=
+			   (IsDlgButtonChecked(hwndDlg,IDC_SAMETYPE)?SAMEASF_FACE:0)
+			  |(IsDlgButtonChecked(hwndDlg,IDC_SAMESIZE)?SAMEASF_SIZE:0)
+			  |(IsDlgButtonChecked(hwndDlg,IDC_SAMESTYLE)?SAMEASF_STYLE:0)
+			  |(IsDlgButtonChecked(hwndDlg,IDC_SAMECOLOUR)?SAMEASF_COLOUR:0)
+			  |(IsDlgButtonChecked(hwndDlg,IDC_SAMEEFFECT)?SAMEASF_EFFECT:0)
+			  ;
           fontSettings[wParam].sameAs=(BYTE)SendDlgItemMessage(hwndDlg,IDC_SAMEAS,CB_GETITEMDATA,SendDlgItemMessage(hwndDlg,IDC_SAMEAS,CB_GETCURSEL,0,0),0);
           GetDlgItemTextA(hwndDlg,IDC_TYPEFACE,fontSettings[wParam].szFace,sizeof(fontSettings[wParam].szFace));
           fontSettings[wParam].charset=(BYTE)SendDlgItemMessage(hwndDlg,IDC_SCRIPT,CB_GETITEMDATA,SendDlgItemMessage(hwndDlg,IDC_SCRIPT,CB_GETCURSEL,0,0),0);
@@ -1310,7 +1338,7 @@ struct CheckBoxToStyleEx_t {
           CheckDlgButton(hwndDlg,IDC_BOLD,fontSettings[wParam].style&DBFONTF_BOLD?BST_CHECKED:BST_UNCHECKED);
           CheckDlgButton(hwndDlg,IDC_ITALIC,fontSettings[wParam].style&DBFONTF_ITALIC?BST_CHECKED:BST_UNCHECKED);
           CheckDlgButton(hwndDlg,IDC_UNDERLINE,fontSettings[wParam].style&DBFONTF_UNDERLINE?BST_CHECKED:BST_UNCHECKED);
-          if (fontSettings[wParam].Effect)
+          if (fontSettings[wParam].Effect && !(fontSettings[wParam].sameAsFlags&SAMEASF_EFFECT && fontSettings[wParam].sameAs!=0xFF))
           {
             int i=0;
             int cnt=SendDlgItemMessage(hwndDlg,IDC_EFFECT_NAME,CB_GETCOUNT,0,0);
@@ -1365,6 +1393,10 @@ struct CheckBoxToStyleEx_t {
             fontSettings[wParam].sameAsFlags|=SAMEASF_STYLE;
           if(fontSettings[wParam].colour==fontSettings[fontSettings[wParam].sameAs].colour)
             fontSettings[wParam].sameAsFlags|=SAMEASF_COLOUR;
+		  if((fontSettings[wParam].Effect==fontSettings[fontSettings[wParam].sameAs].Effect)
+			  &&(fontSettings[wParam].EffectColor1==fontSettings[fontSettings[wParam].sameAs].EffectColor1)
+			  &&(fontSettings[wParam].EffectColor2==fontSettings[fontSettings[wParam].sameAs].EffectColor2) )
+			  fontSettings[wParam].sameAsFlags|=SAMEASF_EFFECT;
           SendMessage(hwndDlg,M_SETSAMEASBOXES,wParam,0);
           break;
         case WM_VSCROLL:
@@ -1381,10 +1413,12 @@ struct CheckBoxToStyleEx_t {
         case IDC_SAMESIZE:
         case IDC_SAMESTYLE:
         case IDC_SAMECOLOUR:
+		case IDC_SAMEEFFECT:
           SendMessage(hwndDlg,M_SAVEFONT,fontId,0);
           SendMessage(hwndDlg,M_RECALCONEFONT,fontId,0);
-          SendMessage(hwndDlg,M_REMAKESAMPLE,0,0);
-          SendMessage(hwndDlg,M_REFRESHSAMEASBOXES,fontId,0);
+		  SendMessage(hwndDlg,M_REFRESHSAMEASBOXES,fontId,0);
+		  SendMessage(hwndDlg,M_LOADFONT,fontId,0);
+          SendMessage(hwndDlg,M_REMAKESAMPLE,0,0);          
           break;
         case IDC_SAMEAS:
           if(HIWORD(wParam)!=CBN_SELCHANGE) return FALSE;

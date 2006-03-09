@@ -123,7 +123,7 @@ static int RemoveItemFromList(int pos,wndFrame **lpFrames,int *FrameItemCount);
 HWND hWndExplorerToolBar;
 static int GapBetweenFrames=1;
 
-
+extern RECT changedWindowRect;
 
 int OnMoving(HWND hwnd,RECT *lParam)
 {
@@ -143,7 +143,8 @@ int OnMoving(HWND hwnd,RECT *lParam)
       RECT wr;
       Frame=&(Frames[i]);
 
-     GetWindowRect(hwnd,&wr);
+      GetWindowRect(hwnd,&wr);
+	 // wr=changedWindowRect;
       ClientToScreen(hwnd,&pt);
       dx=(r->left-wr.left)+pt.x;
       dy=(r->top-wr.top)+pt.y;
@@ -256,7 +257,9 @@ int OnShowHide(HWND hwnd, int mode)
 {
 
   int i;
+  int prevFrameCount;
   lockfrm();
+
   for(i=0;i<nFramescount;i++){
     if (!Frames[i].floating && Frames[i].OwnerWindow!=(HWND)0 &&Frames[i].OwnerWindow!=(HWND)-2)
 	{
@@ -266,11 +269,18 @@ int OnShowHide(HWND hwnd, int mode)
 		HWND Frmhwnd=Frames[i].hWnd;
 		BOOL visible=Frames[i].visible;
 		BOOL needhide=Frames[i].needhide;
-		//ulockfrm();	
+		prevFrameCount=nFramescount;
+		ulockfrm();	
 		ShowWindow(owner,(mode==SW_HIDE||!visible||needhide)?SW_HIDE:mode);
 		ShowWindow(Frmhwnd,(mode==SW_HIDE||!visible||needhide)?SW_HIDE:mode);
-		//lockfrm();
+		lockfrm();
+		if(prevFrameCount!=nFramescount) //during unlocking frames changed
+		{
+			ulockfrm(); 
+			return 0;
+		}
 	  }
+	  
       if (mode!=SW_HIDE)
       {
         SetWindowPos(Frames[i].OwnerWindow,HWND_TOP,0,0,0,0,SWP_NOMOVE|SWP_NOSIZE|SWP_NOACTIVATE);

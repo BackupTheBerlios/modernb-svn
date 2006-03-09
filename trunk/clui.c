@@ -1998,7 +1998,7 @@ int TRACERECT(RECT * rect, char * text)
 #endif
 
 extern LRESULT ( CALLBACK *saveContactListWndProc )(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam);
-
+RECT changedWindowRect={0};
 LRESULT CALLBACK ContactListWndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 {    
 	/*
@@ -2058,6 +2058,38 @@ LRESULT CALLBACK ContactListWndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM l
 			RECT temp_rect={0};
 			wp=(WINDOWPOS *)lParam;
 			GetWindowRect(hwnd,&old_window_rect);
+
+			// Прилипание к краям by ZorG
+			if (DBGetContactSettingByte(NULL,"CLUI","SnapToEdges",0))
+			{
+				RECT* dr;
+				MONITORINFO monInfo;
+				HMONITOR curMonitor = MonitorFromWindow(hwnd, MONITOR_DEFAULTTONEAREST);
+
+				monInfo.cbSize = sizeof(monInfo);
+				GetMonitorInfo(curMonitor, &monInfo);
+
+				dr = &(monInfo.rcWork);
+
+				// Left side
+				if ( wp->x < dr->left + 10 && wp->x > dr->left - 10)
+					wp->x = dr->left;
+
+				// Right side
+				if ( dr->right - wp->x - wp->cx <10 && dr->right - wp->x - wp->cx > -10)
+					wp->x = dr->right - wp->cx;
+
+				// Top side
+				if ( wp->y < dr->top + 10 && wp->y > dr->top - 10)
+					wp->y = dr->top;
+				
+				// Bottom side
+				if ( dr->bottom - wp->y - wp->cy <10 && dr->bottom - wp->y - wp->cy > -10)
+					wp->y = dr->bottom - wp->cy;
+
+			}
+//			changedWindowRect=wp;
+
 			if ((old_window_rect.bottom-old_window_rect.top!=wp->cy || old_window_rect.right-old_window_rect.left !=wp->cx)&&!(wp->flags&SWP_NOSIZE))
 			{
 				TRACE("SizePosChanging started\n");
@@ -2832,7 +2864,7 @@ LRESULT CALLBACK ContactListWndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM l
 		return 0;
 
 	case WM_MOVING:
-		if (1) //showcontents is turned on
+		if (0) //showcontents is turned on
 		{
 			OnMoving(hwnd,(RECT*)lParam);
 			//if (!LayeredFlag) UpdateWindowImage();
@@ -3369,16 +3401,21 @@ int TestCursorOnBorders()
 	HWND hAux;
 	BOOL mouse_in_window=0;
 	HWND gf=GetForegroundWindow();
-	if(TransparentFlag) {
-		if (!transparentFocus && gf!=hwnd) {
-			SmoothAlphaTransition(hwnd, DBGetContactSettingByte(NULL,"CList","Alpha",SETTING_ALPHA_DEFAULT), 1);
-			//MySetLayeredWindowAttributes(hwnd, RGB(0,0,0), (BYTE)DBGetContactSettingByte(NULL,"CList","Alpha",SETTING_ALPHA_DEFAULT), LWA_ALPHA);
-			transparentFocus=1;
-			SetTimer(hwnd, TM_AUTOALPHA,250,NULL);
+	GetCursorPos(&pt);
+	hAux = WindowFromPoint(pt);	
+	if (CheckOwner(hAux))
+	{
+		if(TransparentFlag) {
+			if (!transparentFocus && gf!=hwnd) {
+				SmoothAlphaTransition(hwnd, DBGetContactSettingByte(NULL,"CList","Alpha",SETTING_ALPHA_DEFAULT), 1);
+				//MySetLayeredWindowAttributes(hwnd, RGB(0,0,0), (BYTE)DBGetContactSettingByte(NULL,"CList","Alpha",SETTING_ALPHA_DEFAULT), LWA_ALPHA);
+				transparentFocus=1;
+				SetTimer(hwnd, TM_AUTOALPHA,250,NULL);
+			}
 		}
 	}
 
-	GetCursorPos(&pt);
+
 	IgnoreActivation=0;
 	GetWindowRect(hwnd,&r);
   /*
@@ -3404,14 +3441,15 @@ int TestCursorOnBorders()
 	}
 	fx=GetSystemMetrics(SM_CXFULLSCREEN);
 	fy=GetSystemMetrics(SM_CYFULLSCREEN);
-	if (docked || ((pt.x<fx-1) && (pt.y<fy-1) && pt.x>1 && pt.y>1)) // workarounds for behind the edge.
+	if (docked || BehindEdge_State==0)
+	//if (docked) || ((pt.x<fx-1) && (pt.y<fy-1) && pt.x>1 && pt.y>1)) // workarounds for behind the edge.
 	{
 		//ScreenToClient(hwnd,&pt);
 		//GetClientRect(hwnd,&r);
 		if (pt.y<=r.bottom && pt.y>=r.bottom-SIZING_MARGIN && !DBGetContactSettingByte(NULL,"CLUI","AutoSize",0)) k=6;
 		else if (pt.y>=r.top && pt.y<=r.top+SIZING_MARGIN && !DBGetContactSettingByte(NULL,"CLUI","AutoSize",0)) k=3;
-		if (pt.x<=r.right && pt.x>=r.right-SIZING_MARGIN) k+=2;
-		else if (pt.x>=r.left && pt.x<=r.left+SIZING_MARGIN)k+=1;
+		if (pt.x<=r.right && pt.x>=r.right-SIZING_MARGIN && BehindEdgeSettings!=2) k+=2;
+		else if (pt.x>=r.left && pt.x<=r.left+SIZING_MARGIN && BehindEdgeSettings!=1) k+=1;
 		if (!(pt.x>=r.left && pt.x<=r.right && pt.y>=r.top && pt.y<=r.bottom)) k=0;
 		k*=mouse_in_window;
 		hCurs1 = LoadCursor(NULL, IDC_ARROW);

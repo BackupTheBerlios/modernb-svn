@@ -81,8 +81,9 @@ HFONT ChangeToFont(HDC hdc,struct ClcData *dat,int id,int *fontHeight)
   res=SelectObject(hdc,dat->fontModernInfo[id].hFont);
   SetTextColor(hdc,dat->fontModernInfo[id].colour);
   if(fontHeight) *fontHeight=dat->fontModernInfo[id].fontHeight;
-  if (dat->fontModernInfo[id].effect==0) ResetEffect(hdc);
-  else SelectEffect(hdc,dat->fontModernInfo[id].effect-1,dat->fontModernInfo[id].effectColour1,dat->fontModernInfo[id].effectColour2);
+  if (dat->hWnd==pcli->hwndContactTree && dat->fontModernInfo[id].effect!=0)
+	  SelectEffect(hdc,dat->fontModernInfo[id].effect-1,dat->fontModernInfo[id].effectColour1,dat->fontModernInfo[id].effectColour2);
+  else ResetEffect(hdc);
   return res;
 }
 
@@ -448,7 +449,7 @@ void DrawTextSSmiley(HDC hdcMem, RECT free_rc, SIZE text_size, TCHAR *szText, in
               text_rc.top += (row_height - fac_height) >> 1;
 
               DrawIconExS(hdcMem, text_rc.left, text_rc.top, piece->smiley, 
-                fac_width, fac_height, 0, NULL, DI_NORMAL|(factor<=1)?128:0); //TO DO enchance drawing quality
+                fac_width, fac_height, 0, NULL, DI_NORMAL|((factor<1)?128:0)); //TO DO enchance drawing quality
             }
             else
             {

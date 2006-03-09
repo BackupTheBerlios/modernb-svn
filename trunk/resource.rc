@@ -455,7 +455,7 @@ BEGIN
                     UDS_ARROWKEYS | UDS_HOTTRACK,233,112,9,14
     LTEXT           "% of screen",IDC_STATIC22,245,115,63,8
     CONTROL         "Size upwards",IDC_AUTOSIZEUPWARD,"Button",
-                    BS_AUTOCHECKBOX | WS_TABSTOP,142,126,157,8,
+                    BS_AUTOCHECKBOX | WS_TABSTOP,142,126,88,8,
                     WS_EX_TRANSPARENT
     GROUPBOX        "Translucency options (Windows 2000/XP only)",IDC_STATIC,
                     136,177,179,75
@@ -527,6 +527,8 @@ BEGIN
     CONTROL         "",IDC_STATIC,"Static",SS_ETCHEDHORZ,12,47,113,1
     CONTROL         "Round corners",IDC_ROUNDCORNERS,"Button",
                     BS_AUTOCHECKBOX | WS_DISABLED | WS_TABSTOP,13,138,111,8
+    CONTROL         "Snap to edges",IDC_SNAPTOEDGES,"Button",BS_AUTOCHECKBOX | 
+                    WS_TABSTOP,234,126,74,8
 END
 
 IDD_OPT_CLC DIALOGEX 0, 0, 314, 238
@@ -607,15 +609,15 @@ BEGIN
     GROUPBOX        "Fonts",IDC_STATIC,4,4,269,151
     COMBOBOX        IDC_FONTID,12,17,253,87,CBS_DROPDOWNLIST | WS_VSCROLL | 
                     WS_TABSTOP
-    LTEXT           "same",IDC_STSAMETEXT,19,32,45,10,SS_CENTERIMAGE
+    LTEXT           "same",IDC_STSAMETEXT,19,32,29,10,SS_CENTERIMAGE
     CONTROL         "Typeface",IDC_SAMETYPE,"Button",BS_AUTOCHECKBOX | 
-                    WS_TABSTOP,64,32,52,10
+                    WS_TABSTOP,48,32,46,10
     CONTROL         "Size",IDC_SAMESIZE,"Button",BS_AUTOCHECKBOX | 
-                    WS_TABSTOP,117,32,45,10
+                    WS_TABSTOP,98,32,38,10
     CONTROL         "Style",IDC_SAMESTYLE,"Button",BS_AUTOCHECKBOX | 
-                    WS_TABSTOP,163,32,48,10
+                    WS_TABSTOP,136,32,39,10
     CONTROL         "Colour",IDC_SAMECOLOUR,"Button",BS_AUTOCHECKBOX | 
-                    WS_TABSTOP,212,32,53,10
+                    WS_TABSTOP,178,32,40,10
     LTEXT           "as:",IDC_STASTEXT,19,46,45,10,SS_CENTERIMAGE
     COMBOBOX        IDC_SAMEAS,64,45,196,88,CBS_DROPDOWNLIST | WS_VSCROLL | 
                     WS_TABSTOP
@@ -674,6 +676,8 @@ BEGIN
                     UDS_ARROWKEYS | UDS_NOTHOUSANDS | UDS_HOTTRACK,259,116,
                     10,12
     RTEXT           "Alpha",IDC_STSAMETEXT3,143,123,38,10,SS_CENTERIMAGE
+    CONTROL         "Effect",IDC_SAMEEFFECT,"Button",BS_AUTOCHECKBOX | 
+                    WS_TABSTOP,221,32,39,10
 END
 
 IDD_OPT_CLCBKG2 DIALOGEX 0, 0, 234, 199

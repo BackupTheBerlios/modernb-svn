@@ -116,9 +116,9 @@ PLUGININFO pluginInfo = {
 #endif
 	0,                              //will initiate later in MirandaPluginInfo
 	"Display contacts, event notifications, protocol status with advantage visual modifications. Supported MW modifications, enchanced metacontact cooperation.",
-	"Artem Shpynov and Ricardo Pescuma Domenecci, based on clist_mw by Bethoven",
+	"Artem Shpynov, Anton Senko and Ricardo Pescuma Domenecci, based on clist_mw by Bethoven",
 	"shpynov@nm.ru" ,
-	"Copyright 2000-2005 Miranda-IM project ["__DATE__" "__TIME__"]",
+	"Copyright 2000-2006 Miranda-IM project ["__DATE__" "__TIME__"]",
 	"http://miranda-im.org/download/details.php?action=viewfile&id=2103",
 	UNICODE_AWARE,
 	DEFMOD_CLISTALL

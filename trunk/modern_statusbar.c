@@ -261,7 +261,7 @@ int ModernDrawStatusBarWorker(HWND hWnd, HDC hDC)
 		if (sbdat.showProtoName)
 		{
 			GetTextExtentPoint32A(hDC,ProtosData[i].ProtoName,lstrlenA(ProtosData[i].ProtoName),&textSize);
-			w+=textSize.cx+spaceWidth;
+			w+=textSize.cx+3+spaceWidth;
 		}
 		if (sbdat.showStatusName)
 		{
@@ -369,7 +369,7 @@ int ModernDrawStatusBarWorker(HWND hWnd, HDC hDC)
           if (sbdat.showStatusName)
           {
             GetTextExtentPoint32A(hDC,ProtosData[i].ProtoName,lstrlenA(ProtosData[i].ProtoName),&textSize);
-            x+=textSize.cx;
+            x+=textSize.cx+3;
           }
         }
         if (sbdat.showStatusName)

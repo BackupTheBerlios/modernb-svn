@@ -2750,10 +2750,21 @@ BOOL DrawIconExS(HDC hdcDst,int xLeft,int yTop,HICON hIcon,int cxWidth,int cyWid
           *dest=*src;
         else
         {
-          if (mask)
-			  // TODO: ADD verification about validity
-            *dest=0;  
-
+          if (mask)// && !hasalpha)
+			  // TODO: ADD verification about validity #0.4.2.8
+			{
+				if (!hasalpha)
+					*dest=0;  
+				else
+				{
+					BYTE a;
+					a=((BYTE*)src)[3]>0?((BYTE*)src)[3]:0;//255;
+					((BYTE*)dest)[3]=a;
+					((BYTE*)dest)[0]=((BYTE*)src)[0]*a/255;
+					((BYTE*)dest)[1]=((BYTE*)src)[1]*a/255;
+					((BYTE*)dest)[2]=((BYTE*)src)[2]*a/255;
+				}
+			}
           else
           {
             //*dest=*src;

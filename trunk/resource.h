@@ -387,6 +387,8 @@
 #define IDC_VARIABLE_ROW_HEIGHT3        1269
 #define IDC_EFFECT_COLOUR2              1269
 #define IDC_TXTCOLOUR                   1270
+#define IDC_SAMECOLOUR2                 1270
+#define IDC_SAMEEFFECT                  1270
 #define IDC_FILENAME                    1271
 #define IDC_SCROLL                      1277
 #define IDC_PROPORTIONAL                1278
@@ -763,6 +765,7 @@
 #define IDC_SKINS_LIST                  1807
 #define IDC_LAYERENGINE                 1807
 #define IDC_CHECK3                      1808
+#define IDC_SNAPTOEDGES                 1808
 #define IDC_CHECK4                      1809
 #define IDC_CHECK5                      1810
 #define IDC_RADIO1                      1811
