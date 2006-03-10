@@ -268,6 +268,15 @@ void rowParserGetParam(ROWCELL* &cell, char *tbuf, int &hbuf)
 	else if (!_strnicmp(word, "text3",      strlen(word))) param = TC_TEXT3; 
 	else if (!_strnicmp(word, "status",     strlen(word))) param = TC_STATUS; 
 	else if (!_strnicmp(word, "extra",      strlen(word))) param = TC_EXTRA; 
+	else if (!_strnicmp(word, "extra1",     strlen(word))) param = TC_EXTRA1;
+	else if (!_strnicmp(word, "extra2",     strlen(word))) param = TC_EXTRA2;
+	else if (!_strnicmp(word, "extra3",     strlen(word))) param = TC_EXTRA3;
+	else if (!_strnicmp(word, "extra4",     strlen(word))) param = TC_EXTRA4;
+	else if (!_strnicmp(word, "extra5",     strlen(word))) param = TC_EXTRA5;
+	else if (!_strnicmp(word, "extra6",     strlen(word))) param = TC_EXTRA6;
+	else if (!_strnicmp(word, "extra7",     strlen(word))) param = TC_EXTRA7;
+	else if (!_strnicmp(word, "extra8",     strlen(word))) param = TC_EXTRA8;
+	else if (!_strnicmp(word, "extra9",     strlen(word))) param = TC_EXTRA9;
 	else if (!_strnicmp(word, "time",       strlen(word))) param = TC_TIME;
 	else if (!_strnicmp(word, "space",      strlen(word))) param = TC_SPACE;
 	else if (!_strnicmp(word, "fspace",      strlen(word))) param = TC_FIXED;
@@ -302,6 +311,15 @@ void rowParserGetParam(ROWCELL* &cell, char *tbuf, int &hbuf)
 	case TC_STATUS:
 	case TC_AVATAR:
 	case TC_EXTRA:
+	case TC_EXTRA1:
+	case TC_EXTRA2:
+	case TC_EXTRA3:
+	case TC_EXTRA4:
+	case TC_EXTRA5:
+	case TC_EXTRA6:
+	case TC_EXTRA7:
+	case TC_EXTRA8:
+	case TC_EXTRA9:
 	case TC_TIME:
 	case TC_FIXED:
 	

@@ -259,7 +259,30 @@ int ModernCalcRowHeight(struct ClcData *dat, HWND hwnd, struct ClcContact *conta
           }
           break;
         }
-      case TC_TIME:
+      case TC_EXTRA1:
+	  case TC_EXTRA2:
+	  case TC_EXTRA3:
+	  case TC_EXTRA4:
+	  case TC_EXTRA5:
+	  case TC_EXTRA6:
+	  case TC_EXTRA7:
+	  case TC_EXTRA8:
+	  case TC_EXTRA9:
+		  {
+			if (contact->type == CLCIT_CONTACT && 
+				(!contact->isSubcontact || DBGetContactSettingByte(NULL,"CLC","MetaHideExtra",0) == 0 && dat->extraColumnsCount > 0))
+			{
+				int eNum=gl_RowTabAccess[i]->type-TC_EXTRA1;
+				if (eNum<dat->extraColumnsCount)
+					if (contact->iExtraImage[eNum]!=255 || !dat->MetaIgnoreEmptyExtra)
+					{
+						gl_RowTabAccess[i]->h=ICON_HEIGHT;
+						gl_RowTabAccess[i]->w=ICON_HEIGHT;
+					}
+			}
+			break;
+		  }
+	  case TC_TIME:
         {
           if (contact->type == CLCIT_CONTACT && dat->contact_time_show && contact->timezone != -1 && 
             (!dat->contact_time_show_only_if_different || contact->timediff != 0))

@@ -8,11 +8,21 @@
 #define TC_STATUS 4
 #define TC_AVATAR 5
 #define TC_EXTRA 6
-#define TC_TIME 7
-#define TC_SPACE 8
-#define TC_FIXED 9
+#define TC_EXTRA1 7
+#define TC_EXTRA2 8
+#define TC_EXTRA3 9
+#define TC_EXTRA4 10
+#define TC_EXTRA5 11
+#define TC_EXTRA6 12
+#define TC_EXTRA7 13
+#define TC_EXTRA8 14
+#define TC_EXTRA9 15
+#define TC_TIME 16
+#define TC_SPACE 17
+#define TC_FIXED 18
 
-#define TC_ELEMENTSCOUNT 8
+
+#define TC_ELEMENTSCOUNT 18
 
 // Containers
 #define TC_ROOT 50
@@ -63,18 +73,6 @@ typedef struct tagRowCell
 } ROWCELL, *pROWCELL;
 
 // Структура для доступа к контейнерам элемента контакта внутри дерева опивания
-//
-typedef struct tagROWOBJECTS
-{
-	ROWCELL * avatar;			// Думаю комментарии излишни :)
-	ROWCELL * text1;
-	ROWCELL * text2;
-	ROWCELL * text3;
-	ROWCELL * status;
-	ROWCELL * extra;
-	ROWCELL * time;
-} ROWOBJECTS, *pROWOBJECTS;
-
 #ifndef _CPPCODE
   extern int cppCalculateRowHeight(ROWCELL	*RowRoot);
   extern void cppCalculateRowItemsPos(ROWCELL	*RowRoot, int width);

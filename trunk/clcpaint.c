@@ -631,6 +631,8 @@ void ModernInternalPaintRowItems(HWND hwnd, HDC hdcMem, struct ClcData *dat, str
 
   // Let calc placeholder
   int minheight=dat->row_min_heigh;
+  int mode2=-1;
+  COLORREF colourFg=RGB(0,0,0);
   BOOL InClistWindow=(dat->hWnd==pcli->hwndContactTree);
   int height=ModernCalcRowHeight(dat, hwnd, Drawing, -1);
   if(Drawing->type == CLCIT_GROUP && 
@@ -1471,6 +1473,50 @@ void ModernInternalPaintRowItems(HWND hwnd, HDC hdcMem, struct ClcData *dat, str
           }
           break;
         }
+	  case TC_EXTRA1:
+	  case TC_EXTRA2:
+	  case TC_EXTRA3:
+	  case TC_EXTRA4:
+	  case TC_EXTRA5:
+	  case TC_EXTRA6:
+	  case TC_EXTRA7:
+	  case TC_EXTRA8:
+	  case TC_EXTRA9:
+		  {
+			if (Drawing->type == CLCIT_CONTACT && 
+				(!Drawing->isSubcontact || DBGetContactSettingByte(NULL,"CLC","MetaHideExtra",0) == 0 && dat->extraColumnsCount > 0))
+			{
+				int eNum=gl_RowTabAccess[i]->type-TC_EXTRA1;
+				if (eNum<dat->extraColumnsCount)
+					if (Drawing->iExtraImage[eNum]!=255)
+					{
+						int mode=0;
+			            int BlendedInActiveState = DBGetContactSettingByte(NULL,"CLC","BlendInActiveState",0);
+			            int BlendValue = DBGetContactSettingByte(NULL,"CLC","Blend25%",1) ? ILD_BLEND25 : ILD_BLEND50;
+						int iImage=Drawing->iExtraImage[eNum];
+						if (mode2!=-1) mode=mode2;
+						else
+						{
+							if(selected) mode=BlendedInActiveState?ILD_NORMAL:ILD_SELECTED;
+							else if(hottrack) 
+							{
+								mode=BlendedInActiveState?ILD_NORMAL:ILD_FOCUS; 
+								colourFg=dat->hotTextColour;
+							}
+							else if(Drawing->type==CLCIT_CONTACT && Drawing->flags&CONTACTF_NOTONLIST) 
+							{
+								colourFg=dat->fontModernInfo[FONTID_NOTONLIST].colour; 
+								mode=BlendValue;
+							}
+							mode2=mode;
+						}
+						if (dat->text_rtl!=0) RTLrect(&p_rect, free_row_rc.right, 0);
+						Drawing->pos_extra[eNum] = p_rect;
+						ImageList_DrawEx_New(dat->himlExtraColumns,Drawing->iExtraImage[eNum],hdcMem,
+							p_rect.left, p_rect.top,0,0,CLR_NONE,colourFg,mode);
+					}
+			}
+		  }
       case TC_TIME:
         {
           DBTIMETOSTRINGT dbtts;
