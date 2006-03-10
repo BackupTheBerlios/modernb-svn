@@ -620,20 +620,9 @@ void Cache_GetLineText(struct ClcContact *contact, int type, LPTSTR text, int te
 		}
 	case TEXT_TEXT:
 		{
-#ifndef UNICODE	
-			if (!ServiceExists(MS_VARS_FORMATSTRING))
-			{
-				lstrcpyn(text, variable_text, text_size);
-			}
-			else
-			{
-				char *tmp = variables_parse(variable_text, contact->szText, contact->hContact);
-				lstrcpyn(text, tmp, text_size);
-				variables_free(tmp);
-			}
-#else
-			lstrcpyn(text, variable_text, text_size);
-#endif
+			TCHAR *tmp = variables_parsedup(variable_text, contact->szText, contact->hContact);
+			lstrcpyn(text, tmp, text_size);
+			if (tmp) free(tmp);
 			break;
 		}
 	case TEXT_CONTACT_TIME:

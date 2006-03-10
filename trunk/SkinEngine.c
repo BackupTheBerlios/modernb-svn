@@ -727,7 +727,7 @@ HBITMAP CreateBitmap32Point(int cx, int cy, void ** bits)
     DIB_RGB_COLORS,
     (void **)&ptPixels, 
     NULL, 0);
-  if (ptPixels==NULL) 
+  if (ptPixels==NULL && cx!= 0 && cy!=0) 
   {
 	  MessageBoxA(NULL,"Object not allocated. Check GDI object count","ERROR",MB_OK|MB_ICONERROR); 
 	  DebugBreak();

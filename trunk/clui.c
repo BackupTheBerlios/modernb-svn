@@ -1303,10 +1303,17 @@ int OnSkinLoad(WPARAM wParam, LPARAM lParam)
 
 	return 0;
 }
-
+extern PLUGININFO pluginInfo;
 static int CluiModulesLoaded(WPARAM wParam,LPARAM lParam)
 {
 	MENUITEMINFO mii;
+	/*
+	 *	Updater support
+	*/
+	CallService("Update/RegisterFL", (WPARAM)2103, (LPARAM)&pluginInfo);
+	/*
+	 *  End of updater support
+	 */
 	ZeroMemory(&mii,sizeof(mii));
 	mii.cbSize=MENUITEMINFO_V4_SIZE;
 	mii.fMask=MIIM_SUBMENU;
