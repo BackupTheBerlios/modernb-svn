@@ -898,7 +898,7 @@ int MenuModulesLoaded(WPARAM wParam,LPARAM lParam)
   tmp.ExecService="StatusMenuExecService";
   tmp.CheckService="StatusMenuCheckService";
   //tmp.
-  tmp.name="StatusMenu";
+  tmp.name=Translate("StatusMenu");
 
   hStatusMenuObject=(int)CallService(MO_CREATENEWMENUOBJECT,(WPARAM)0,(LPARAM)&tmp);
   {

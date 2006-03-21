@@ -447,10 +447,21 @@ void RebuildEntireList(HWND hwnd,struct ClcData *dat)
 		cont=NULL;
 		cacheEntry=(pdisplayNameCacheEntry)pcli->pfnGetCacheEntry(hContact);
 
-		if(
-			(dat->IsMetaContactsEnabled||MyStrCmp(cacheEntry->szProto,"MetaContacts"))
-			&&(style&CLS_SHOWHIDDEN || (!cacheEntry->Hidden && !cacheEntry->isUnknown)) 
-			&&(!cacheEntry->HiddenSubcontact || !dat->IsMetaContactsEnabled )
+		if( (cacheEntry->szProto||style&CLS_SHOWHIDDEN) &&
+			(
+			(
+			  (dat->IsMetaContactsEnabled||MyStrCmp(cacheEntry->szProto,"MetaContacts"))
+			  &&(style&CLS_SHOWHIDDEN || (!cacheEntry->Hidden && !cacheEntry->isUnknown)) 
+			  &&(!cacheEntry->HiddenSubcontact || !dat->IsMetaContactsEnabled)
+			 )
+			 ||
+			 (
+				dat->IsMetaContactsEnabled 
+				&& cacheEntry->szProto
+				&& !MyStrCmp(cacheEntry->szProto,"MetaContacts")
+				&& !cacheEntry->isUnknown
+			 )
+		   )
 		) {
 			
 			if(lstrlen(cacheEntry->szGroup)==0)

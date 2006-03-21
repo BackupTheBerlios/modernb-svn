@@ -729,8 +729,11 @@ HBITMAP CreateBitmap32Point(int cx, int cy, void ** bits)
     NULL, 0);
   if (ptPixels==NULL && cx!= 0 && cy!=0) 
   {
+#ifdef _DEBUG
 	  MessageBoxA(NULL,"Object not allocated. Check GDI object count","ERROR",MB_OK|MB_ICONERROR); 
 	  DebugBreak();
+#endif
+	  ;
   }
   if (bits!=NULL) *bits=ptPixels;  
   return DirectBitmap;

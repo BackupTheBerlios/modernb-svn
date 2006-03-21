@@ -84,9 +84,9 @@ int ExtIconFromStatusMode(HANDLE hContact, const char *szProto,int status)
 			if (hContact!=0)            {
 				szProto=(char*)CallService(MS_PROTO_GETCONTACTBASEPROTO,(UINT)hContact,0);
 				status=DBGetContactSettingWord(hContact,szProto,"Status",ID_STATUS_OFFLINE);
-		}	}
+			}	}
 
-	return pcli->pfnIconFromStatusMode(szProto,status,hContact);
+		return pcli->pfnIconFromStatusMode(szProto,status,hContact);
 }
 /////////// End by FYR ////////
 
@@ -255,7 +255,7 @@ int GetWindowVisibleState(HWND hWnd, int iStepX, int iStepY) {
 				if (po||(!rgn&&ptr==0))
 				{
 					BOOL hWndFound=FALSE;
-          HWND hAuxOld=NULL;
+					HWND hAuxOld=NULL;
 					hAux = WindowFromPoint(pt);
 					do
 					{
@@ -265,25 +265,25 @@ int GetWindowVisibleState(HWND hWnd, int iStepX, int iStepY) {
 							break;
 						}
 						//hAux = GetParent(hAux);
-            hAuxOld=hAux;
-            hAux = GetAncestor(hAux,GA_ROOTOWNER);
-            if (hAuxOld==hAux)
-            {
-              TCHAR buf[255];
-              GetClassName(hAux,buf,SIZEOF(buf));
-              if (!lstrcmp(buf,_T(CLUIFrameSubContainerClassName)))
-              {
-                hWndFound=TRUE;
-							  break;
-              }
-            }
+						hAuxOld=hAux;
+						hAux = GetAncestor(hAux,GA_ROOTOWNER);
+						if (hAuxOld==hAux)
+						{
+							TCHAR buf[255];
+							GetClassName(hAux,buf,SIZEOF(buf));
+							if (!lstrcmp(buf,_T(CLUIFrameSubContainerClassName)))
+							{
+								hWndFound=TRUE;
+								break;
+							}
+						}
 					}while(hAux!= NULL &&hAuxOld!=hAux);
 
 					if (hWndFound) //There's  window!
-            iNotCoveredDots++; //Let's count the not covered dots.			
+						iNotCoveredDots++; //Let's count the not covered dots.			
 					//{
 					//		  //bPartiallyCovered = TRUE;
-          //           //iCountedDots++;
+					//           //iCountedDots++;
 					//	    //break;
 					//}
 					//else             
