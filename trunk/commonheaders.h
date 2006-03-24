@@ -235,3 +235,4 @@ extern BOOL DebugDeleteObject(HGDIOBJ a);
 extern BOOL ModernDeleteDC(HDC hdc);
 extern BOOL ResetEffect(HDC hdc);
 extern BOOL SelectEffect(HDC hdc, BYTE EffectID, DWORD FirstColor, DWORD SecondColor);
+#define GLOBAL_PROTO_NAME "global_connect"

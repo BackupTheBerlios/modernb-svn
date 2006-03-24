@@ -91,7 +91,8 @@ typedef struct _DllVersionInfo
 typedef HRESULT (CALLBACK* DLLGETVERSIONPROC)(DLLVERSIONINFO *);
 
 static DLLVERSIONINFO dviShell;
-
+BOOL gl_MultiConnectionMode=FALSE;
+char * gl_ConnectingProto=NULL;
 int GetStatusVal(int status)
 {
 	switch(status)
@@ -122,11 +123,27 @@ int GetGlobalStatus(WPARAM wparam,LPARAM lparam)
 {
 	int curstatus=0;
 	int i;
+	int connectingCount=0;
 	for (i=0;i<pcli->hClcProtoCount;i++) 
 	{
 		if(!GetProtocolVisibility(pcli->clcProto[i].szProto)) continue;
+		if (pcli->clcProto[i].dwStatus>=ID_STATUS_CONNECTING &&
+			pcli->clcProto[i].dwStatus<ID_STATUS_CONNECTING+MAX_CONNECT_RETRIES)
+		{
+			connectingCount++;
+			if (connectingCount==1) gl_ConnectingProto=pcli->clcProto[i].szProto;
+		}
 		curstatus=GetStatusOrder(curstatus,pcli->clcProto[i].dwStatus);
 	}
+	if (connectingCount==0)
+	{
+		gl_ConnectingProto=NULL;
+		gl_MultiConnectionMode=FALSE;
+	}
+	else if (connectingCount>1) 
+		gl_MultiConnectionMode=TRUE;
+	else 
+		gl_MultiConnectionMode=FALSE;
 	return curstatus?curstatus:ID_STATUS_OFFLINE;
 }
 
@@ -508,6 +525,7 @@ void TrayIconUpdateBase(char *szChangedProto)
 	PROTOCOLDESCRIPTOR **protos;
 	int averageMode=0;
 	HWND hwnd=(HWND)CallService(MS_CLUI_GETHWND,0,0);
+	TRACE("TrayIconUpdateBase:");
 	TRACE(szChangedProto); TRACE("\n");
 
 	if(cycleTimerId) {KillTimer(NULL,cycleTimerId); cycleTimerId=0;}
@@ -551,7 +569,15 @@ void TrayIconUpdateBase(char *szChangedProto)
 					{
 						//
 						HICON hIcon;
-						hIcon=(HICON)CallService("CLUI/GetConnectingIconForProtocol",(WPARAM)szChangedProto,0);										
+						// 1 check if multi connecting icon
+						GetGlobalStatus(0,0);
+						if (gl_MultiConnectionMode)
+							if (strcmpi(szChangedProto,gl_ConnectingProto))
+								return;
+							else 
+								hIcon=(HICON)CallService("CLUI/GetConnectingIconForProtocol",(WPARAM)GLOBAL_PROTO_NAME/*(WPARAM)szChangedProto*/,1);
+						else
+							hIcon=(HICON)CallService("CLUI/GetConnectingIconForProtocol",(WPARAM)szChangedProto,0);										
 						if (hIcon)
 						{
 							changed=TrayIconSetBaseInfo(hIcon,NULL);						

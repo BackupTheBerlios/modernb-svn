@@ -61,7 +61,7 @@ extern BOOL LOCK_IMAGE_UPDATING;
 extern BOOL LOCK_UPDATING;
 #define UM_ALPHASUPPORT WM_USER+100
 
-
+extern char * gl_ConnectingProto;
 static HMODULE hUserDll;
 static HIMAGELIST himlMirandaIcon;
 HMENU hMenuMain;
@@ -182,13 +182,14 @@ int SkinMinX=0,SkinMinY=20;
 BYTE showOpts;//for statusbar
 BOOL ON_EDGE_SIZING=0;
 RECT ON_EDGE_SIZING_POS={0};
-
+extern BOOL gl_MultiConnectionMode;
 typedef struct{
 	int IconsCount;
 	int CycleStartTick;
 	char *szProto;
 	int n;
 	int TimerCreated;
+	BOOL isGlobal;
 } ProtoTicks,*pProtoTicks;
 //int SkinUpdateWindowProc(HWND hwnd1);
 
@@ -1347,7 +1348,8 @@ pProtoTicks GetProtoTicksByProto(char * szProto)
 		{
 			CycleStartTick[i].szProto=mir_strdup(szProto);
 			CycleStartTick[i].CycleStartTick=0;
-			CycleStartTick[i].n=i;
+			CycleStartTick[i].n=i;			
+			CycleStartTick[i].isGlobal=strcmpi(szProto,GLOBAL_PROTO_NAME)==0;
 			return(&CycleStartTick[i]);
 		}
 	}
@@ -1503,7 +1505,10 @@ int GetConnectingIconService(WPARAM wParam,LPARAM lParam)
 		if (pt->CycleStartTick!=0&&pt->IconsCount!=0) 
 		{					
 			b=((GetTickCount()-pt->CycleStartTick)/(DefaultStep))%(pt->IconsCount);
-			hIcon=GetConnectingIconForProto(szProto,b);
+		//	if (lParam)
+		//		hIcon=GetConnectingIconForProto("Global",b);
+		//	else
+				hIcon=GetConnectingIconForProto(szProto,b);
 		};
 	}
 
@@ -1529,8 +1534,6 @@ int CreateTimerForConnectingIcon(WPARAM wParam,LPARAM lParam)
 		pt=GetProtoTicksByProto(szProto);
 		if (pt!=NULL)
 		{
-
-
 			if (pt->CycleStartTick==0) 
 			{					
 				//	sprintf(buf,"SetTimer %d\r\n",pt->n);
@@ -2654,8 +2657,10 @@ LRESULT CALLBACK ContactListWndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM l
 
 				if (pt->szProto!=NULL&&pt->TimerCreated==1)
 				{
-
-					status=CallProtoService(pt->szProto,PS_GETSTATUS,0,0);
+					if (pt->isGlobal)
+						status=gl_MultiConnectionMode?ID_STATUS_CONNECTING:0;
+					else
+						status=CallProtoService(pt->szProto,PS_GETSTATUS,0,0);
 
 					if (!(status>=ID_STATUS_CONNECTING&&status<=ID_STATUS_CONNECTING+MAX_CONNECT_RETRIES))
 					{													
@@ -2682,7 +2687,11 @@ LRESULT CALLBACK ContactListWndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM l
 #endif
 
 				if(IsWindowVisible(pcli->hwndStatus)) SkinInvalidateFrame(pcli->hwndStatus,NULL,0);//InvalidateRectZ(pcli->hwndStatus,NULL,TRUE);
-				if (DBGetContactSettingByte(NULL,"CList","TrayIcon",SETTING_TRAYICON_DEFAULT)!=SETTING_TRAYICON_CYCLE) TrayIconUpdateBase(pt->szProto);
+				if (DBGetContactSettingByte(NULL,"CList","TrayIcon",SETTING_TRAYICON_DEFAULT)!=SETTING_TRAYICON_CYCLE) 
+					if (pt->isGlobal) 
+						TrayIconUpdateBase(gl_ConnectingProto);
+					else
+						TrayIconUpdateBase(pt->szProto);
 
 			}
 			SkinInvalidateFrame(pcli->hwndStatus,NULL,0);

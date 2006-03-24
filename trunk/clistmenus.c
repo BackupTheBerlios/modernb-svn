@@ -1073,7 +1073,7 @@ int MenuModulesLoaded(WPARAM wParam,LPARAM lParam)
     statusFlags|=flags;
   }
   NotifyEventHooks(hPreBuildStatusMenuEvent, 0, 0);
-  pos=300000;
+  pos=200000;
   {
     //add to root menu
     for(j=0;j<sizeof(statusModeList)/sizeof(statusModeList[0]);j++) {
@@ -1129,7 +1129,7 @@ int MenuModulesLoaded(WPARAM wParam,LPARAM lParam)
   };
   
   BuildStatusMenu(0,0);
-  pos=200000;
+  pos=600000;
   //mir_free(menusProto);
   return 0;
 }
@@ -1434,8 +1434,21 @@ static int AddStatusMenuItem(WPARAM wParam,LPARAM lParam)
         break;
       }   
     }
-    if (AllocedProtos==0)
+    /* UnregistereD sturtup status fix
+	if (AllocedProtos==0)
       mp=&menusProtoSingle;
+	*/
+
+	if (AllocedProtos==0) {
+		if (!val)
+			_snprintf(buf,sizeof(buf),Translate("%s Custom Status"),menusProtoSingle.szProto);
+		if ( (val && boolstrcmpi(menusProtoSingle.szProto,mi->pszContactOwner))||
+            (wParam==0 && boolstrcmpi(buf,mi->pszPopupName)) )
+      {
+			mp=&menusProtoSingle;
+		}
+	}
+	// End 
   }
   if (mp && !mp->hasAdded)
   {
