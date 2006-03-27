@@ -52,6 +52,8 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #define ST_BRUSH        2
 #define ST_IMAGE        3
 #define ST_SOLARIZE     4  //Not used yet.
+#define ST_FRAGMENT     5
+#define ST_GRADIENT     6
 
 //formats:
 #define ADT_TOP                      0x00000000
@@ -127,6 +129,8 @@ typedef struct s_GLYPHOBJECT
   DWORD dwColor;                             // Fill color
   BYTE dwAlpha;                              // Constant alpha-transparency level
   BYTE FitMode;                              // One of FM_* values
+  POINT clipArea;                             // Object image rect on full image
+  SIZE szclipArea;                             // Object image rect on full image
   SortedList * plTextList;                   // List of GLYPHTEXT
 } GLYPHOBJECT,*LPGLYPHOBJECT;
 

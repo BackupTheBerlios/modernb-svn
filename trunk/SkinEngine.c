@@ -750,7 +750,7 @@ int DrawSkinObject(SKINDRAWREQUEST * preq, GLYPHOBJECT * pobj)
   int mode=0; //0-FastDraw, 1-DirectAlphaDraw, 2-BufferedAlphaDraw
 
   if (!(preq && pobj)) return -1;
-  if (!pobj->hGlyph && ((pobj->Style&7) ==ST_IMAGE ||(pobj->Style&7) ==ST_SOLARIZE)) return 0;
+  if (!pobj->hGlyph && ((pobj->Style&7) ==ST_IMAGE ||(pobj->Style&7) ==ST_FRAGMENT|| (pobj->Style&7) ==ST_SOLARIZE)) return 0;
   // Determine painting mode
   depth=GetDeviceCaps(preq->hDC,BITSPIXEL);
   depth=depth<16?16:depth;
@@ -835,6 +835,18 @@ int DrawSkinObject(SKINDRAWREQUEST * preq, GLYPHOBJECT * pobj)
         rClip=(preq->rcClipRect);
 
         {
+          int lft=0;
+          int top=0;
+          int rgh=bmp.bmWidth;
+          int btm=bmp.bmHeight;
+          if ((pobj->Style&7) ==ST_FRAGMENT)
+          {
+            lft=pobj->clipArea.x;
+            top=pobj->clipArea.y;
+            rgh=min(rgh,lft+pobj->szclipArea.cx);
+            btm=min(btm,top+pobj->szclipArea.cy);
+          }
+
           // Draw center...
           if (1)
           {
@@ -846,10 +858,10 @@ int DrawSkinObject(SKINDRAWREQUEST * preq, GLYPHOBJECT * pobj)
             if (mode==2)
               OffsetRect(&rFill,-mode2offset.x,-mode2offset.y);
 
-            rGlyph.top=pobj->dwTop;
-            rGlyph.left=pobj->dwLeft;
-            rGlyph.right=bmp.bmWidth-pobj->dwRight;
-            rGlyph.bottom=bmp.bmHeight-pobj->dwBottom;
+            rGlyph.top=top+pobj->dwTop;
+            rGlyph.left=lft+pobj->dwLeft;
+            rGlyph.right=rgh-pobj->dwRight;
+            rGlyph.bottom=btm-pobj->dwBottom;
 
             k+=SkFillRectangle(memdc,glyphdc,&rFill,&rGlyph,&PRect,pobj->FitMode,mode,depth);
           }
@@ -865,10 +877,10 @@ int DrawSkinObject(SKINDRAWREQUEST * preq, GLYPHOBJECT * pobj)
             if (mode==2)
               OffsetRect(&rFill,-mode2offset.x,-mode2offset.y);
 
-            rGlyph.top=0;
-            rGlyph.left=pobj->dwLeft;
-            rGlyph.right=bmp.bmWidth-pobj->dwRight;
-            rGlyph.bottom=pobj->dwTop;
+            rGlyph.top=top+0;
+            rGlyph.left=lft+pobj->dwLeft;
+            rGlyph.right=rgh-pobj->dwRight;
+            rGlyph.bottom=top+pobj->dwTop;
 
             k+=SkFillRectangle(memdc,glyphdc,&rFill,&rGlyph,&PRect,pobj->FitMode&FM_TILE_HORZ,mode,depth);
           }
@@ -884,10 +896,10 @@ int DrawSkinObject(SKINDRAWREQUEST * preq, GLYPHOBJECT * pobj)
               OffsetRect(&rFill,-mode2offset.x,-mode2offset.y);
 
 
-            rGlyph.top=bmp.bmHeight-pobj->dwBottom;
-            rGlyph.left=pobj->dwLeft;
-            rGlyph.right=bmp.bmWidth-pobj->dwRight;
-            rGlyph.bottom=bmp.bmHeight;
+            rGlyph.top=btm-pobj->dwBottom;
+            rGlyph.left=lft+pobj->dwLeft;
+            rGlyph.right=rgh-pobj->dwRight;
+            rGlyph.bottom=btm;
 
             k+=SkFillRectangle(memdc,glyphdc,&rFill,&rGlyph,&PRect,pobj->FitMode&FM_TILE_HORZ,mode,depth);
           }
@@ -903,10 +915,10 @@ int DrawSkinObject(SKINDRAWREQUEST * preq, GLYPHOBJECT * pobj)
               OffsetRect(&rFill,-mode2offset.x,-mode2offset.y);
 
 
-            rGlyph.top=pobj->dwTop;
-            rGlyph.left=0;
-            rGlyph.right=pobj->dwLeft;
-            rGlyph.bottom=bmp.bmHeight-pobj->dwBottom;
+            rGlyph.top=top+pobj->dwTop;
+            rGlyph.left=lft;
+            rGlyph.right=lft+pobj->dwLeft;
+            rGlyph.bottom=btm-pobj->dwBottom;
 
             k+=SkFillRectangle(memdc,glyphdc,&rFill,&rGlyph,&PRect,pobj->FitMode&FM_TILE_VERT,mode,depth);
           }
@@ -923,10 +935,10 @@ int DrawSkinObject(SKINDRAWREQUEST * preq, GLYPHOBJECT * pobj)
               OffsetRect(&rFill,-mode2offset.x,-mode2offset.y);
 
 
-            rGlyph.top=pobj->dwTop;
-            rGlyph.left=bmp.bmWidth-pobj->dwRight;
-            rGlyph.right=bmp.bmWidth;
-            rGlyph.bottom=bmp.bmHeight-pobj->dwBottom;
+            rGlyph.top=top+pobj->dwTop;
+            rGlyph.left=rgh-pobj->dwRight;
+            rGlyph.right=rgh;
+            rGlyph.bottom=btm-pobj->dwBottom;
 
             k+=SkFillRectangle(memdc,glyphdc,&rFill,&rGlyph,&PRect,pobj->FitMode&FM_TILE_VERT,mode,depth);
           }
@@ -944,10 +956,10 @@ int DrawSkinObject(SKINDRAWREQUEST * preq, GLYPHOBJECT * pobj)
               OffsetRect(&rFill,-mode2offset.x,-mode2offset.y);
 
 
-            rGlyph.top=0;
-            rGlyph.left=0;
-            rGlyph.right=pobj->dwLeft;
-            rGlyph.bottom=pobj->dwTop;
+            rGlyph.top=top;
+            rGlyph.left=lft;
+            rGlyph.right=lft+pobj->dwLeft;
+            rGlyph.bottom=top+pobj->dwTop;
 
             k+=SkFillRectangle(memdc,glyphdc,&rFill,&rGlyph,&PRect,0,mode,depth);
           }
@@ -963,10 +975,10 @@ int DrawSkinObject(SKINDRAWREQUEST * preq, GLYPHOBJECT * pobj)
               OffsetRect(&rFill,-mode2offset.x,-mode2offset.y);
 
 
-            rGlyph.top=0;
-            rGlyph.left=bmp.bmWidth-pobj->dwRight;
-            rGlyph.right=bmp.bmWidth;
-            rGlyph.bottom=pobj->dwTop;
+            rGlyph.top=top;
+            rGlyph.left=rgh-pobj->dwRight;
+            rGlyph.right=rgh;
+            rGlyph.bottom=top+pobj->dwTop;
 
             k+=SkFillRectangle(memdc,glyphdc,&rFill,&rGlyph,&PRect,0,mode,depth);
           }
@@ -984,10 +996,10 @@ int DrawSkinObject(SKINDRAWREQUEST * preq, GLYPHOBJECT * pobj)
               OffsetRect(&rFill,-mode2offset.x,-mode2offset.y);
 
 
-            rGlyph.left=0;
-            rGlyph.right=pobj->dwLeft; 
-            rGlyph.top=bmp.bmHeight-pobj->dwBottom;
-            rGlyph.bottom=bmp.bmHeight;
+            rGlyph.left=lft;
+            rGlyph.right=lft+pobj->dwLeft; 
+            rGlyph.top=btm-pobj->dwBottom;
+            rGlyph.bottom=btm;
 
             k+=SkFillRectangle(memdc,glyphdc,&rFill,&rGlyph,&PRect,0,mode,depth);
           }
@@ -1003,10 +1015,10 @@ int DrawSkinObject(SKINDRAWREQUEST * preq, GLYPHOBJECT * pobj)
             if (mode==2)
               OffsetRect(&rFill,-mode2offset.x,-mode2offset.y);
 
-            rGlyph.left=bmp.bmWidth-pobj->dwRight;
-            rGlyph.right=bmp.bmWidth;
-            rGlyph.top=bmp.bmHeight-pobj->dwBottom;
-            rGlyph.bottom=bmp.bmHeight;
+            rGlyph.left=rgh-pobj->dwRight;
+            rGlyph.right=rgh;
+            rGlyph.top=btm-pobj->dwBottom;
+            rGlyph.bottom=btm;
 
             k+=SkFillRectangle(memdc,glyphdc,&rFill,&rGlyph,&PRect,0,mode,depth);
           }
@@ -1215,7 +1227,7 @@ int Skin_DrawGlyph(WPARAM wParam,LPARAM lParam)
     }
   }while ((gl->Style&7) ==ST_PARENT);
   {
-    if (gl->hGlyph==NULL && ((gl->Style&7) ==ST_IMAGE || (gl->Style&7) ==ST_SOLARIZE))
+    if (gl->hGlyph==NULL && ((gl->Style&7) ==ST_IMAGE || (gl->Style&7) ==ST_FRAGMENT || (gl->Style&7) ==ST_SOLARIZE))
       if (gl->szFileName) 
         gl->hGlyph=LoadGlyphImage(gl->szFileName);
   }
