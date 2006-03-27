@@ -137,7 +137,7 @@ int GetGlobalStatus(WPARAM wparam,LPARAM lparam)
 	}
 	if (connectingCount==0)
 	{
-		gl_ConnectingProto=NULL;
+		//gl_ConnectingProto=NULL;
 		gl_MultiConnectionMode=FALSE;
 	}
 	else if (connectingCount>1) 
@@ -524,9 +524,12 @@ void TrayIconUpdateBase(char *szChangedProto)
 	int i,count,netProtoCount,changed=-1;
 	PROTOCOLDESCRIPTOR **protos;
 	int averageMode=0;
+	
 	HWND hwnd=(HWND)CallService(MS_CLUI_GETHWND,0,0);
+	if (!szChangedProto) return;
 	TRACE("TrayIconUpdateBase:");
 	TRACE(szChangedProto); TRACE("\n");
+	
 
 	if(cycleTimerId) {KillTimer(NULL,cycleTimerId); cycleTimerId=0;}
 	CallService(MS_PROTO_ENUMPROTOCOLS,(WPARAM)&count,(LPARAM)&protos);

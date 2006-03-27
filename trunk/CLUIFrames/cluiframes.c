@@ -142,7 +142,7 @@ int OnMoving(HWND hwnd,RECT *lParam)
       POINT pt={0};
       RECT wr;
       Frame=&(Frames[i]);
-
+	  	
       GetWindowRect(hwnd,&wr);
 	 // wr=changedWindowRect;
       ClientToScreen(hwnd,&pt);
@@ -1342,7 +1342,7 @@ int CLUIFramesSetFrameOptions(WPARAM wParam,LPARAM lParam)
     if(flag&F_NOBORDER) {style&=(~WS_BORDER);};
     {
       SetWindowLong(Frames[pos].hWnd,GWL_STYLE,(long)style);
-      SetWindowLong(Frames[pos].TitleBar.hwnd,GWL_STYLE,(long)style);
+      SetWindowLong(Frames[pos].TitleBar.hwnd,GWL_STYLE,(long)style& ~(WS_VSCROLL | WS_HSCROLL));
     }
     ulockfrm();
     CLUIFramesOnClistResize((WPARAM)pcli->hwndContactList,(LPARAM)0);
@@ -1374,7 +1374,7 @@ int CLUIFramesSetFrameOptions(WPARAM wParam,LPARAM lParam)
     return 0;
 
   case FO_TBSTYLE:
-    SetWindowLong(Frames[pos].TitleBar.hwnd,GWL_STYLE,lParam);
+    SetWindowLong(Frames[pos].TitleBar.hwnd,GWL_STYLE,lParam& ~(WS_VSCROLL | WS_HSCROLL));
     ulockfrm();
     return 0;
 
@@ -2086,7 +2086,7 @@ int CLUIFramesAddFrame(WPARAM wParam,LPARAM lParam)
   style&=(~WS_BORDER);
   style|=(((Frames[nFramescount-1].UseBorder)&&!LayeredFlag)?WS_BORDER:0);
   SetWindowLong(Frames[nFramescount-1].hWnd,GWL_STYLE,style);
-  SetWindowLong(Frames[nFramescount-1].TitleBar.hwnd,GWL_STYLE,style);
+  SetWindowLong(Frames[nFramescount-1].TitleBar.hwnd,GWL_STYLE,style& ~(WS_VSCROLL | WS_HSCROLL));
   SetWindowLong(Frames[nFramescount-1].TitleBar.hwnd,GWL_STYLE,GetWindowLong(Frames[nFramescount-1].TitleBar.hwnd,GWL_STYLE)&~(WS_VSCROLL|WS_HSCROLL));
 
   if (Frames[nFramescount-1].order==0){Frames[nFramescount-1].order=nFramescount;};
@@ -4162,7 +4162,7 @@ LRESULT CALLBACK CLUIFrameContainerWndProc(HWND hwnd, UINT msg, WPARAM wParam, L
       int framepos;
       RECT rect;
 
-
+	  CallWindowProc(DefWindowProc, hwnd, msg, wParam, lParam);
       lockfrm();
       framepos=id2pos(Frameid);
 

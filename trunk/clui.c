@@ -2397,6 +2397,7 @@ LRESULT CALLBACK ContactListWndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM l
 		{
 			RECT rc;
 			TRACE("WM_MOVE in CLUI\n");
+			CallWindowProc(DefWindowProc, hwnd, msg, wParam, lParam);
 
 			during_sizing=0;      
 			GetWindowRect(hwnd, &rc);
@@ -2674,18 +2675,6 @@ LRESULT CALLBACK ContactListWndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM l
 
 			pt=&CycleStartTick[wParam-TM_STATUSBARUPDATE];
 			{
-				// RECT rc;
-				// GetStatsuBarProtoRect(pcli->hwndStatus,pt->szProto,&rc);
-				// rc.right=rc.left+GetSystemMetrics(SM_CXSMICON)+1;
-				// rc.top=0;
-#ifdef _DEBUG
-				{
-					//char buf[512];
-					//sprintf(buf,"Invalidate left: %d right: %d\r\n",rc.left,rc.right);
-					//TRACE(buf);
-				}
-#endif
-
 				if(IsWindowVisible(pcli->hwndStatus)) SkinInvalidateFrame(pcli->hwndStatus,NULL,0);//InvalidateRectZ(pcli->hwndStatus,NULL,TRUE);
 				if (DBGetContactSettingByte(NULL,"CList","TrayIcon",SETTING_TRAYICON_DEFAULT)!=SETTING_TRAYICON_CYCLE) 
 					if (pt->isGlobal) 
@@ -2880,6 +2869,7 @@ LRESULT CALLBACK ContactListWndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM l
 		return 0;
 
 	case WM_MOVING:
+		CallWindowProc(DefWindowProc, hwnd, msg, wParam, lParam);
 		if (0) //showcontents is turned on
 		{
 			OnMoving(hwnd,(RECT*)lParam);
