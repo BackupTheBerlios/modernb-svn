@@ -510,12 +510,17 @@ void RowHeights_CalcRowHeights(struct ClcData *dat, HWND hwnd)
   struct ClcContact *Drawing;
   struct ClcGroup *group;
 
+  //EnterCriticalSection(&(dat->lockitemCS));
+  //TRACE("Critical 6\n");
+ 
   // Draw lines
   group=&dat->list;
   group->scanIndex=0;
   indent=0;
   subindex=-1;
   line_num = -1;
+
+
 
   RowHeights_Clear(dat);
 
@@ -578,6 +583,9 @@ void RowHeights_CalcRowHeights(struct ClcData *dat, HWND hwnd)
       group->scanIndex++;
     }
   }
+
+  //LeaveCriticalSection(&(dat->lockitemCS));
+  //TRACE("LeaveCritical 6\n");
 }
 
 

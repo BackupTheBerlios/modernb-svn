@@ -527,10 +527,6 @@ void TrayIconUpdateBase(char *szChangedProto)
 	
 	HWND hwnd=(HWND)CallService(MS_CLUI_GETHWND,0,0);
 	if (!szChangedProto) return;
-	TRACE("TrayIconUpdateBase:");
-	TRACE(szChangedProto); TRACE("\n");
-	
-
 	if(cycleTimerId) {KillTimer(NULL,cycleTimerId); cycleTimerId=0;}
 	CallService(MS_PROTO_ENUMPROTOCOLS,(WPARAM)&count,(LPARAM)&protos);
 	for(i=0,netProtoCount=0;i<count;i++) {

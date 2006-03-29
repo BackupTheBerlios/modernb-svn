@@ -4,8 +4,12 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "clist_modern", "clist_moder
 	EndProjectSection
 EndProject
 Global
+	GlobalSection(DPCodeReviewSolutionGUID) = preSolution
+		DPCodeReviewSolutionGUID = {00000000-0000-0000-0000-000000000000}
+	EndGlobalSection
 	GlobalSection(SolutionConfiguration) = preSolution
 		Debug = Debug
+		debug in release = debug in release
 		Debug Unicode = Debug Unicode
 		Release = Release
 		Release Unicode = Release Unicode
@@ -14,6 +18,8 @@ Global
 	GlobalSection(ProjectConfiguration) = postSolution
 		{D9057E63-AAAA-4FE7-800A-20C02F4761F3}.Debug.ActiveCfg = Debug|Win32
 		{D9057E63-AAAA-4FE7-800A-20C02F4761F3}.Debug.Build.0 = Debug|Win32
+		{D9057E63-AAAA-4FE7-800A-20C02F4761F3}.debug in release.ActiveCfg = debug in release|Win32
+		{D9057E63-AAAA-4FE7-800A-20C02F4761F3}.debug in release.Build.0 = debug in release|Win32
 		{D9057E63-AAAA-4FE7-800A-20C02F4761F3}.Debug Unicode.ActiveCfg = Debug Unicode|Win32
 		{D9057E63-AAAA-4FE7-800A-20C02F4761F3}.Debug Unicode.Build.0 = Debug Unicode|Win32
 		{D9057E63-AAAA-4FE7-800A-20C02F4761F3}.Release.ActiveCfg = Release|Win32

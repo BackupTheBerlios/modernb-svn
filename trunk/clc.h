@@ -123,8 +123,10 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #define TIMERID_INFOTIP        13
 #define TIMERID_REBUILDAFTER   14
 #define TIMERID_DELAYEDRESORTCLC   15
-#define TIMERID_SUBEXPAND 21
+#define TIMERID_SUBEXPAND		21
 #define TIMERID_INVALIDATE 22
+
+#define TIMERID_INVALIDATE_FULL 25
 
 #define FONTID_CONTACTS    0
 #define FONTID_INVIS       1
@@ -509,5 +511,7 @@ typedef struct {
 
 #define MS_SKIN_ADDHOTKEY      "Skin/HotKeys/AddNew"
 #define MS_SKIN_PLAYHOTKEY		"Skin/HotKeys/Run"
+
+//extern void (*saveSortCLC) (HWND hwnd, struct ClcData *dat, int useInsertionSort );
 
 #endif _CLC_H_

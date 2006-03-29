@@ -341,7 +341,7 @@ int ImageArray_AddImage(LP_IMAGE_ARRAY_DATA iad, HBITMAP hBmp, int pos)
 	}
 
 	// restore things
-	//SelectObject(hdc_old,old_bmp);
+//	SelectObject(hdc_old,old_bmp);
 	ModernDeleteDC(hdc_old);
 	if (iad->img != NULL) DeleteObject(iad->img);
 	iad->img = hNewBmp;

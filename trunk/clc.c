@@ -206,14 +206,13 @@ static int ReloadAvatarOverlayIcons(WPARAM wParam, LPARAM lParam)
 static int ClcModulesLoaded(WPARAM wParam,LPARAM lParam) {
 	PROTOCOLDESCRIPTOR **proto;
 	int protoCount,i;
+	
+	if (ServiceExists(MS_MC_DISABLEHIDDENGROUP));
+		CallService(MS_MC_DISABLEHIDDENGROUP, (WPARAM)TRUE, (LPARAM)0);
 
 	CallService(MS_PROTO_ENUMPROTOCOLS,(WPARAM)&protoCount,(LPARAM)&proto);
 	for(i=0;i<protoCount;i++) {
 		if(proto[i]->type!=PROTOTYPE_PROTOCOL) continue;
-		//clcProto=(ClcProtoStatus*)mir_realloc(clcProto,sizeof(ClcProtoStatus)*(hClcProtoCount+1));
-		//clcProto[hClcProtoCount].szProto = proto[i]->szName;
-		//clcProto[hClcProtoCount].dwStatus = ID_STATUS_OFFLINE;
-		//hClcProtoCount++;
 	}
 
 	// Get icons
@@ -265,10 +264,6 @@ static int ClcModulesLoaded(WPARAM wParam,LPARAM lParam) {
 		HookEvent(ME_SMILEYADD_OPTIONSCHANGED,SmileyAddOptionsChanged);
 	}
 
-	//CallService(MS_BACKGROUNDCONFIG_REGISTER,(WPARAM)"StatusBar Background/StatusBar",0);
-	//CallService(MS_BACKGROUNDCONFIG_REGISTER,(WPARAM)"List Background/CLC",0);
-	//CallService(MS_BACKGROUNDCONFIG_REGISTER,(WPARAM)"Frames TitleBar BackGround/FrameTitleBar",0);
-	//CallService(MS_BACKGROUNDCONFIG_REGISTER,(WPARAM)"Main Menu/Menu",0);
 	HookEvent(ME_BACKGROUNDCONFIG_CHANGED,BgClcChange);
 	HookEvent(ME_BACKGROUNDCONFIG_CHANGED,BgMenuChange);
 	HookEvent(ME_BACKGROUNDCONFIG_CHANGED,BgStatusBarChange);
@@ -456,7 +451,7 @@ int LoadCLCModule(void)
 	hSettingChanged1=HookEvent(ME_DB_CONTACT_SETTINGCHANGED,ClcSettingChanged);
 	HookEvent(ME_OPT_INITIALISE,ClcOptInit);
 	hAckHook=(HANDLE)HookEvent(ME_PROTO_ACK,ClcProtoAck);
-  HookEvent(ME_SYSTEM_MODULESLOADED, ClcModulesLoaded);
+	HookEvent(ME_SYSTEM_MODULESLOADED, ClcModulesLoaded);
 	HookEvent(ME_SYSTEM_SHUTDOWN,ClcShutdown);
 	return 0;
 }
@@ -484,6 +479,8 @@ LRESULT CALLBACK ContactListControlWndProc(HWND hwnd, UINT msg, WPARAM wParam, L
 			dat=(struct ClcData*)mir_calloc(1,sizeof(struct ClcData));
 			SetWindowLong(hwnd,0,(long)dat);
 			dat->hWnd=hwnd;
+//			dat->isStarting=TRUE;
+//			InitializeCriticalSectionAndSpinCount(&dat->lockitemCS,100);
 
 			dat->use_avatar_service = ServiceExists(MS_AV_GETAVATARBITMAP);
 			if (dat->use_avatar_service)
@@ -511,11 +508,13 @@ LRESULT CALLBACK ContactListControlWndProc(HWND hwnd, UINT msg, WPARAM wParam, L
 			//InitDisplayNameCache(&dat->lCLCContactsCache);
 
 			LoadClcOptions(hwnd,dat);
-			pcli->pfnRebuildEntireList(hwnd,dat);
+			//pcli->pfnRebuildEntireList(hwnd,dat);
 
-			TRACE("Create New ClistControl END\r\n");
-			SetTimer(hwnd,TIMERID_INVALIDATE,2000,NULL);
-			break;
+			TRACE("Create New ClistControl TO CORE\r\n");
+			SetTimer(hwnd,TIMERID_INVALIDATE,5000,NULL);
+			saveContactListControlWndProc(hwnd, msg, wParam, lParam);		
+			TRACE("Create New ClistControl TO END\r\n");		
+			return 0;
 		}
 	case WM_NCHITTEST:
 		{
@@ -912,6 +911,7 @@ LRESULT CALLBACK ContactListControlWndProc(HWND hwnd, UINT msg, WPARAM wParam, L
 					}
 				}
 				else {SetCapture(hwnd);return 0; }
+				return 0;
 			}
 			if(selMoved) {
 				dat->szQuickSearch[0]=0;
@@ -931,7 +931,12 @@ LRESULT CALLBACK ContactListControlWndProc(HWND hwnd, UINT msg, WPARAM wParam, L
 
 	case WM_TIMER:
 		{
-			if (wParam==TIMERID_INVALIDATE)
+			if (wParam==TIMERID_INVALIDATE_FULL)
+			{
+				KillTimer(hwnd,TIMERID_INVALIDATE_FULL);
+				SkinInvalidateFrame(hwnd,NULL,0);
+			}
+			else if (wParam==TIMERID_INVALIDATE)
 			{
 				time_t cur_time=(time(NULL)/60);
 				if (cur_time!=dat->last_tick_time)
@@ -1631,6 +1636,7 @@ LRESULT CALLBACK ContactListControlWndProc(HWND hwnd, UINT msg, WPARAM wParam, L
 	case WM_DESTROY:
 		{
 			int i=0;
+
 			for(i=0;i<=FONTID_MODERN_MAX;i++) 
 			{
 				if(dat->fontModernInfo[i].hFont) DeleteObject(dat->fontModernInfo[i].hFont);
@@ -1650,7 +1656,12 @@ LRESULT CALLBACK ContactListControlWndProc(HWND hwnd, UINT msg, WPARAM wParam, L
 				ImageArray_Free(&dat->avatar_cache, FALSE);
 
 			RowHeights_Free(dat);
-			break;
+			{ 
+//				CRITICAL_SECTION cs=dat->lockitemCS;
+				saveContactListControlWndProc(hwnd, msg, wParam, lParam);			
+//				DeleteCriticalSection(&cs);
+			}
+			return 0;
 		}
 	}
 	return saveContactListControlWndProc(hwnd, msg, wParam, lParam);

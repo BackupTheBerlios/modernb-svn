@@ -73,6 +73,9 @@ extern WORD BehindEdgeBorderSize;
 
 static HANDLE hSettingChanged;
 
+
+extern int SkinEditorOptInit(WPARAM wParam,LPARAM lParam);
+
 ////////// By FYR/////////////
 int ExtIconFromStatusMode(HANDLE hContact, const char *szProto,int status)
 {
@@ -136,6 +139,8 @@ int LoadContactListModule(void)
 	HookEvent(ME_SYSTEM_SHUTDOWN,ContactListShutdownProc);
 	HookEvent(ME_OPT_INITIALISE,CListOptInit);
 	HookEvent(ME_OPT_INITIALISE,SkinOptInit);
+	HookEvent(ME_OPT_INITIALISE,SkinEditorOptInit);
+	
 	hSettingChanged=HookEvent(ME_DB_CONTACT_SETTINGCHANGED,ContactSettingChanged);
 	HookEvent(ME_DB_CONTACT_ADDED,ContactAdded);
 	hStatusModeChangeEvent=CreateHookableEvent(ME_CLIST_STATUSMODECHANGE);

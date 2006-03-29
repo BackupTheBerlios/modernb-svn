@@ -26,6 +26,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #define DBFONTF_BOLD       1
 #define DBFONTF_ITALIC     2
 #define DBFONTF_UNDERLINE  4
+extern int SkinEditorOptInit(WPARAM wParam,LPARAM lParam);
 extern BOOL (WINAPI *MyUpdateLayeredWindow)(HWND,HDC,POINT*,SIZE*,HDC,POINT*,COLORREF,BLENDFUNCTION*,DWORD);
 HWND hCLUIwnd=NULL;
 LOGFONTA LoadLogFontFromDB(char * section, char * id, DWORD * color);

@@ -2437,6 +2437,7 @@ int AlphaTextOut (HDC hDC, LPCTSTR lpString, int nCount, RECT * lpRect, UINT for
         
       }
   }
+	if (sz.cy>2000) DebugBreak();
 	sz.cx+=4;
 	sz.cy+=4;
   if (sz.cx>0 && sz.cy>0)
@@ -3210,9 +3211,11 @@ int ValidateSingleFrameImage(wndFrame * Frame, BOOL SkipBkgBlitting)            
         si.cbSize=sizeof(SCROLLBARINFO);
         GetScrollBarInfo(Frame->hWnd,OBJID_VSCROLL,&si);
         rLine=(si.rcScrollBar);
-        rUpBtn=rLine;
+		rLine.left=(rLine.left>0)?rLine.left:rLine.right-20;
+		rUpBtn=rLine;
         rDnBtn=rLine;
         rThumb=rLine;
+		
         rUpBtn.bottom=rUpBtn.top+si.dxyLineButton;
         rDnBtn.top=rDnBtn.bottom-si.dxyLineButton;
         rThumb.top=rLine.top+si.xyThumbTop;

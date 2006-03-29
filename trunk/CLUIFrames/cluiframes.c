@@ -2092,7 +2092,29 @@ int CLUIFramesAddFrame(WPARAM wParam,LPARAM lParam)
   if (Frames[nFramescount-1].order==0){Frames[nFramescount-1].order=nFramescount;};
   ulockfrm();
 
-
+  //need to enlarge parent
+  {
+	  RECT mainRect;
+	  int mainHeight, minHeight;
+	  GetWindowRect(pcli->hwndContactList,&mainRect);
+	  mainHeight=mainRect.bottom-mainRect.top;
+	  minHeight=CLUIFramesGetMinHeight();
+	  if (mainHeight<minHeight)
+	  {
+		  BOOL Upward=FALSE;
+		  Upward=DBGetContactSettingByte(NULL,"CLUI","AutoSize",0)&&DBGetContactSettingByte(NULL,"CLUI","AutoSizeUpward",0);
+		  
+		  if (Upward)
+              mainRect.top=mainRect.bottom-minHeight;
+		  else 
+		  	  mainRect.bottom=mainRect.top+minHeight;	
+		  SetWindowPos(pcli->hwndContactList,NULL,mainRect.left,mainRect.top,mainRect.right-mainRect.left, mainRect.bottom-mainRect.top, SWP_NOZORDER|SWP_NOREDRAW|SWP_NOACTIVATE|SWP_NOSENDCHANGING);
+	  }
+	  GetWindowRect(pcli->hwndContactList,&mainRect);
+	  mainHeight=mainRect.bottom-mainRect.top;
+	  if (mainHeight<minHeight)
+		  DebugBreak();
+  }
   alclientFrame=-1;//recalc it
   CLUIFramesOnClistResize((WPARAM)pcli->hwndContactList,0);
 
@@ -2491,7 +2513,10 @@ int CLUIFramesResizeFrames(const RECT newsize)
     //TRACE("CLUIFramesResizeFrames\n");
 
   newheight=newsize.bottom-newsize.top;
-
+  if (newheight<0) 
+  {
+	  newheight=0;
+  }
 
 
   // search for alClient frame and get the titlebar's height
@@ -2947,6 +2972,8 @@ int CLUIFramesOnClistResize(WPARAM wParam,LPARAM lParam)
   nRect.top+=DBGetContactSettingByte(NULL,"CLUI","TopClientMargin",0); //$$ TOP border
   nRect.bottom-=DBGetContactSettingByte(NULL,"CLUI","BottomClientMargin",0); //$$ BOTTOM border
 
+  if (nRect.bottom<nRect.top)
+	  nRect.bottom=nRect.top;
   ContactListHeight=nRect.bottom-nRect.top; //$$
 
   tick=GetTickCount();

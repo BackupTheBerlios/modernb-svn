@@ -58,6 +58,8 @@ extern void TrayIconUpdateBase(char *szChangedProto);
 extern void TrayIconSetToBase(char *szPreferredProto);
 extern void TrayIconIconsChanged(void);
 extern void fnCluiProtocolStatusChanged(int status,const unsigned char * proto);
+//extern void SortCLC( HWND hwnd, struct ClcData *dat, int useInsertionSort );
+
 extern int sfnFindItem(HWND hwnd,struct ClcData *dat,HANDLE hItem,struct ClcContact **contact,struct ClcGroup **subgroup,int *isVisible);
 extern HMENU BuildGroupPopupMenu(struct ClcGroup *group);
 struct ClcGroup* ( *saveAddGroup )(HWND hwnd,struct ClcData *dat,const TCHAR *szName,DWORD flags,int groupId,int calcTotalMembers);
@@ -65,7 +67,7 @@ struct ClcGroup* ( *saveAddGroup )(HWND hwnd,struct ClcData *dat,const TCHAR *sz
 
 void (*savedLoadCluiGlobalOpts)(void);
 extern void LoadCluiGlobalOpts(void);
-
+//void (*saveSortCLC) (HWND hwnd, struct ClcData *dat, int useInsertionSort );
 int ( *saveAddItemToGroup )( struct ClcGroup *group, int iAboveItem );
 int AddItemToGroup(struct ClcGroup *group, int iAboveItem);
 
@@ -91,6 +93,29 @@ extern void FreeContact( struct ClcContact* );
 
 void ( *saveFreeGroup )( struct ClcGroup* );
 void FreeGroup( struct ClcGroup* );
+
+//void (*saveSaveStateAndRebuildList)(HWND hwnd, struct ClcData *dat);
+//extern int StoreAllContactData(struct ClcData *dat);
+//extern int RestoreAllContactData(struct ClcData *dat);
+
+//char* (*saveGetGroupCountsText)(struct ClcData *dat, struct ClcContact *contact);
+//char* GetGroupCountsText(struct ClcData *dat, struct ClcContact *contact)
+//{
+//	char * res;
+//	EnterCriticalSection(&(dat->lockitemCS));
+//	res=saveGetGroupCountsText(dat, contact);
+//	LeaveCriticalSection(&(dat->lockitemCS));
+//	return res;
+//}
+
+//void SaveStateAndRebuildList(HWND hwnd, struct ClcData *dat)
+//{
+//	StoreAllContactData(dat);
+//	EnterCriticalSection(&(dat->lockitemCS));
+//	saveSaveStateAndRebuildList(hwnd,dat);
+//	LeaveCriticalSection(&(dat->lockitemCS));
+//	RestoreAllContactData(dat);
+//}
 
 void ( *saveChangeContactIcon)(HANDLE hContact,int iIcon,int add);
 void ChangeContactIcon(HANDLE hContact,int iIcon,int add);
@@ -254,9 +279,14 @@ int __declspec(dllexport) CListInitialise(PLUGINLINK * link)
 
 	pcli->pfnGetRowByIndex=GetRowByIndex;
 
+//	saveSaveStateAndRebuildList=pcli->pfnSaveStateAndRebuildList;
+//	pcli->pfnSaveStateAndRebuildList=SaveStateAndRebuildList;
 
+//	saveSortCLC=pcli->pfnSortCLC;	pcli->pfnSortCLC=SortCLC;
 	saveAddGroup = pcli->pfnAddGroup; pcli->pfnAddGroup = AddGroup;
-  savedAddContactToTree=pcli->pfnAddContactToTree;  pcli->pfnAddContactToTree=AddContactToTree;
+//	saveGetGroupCountsText=pcli->pfnGetGroupCountsText;
+//	pcli->pfnGetGroupCountsText=GetGroupCountsText;
+    savedAddContactToTree=pcli->pfnAddContactToTree;  pcli->pfnAddContactToTree=AddContactToTree;
 	saveAddInfoItemToGroup = pcli->pfnAddInfoItemToGroup; pcli->pfnAddInfoItemToGroup = AddInfoItemToGroup;
 	saveAddItemToGroup = pcli->pfnAddItemToGroup; pcli->pfnAddItemToGroup = AddItemToGroup;
 	saveContactListControlWndProc = pcli->pfnContactListControlWndProc; pcli->pfnContactListControlWndProc = ContactListControlWndProc;

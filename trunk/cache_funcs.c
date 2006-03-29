@@ -31,6 +31,7 @@ Modified by FYR
 
 #include "commonheaders.h"
 #include "cache_funcs.h"
+#include "newpluginapi.h"
 
 
 /*
@@ -245,14 +246,130 @@ void Cache_GetTimezone(struct ClcData *dat, struct ClcContact *contact)
 }
 
 
+
+/*
+ *		Pooling 
+ */
+
+typedef struct _CacheAskChain {
+	HANDLE ContactRequest;
+	struct ClcData *dat;
+	struct ClcContact *contact;
+	struct CacheAskChain *Next;
+} CacheAskChain;
+
+CacheAskChain * FirstCacheChain=NULL;
+CacheAskChain * LastCacheChain=NULL;
+BOOL LockCacheChain=0;
+BOOL ISCacheTREADSTARTED=0;
+
+BOOL GetCacheChain(CacheAskChain * chain)
+{
+	while (LockCacheChain) 
+	{
+	    SleepEx(0,TRUE);
+		if (Miranda_Terminated()) return FALSE;
+	}
+	if (!FirstCacheChain) return FALSE;
+	else if (chain)
+	{
+		CacheAskChain * ch;
+		ch=FirstCacheChain;
+		*chain=*ch;
+		FirstCacheChain=(CacheAskChain *)ch->Next;
+		if (!FirstCacheChain) LastCacheChain=NULL;
+		mir_free(ch);
+		return TRUE;
+	}
+	return FALSE;
+}
+
+int GetTextThread(void * a)
+{
+	BOOL exit=FALSE;
+	BOOL err=FALSE;
+	do
+	{
+		SleepEx(1,TRUE); //1000 contacts per second
+		if (Miranda_Terminated()) 
+			return 0;
+		else
+		{
+			CacheAskChain chain={0};
+			struct ClcData *dat;
+			struct ClcContact * contact;
+			if (!GetCacheChain(&chain)) break;
+			if (!IsBadReadPtr(chain.dat,sizeof(struct ClcData))) dat=chain.dat;
+			else err=TRUE;
+			if (!err)
+			{
+				EnterCriticalSection(&(dat->lockitemCS));
+				if (FindItem(dat->hWnd,dat,chain.ContactRequest,&contact,NULL,0,0))
+				{
+					Cache_GetSecondLineText(dat, contact);
+					Cache_GetThirdLineText(dat, contact);
+				}
+				LeaveCriticalSection(&(dat->lockitemCS));
+				KillTimer(dat->hWnd,TIMERID_INVALIDATE_FULL);
+				SetTimer(dat->hWnd,TIMERID_INVALIDATE_FULL,100,NULL);
+			}
+			err=FALSE;
+		}
+	}
+    while (!exit);
+	ISCacheTREADSTARTED=FALSE;	
+	return 1;
+}
+int AddToCacheChain(struct ClcData *dat,struct ClcContact *contact,HANDLE ContactRequest)
+{
+	while (LockCacheChain) 
+	{
+	    SleepEx(0,TRUE);
+		if (Miranda_Terminated()) return 0;
+	}
+	LockCacheChain=TRUE;
+	{
+		CacheAskChain * chain=(CacheAskChain *)mir_alloc(sizeof(CacheAskChain));
+		chain->ContactRequest=ContactRequest;
+		chain->dat=dat;
+		chain->contact=contact;
+		chain->Next=NULL;
+		if (LastCacheChain) 
+		{
+			LastCacheChain->Next=(struct CacheAskChain *)chain;
+			LastCacheChain=chain;
+		}
+		else 
+		{
+			FirstCacheChain=chain;
+			LastCacheChain=chain;
+			if (!ISCacheTREADSTARTED)
+			{
+				//StartThreadHere();
+				forkthread(GetTextThread,0,0);
+				ISCacheTREADSTARTED=TRUE;
+			}
+		}
+	}
+	LockCacheChain=FALSE;
+	return FALSE;
+}
+
 /*
  *	Get all lines of text
  */ 
+
 void Cache_GetText(struct ClcData *dat, struct ClcContact *contact)
 {
 	Cache_GetFirstLineText(dat, contact);
-	Cache_GetSecondLineText(dat, contact);
-	Cache_GetThirdLineText(dat, contact);
+	if (!dat->force_in_dialog)// && !dat->isStarting)
+	//if (0)
+//		AddToCacheChain(dat,contact, contact->hContact);
+//	else
+	{
+		Cache_GetSecondLineText(dat, contact);
+		Cache_GetThirdLineText(dat, contact);
+	}
 }
 
 /*
@@ -336,7 +453,9 @@ void Cache_ReplaceSmileys(struct ClcData *dat, struct ClcContact *contact, TCHAR
 	sp.str = text;
 	sp.startChar = 0;
 	sp.size = 0;
-	CallService(MS_SMILEYADD_PARSET, 0, (LPARAM)&sp);
+	
+	if (ServiceExists(MS_SMILEYADD_PARSET))
+		CallService(MS_SMILEYADD_PARSET, 0, (LPARAM)&sp);
 
 	if (sp.size == 0)
 	{
@@ -397,7 +516,8 @@ void Cache_ReplaceSmileys(struct ClcData *dat, struct ClcContact *contact, TCHAR
 		 */
 		// Get next
 		last_pos=sp.startChar+sp.size;
-		CallService(MS_SMILEYADD_PARSET, 0, (LPARAM)&sp);
+		if (ServiceExists(MS_SMILEYADD_PARSET))
+			CallService(MS_SMILEYADD_PARSET, 0, (LPARAM)&sp);
 		
 	}
 	while (sp.size != 0);
@@ -623,6 +743,7 @@ void Cache_GetLineText(struct ClcContact *contact, int type, LPTSTR text, int te
 			TCHAR *tmp = variables_parsedup(variable_text, contact->szText, contact->hContact);
 			lstrcpyn(text, tmp, text_size);
 			if (tmp) free(tmp);
+			
 			break;
 		}
 	case TEXT_CONTACT_TIME:
@@ -734,15 +855,134 @@ int CopySkipUnPrintableChars(TCHAR *to, TCHAR * buf, DWORD size)
 	return i;
 }
 
+typedef struct _CONTACTDATASTORED
+{
+	BOOL used;
+	HANDLE hContact;
+	TCHAR * szSecondLineText;
+	TCHAR * szThirdLineText;
+	SortedList *plSecondLineText;
+	SortedList *plThirdLineText;
+} CONTACTDATASTORED;
 
-/*
- *	Avatar working routines
- */
+CONTACTDATASTORED * StoredContactsList=NULL;
+static int ContactsStoredCount=0;
+
+SortedList *CopySmileyString(SortedList *plInput)
+{
+	SortedList * plText;
+	int i;
+	if (!plInput || plInput->realCount==0) return NULL;
+	plText=li.List_Create( 0,1 );
+	for (i=0; i<plInput->realCount; i++)
+	{
+			ClcContactTextPiece *pieceFrom=plInput->items[i];
+			if (pieceFrom!=NULL)
+			{
+				ClcContactTextPiece *piece = (ClcContactTextPiece *) mir_alloc(sizeof(ClcContactTextPiece));			
+				*piece=*pieceFrom;
+				if (pieceFrom->smiley)
+					piece->smiley=CopyIcon(pieceFrom->smiley);
+				li.List_Insert(plText, piece, plText->realCount);
+			}
+	}
+	return plText;
+}
+
+BOOL StoreOneContactData(struct ClcContact *contact, BOOL subcontact, void *param)
+{
+	StoredContactsList=mir_realloc(StoredContactsList,sizeof(CONTACTDATASTORED)*(ContactsStoredCount+1));
+	{
+		CONTACTDATASTORED empty={0};
+		StoredContactsList[ContactsStoredCount]=empty;
+		StoredContactsList[ContactsStoredCount].hContact=contact->hContact;	
+		if (contact->szSecondLineText)
+			StoredContactsList[ContactsStoredCount].szSecondLineText=mir_strdupT(contact->szSecondLineText);
+		if (contact->szThirdLineText)
+			StoredContactsList[ContactsStoredCount].szThirdLineText=mir_strdupT(contact->szThirdLineText);		
+		if (contact->plSecondLineText)
+			StoredContactsList[ContactsStoredCount].plSecondLineText=CopySmileyString(contact->plSecondLineText);		
+		if (contact->plThirdLineText)
+			StoredContactsList[ContactsStoredCount].plThirdLineText=CopySmileyString(contact->plThirdLineText);
+	}
+	ContactsStoredCount++;
+	return 1;
+}
+
+BOOL RestoreOneContactData(struct ClcContact *contact, BOOL subcontact, void *param)
+{
+	int i;
+	for (i=0; i<ContactsStoredCount; i++)
+	{
+		if (StoredContactsList[i].hContact==contact->hContact)
+		{
+			CONTACTDATASTORED data=StoredContactsList[i];
+			memcpy(StoredContactsList+i,StoredContactsList+i+1,sizeof(CONTACTDATASTORED)*(ContactsStoredCount-1));
+			ContactsStoredCount--;
+			{
+				if (data.szSecondLineText)
+					if (!contact->szSecondLineText)
+						contact->szSecondLineText=data.szSecondLineText;
+					else 
+						mir_free(data.szSecondLineText);
+				if (data.szThirdLineText)
+					if (!contact->szThirdLineText)
+						contact->szThirdLineText=data.szThirdLineText;
+					else 
+						mir_free(data.szThirdLineText);
+				if (data.plSecondLineText)
+					if (!contact->plSecondLineText)
+						contact->plSecondLineText=data.plSecondLineText;
+					else
+						Cache_DestroySmileyList(data.plSecondLineText);
+				if (data.plThirdLineText)
+					if (!contact->plThirdLineText)
+						contact->plThirdLineText=data.plThirdLineText;
+					else
+						Cache_DestroySmileyList(data.plThirdLineText);
+			}
+			break;
+		}
+	}
+	return 1;
+}
+
+int StoreAllContactData(struct ClcData *dat)
+{
+	ExecuteOnAllContacts(dat,StoreOneContactData,NULL);
+	return 0;
+}
+
+int RestoreAllContactData(struct ClcData *dat)
+{
+	int i;
+	ExecuteOnAllContacts(dat,RestoreOneContactData,NULL);
+	for (i=0; i<ContactsStoredCount; i++)
+	{
+		if (StoredContactsList[i].szSecondLineText)
+			mir_free(StoredContactsList[i].szSecondLineText);
+		if (StoredContactsList[i].szThirdLineText)
+			mir_free(StoredContactsList[i].szThirdLineText);
+		if (StoredContactsList[i].plSecondLineText)
+			Cache_DestroySmileyList(StoredContactsList[i].plSecondLineText);
+		if (StoredContactsList[i].plThirdLineText)
+			Cache_DestroySmileyList(StoredContactsList[i].plThirdLineText);
+	}
+	if (StoredContactsList) mir_free(StoredContactsList);
+	StoredContactsList=NULL;
+	ContactsStoredCount=0;
+	return 0;
+}
+
 // If ExecuteOnAllContactsFuncPtr returns FALSE, stop loop
 // Return TRUE if finished, FALSE if was stoped
 BOOL ExecuteOnAllContacts(struct ClcData *dat, ExecuteOnAllContactsFuncPtr func, void *param)
 {
-	return ExecuteOnAllContactsOfGroup(&dat->list, func, param);
+	BOOL res;
+	//EnterCriticalSection(&(dat->lockitemCS));
+	res=ExecuteOnAllContactsOfGroup(&dat->list, func, param);
+	//LeaveCriticalSection(&(dat->lockitemCS));
+	return res;
 }
 
 BOOL ExecuteOnAllContactsOfGroup(struct ClcGroup *group, ExecuteOnAllContactsFuncPtr func, void *param)
@@ -781,6 +1021,10 @@ BOOL ExecuteOnAllContactsOfGroup(struct ClcGroup *group, ExecuteOnAllContactsFun
 	return TRUE;
 }
 
+
+/*
+ *	Avatar working routines
+ */
 BOOL UpdateAllAvatarsProxy(struct ClcContact *contact, BOOL subcontact, void *param)
 {
 	Cache_GetAvatar((struct ClcData *)param, contact);

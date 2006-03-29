@@ -1315,6 +1315,13 @@ static int CluiModulesLoaded(WPARAM wParam,LPARAM lParam)
 	/*
 	 *  End of updater support
 	 */
+	
+	/*
+	 *  Methacontact groups support
+	 */
+	if (ServiceExists(MS_MC_DISABLEHIDDENGROUP));
+		CallService(MS_MC_DISABLEHIDDENGROUP, (WPARAM)TRUE, (LPARAM)0);
+	
 	ZeroMemory(&mii,sizeof(mii));
 	mii.cbSize=MENUITEMINFO_V4_SIZE;
 	mii.fMask=MIIM_SUBMENU;
@@ -1634,13 +1641,12 @@ int OnSettingChanging(WPARAM wParam,LPARAM lParam)
 
 // Disconnect all protocols.
 // Happens on shutdown and standby.
-static void DisconnectAll()
+void DisconnectAll()
 {
 
 	PROTOCOLDESCRIPTOR** ppProtoDesc;
 	int nProtoCount;
 	int nProto;
-
 
 	CallService(MS_PROTO_ENUMPROTOCOLS, (WPARAM)&nProtoCount, (LPARAM)&ppProtoDesc);
 	for (nProto = 0; nProto < nProtoCount; nProto++)
@@ -1648,7 +1654,7 @@ static void DisconnectAll()
 		if (ppProtoDesc[nProto]->type == PROTOTYPE_PROTOCOL)
 			CallProtoService(ppProtoDesc[nProto]->szName, PS_SETSTATUS, ID_STATUS_OFFLINE, 0);
 	}
-
+	
 }
 
 int PreCreateCLC(HWND parent)
@@ -2785,27 +2791,7 @@ LRESULT CALLBACK ContactListWndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM l
 		}
 		else if ((int)wParam==TM_UPDATEBRINGTIMER)
 		{
-			//recheck timer
-			//    POINT pt;
-			//    HWND hAux;
-			//    int mouse_in_window=0;
-			//    if (BehindEdge_State==-1 && BehindEdgeSettings)
-			//      {
-			//        UpdateTimer(0);
-			//        return TRUE;
-			//      }
-			//    GetCursorPos(&pt);
-			//    hAux = WindowFromPoint(pt);
-			//while(hAux != NULL) 
-			//    {
-			//      if (hAux == hwnd) {mouse_in_window=1; break;}
-			//      hAux = GetParent(hAux);
-			//    }
-			//    if (!mouse_in_window)
-			{       
 				UpdateTimer(0);
-			}
-			//      TRACE("UpdatetimerTIMER\n");
 		}
 
 		return TRUE;
@@ -2814,6 +2800,7 @@ LRESULT CALLBACK ContactListWndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM l
 	case WM_SHOWWINDOW:
 		{	
 			BYTE gAlpha;
+			
 			if (lParam) return 0;
 			if (SHOWHIDE_CALLED_FROM_ANIMATION) return 1; 
 			{
@@ -3152,18 +3139,34 @@ LRESULT CALLBACK ContactListWndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM l
 	case WM_DESTROY:
 		{
 			int state=DBGetContactSettingByte(NULL,"CList","State",SETTING_STATE_NORMAL);
+
+			DisconnectAll();
+
 			if (state==SETTING_STATE_NORMAL){ShowWindowNew(hwnd,SW_HIDE);};				
 			if(hSettingChangedHook!=0){UnhookEvent(hSettingChangedHook);};
-			TrayIconDestroy(hwnd);
-			DisconnectAll();
+			TrayIconDestroy(hwnd);	
 			ANIMATION_IS_IN_PROGRESS=0;  		
 			SleepEx(100,TRUE);
-			CallService(MS_CLIST_FRAMES_REMOVEFRAME,(WPARAM)hFrameContactTree,(LPARAM)0);
+			CallService(MS_CLIST_FRAMES_REMOVEFRAME,(WPARAM)hFrameContactTree,(LPARAM)0);		
 			//DestroyWindow(pcli->hwndContactTree);
 			pcli->hwndContactTree=NULL;
+			SleepEx(1000,TRUE);
 			pcli->hwndStatus=NULL;
 			
-
+			SleepEx(2000,TRUE);
+			{
+				if(DBGetContactSettingByte(NULL,"CLUI","AutoSize",0))
+					{
+						RECT r;
+						GetWindowRect(pcli->hwndContactList,&r);
+						if(DBGetContactSettingByte(NULL,"CLUI","AutoSizeUpward",0))
+							r.top=r.bottom-CLUIFramesGetMinHeight();
+						else 
+							r.bottom=r.top+CLUIFramesGetMinHeight();
+						DBWriteContactSettingDword(NULL,"CList","y",r.top);
+						DBWriteContactSettingDword(NULL,"CList","Height",10/*r.bottom-r.top*/);
+					}
+			}
 			UnLoadCLUIFramesModule();	
 			pcli->hwndStatus=NULL;
 			ImageList_Destroy(himlMirandaIcon);
@@ -3325,6 +3328,8 @@ void LoadCLUIModule(void)
 	hFrameContactTree=0;
 	TRACE("Load CLUI Module\n");
 	//LoadModernButtonModule();
+
+	
 	CreateServiceFunction(MS_CLIST_GETSTATUSMODE,GetGlobalStatus);
 	hUserDll = LoadLibrary(TEXT("user32.dll"));
 	if (hUserDll)
@@ -3351,7 +3356,7 @@ void LoadCLUIModule(void)
 	LoadCluiServices();
   //TODO Add Row template loading here.
 
-  InitModernRow();
+	InitModernRow();
   
 	CreateServiceFunction("CLUI/GetConnectingIconForProtocol",GetConnectingIconService);
 

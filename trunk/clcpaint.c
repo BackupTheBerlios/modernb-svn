@@ -930,7 +930,8 @@ void ModernInternalPaintRowItems(HWND hwnd, HDC hdcMem, struct ClcData *dat, str
 		  if (InClistWindow && LayeredFlag)
 			DrawTextSA(hdcMem,szCounts,lstrlenA(szCounts),&counts_rc,uTextFormat);
 		  else
-			DrawTextA(hdcMem,szCounts,lstrlenA(szCounts),&counts_rc,uTextFormat);
+			  //88
+			DrawTextSA(hdcMem,szCounts,lstrlenA(szCounts),&counts_rc,uTextFormat);
           if (dat->text_rtl==0)
 			  text_rect.right=counts_rc.right;
 		  else
@@ -2618,12 +2619,14 @@ void InternalPaintClc(HWND hwnd,struct ClcData *dat,HDC hdc,RECT *rcPaint)
   time_ini = GetTickCount();
   #endif
   */
+  
 
   if(dat->greyoutFlags&pcli->pfnClcStatusToPf2(status) || style&WS_DISABLED) grey=1;
   else if(GetFocus()!=hwnd && dat->greyoutFlags&GREYF_UNFOCUS) grey=1;
   GetClientRect(hwnd,&clRect);
   if(rcPaint==NULL) rcPaint=&clRect;
   if(IsRectEmpty(rcPaint)) return;
+//  EnterCriticalSection(&(dat->lockitemCS));
   y=-dat->yScroll;
   if (grey && (!LayeredFlag))
   {
@@ -2688,23 +2691,12 @@ void InternalPaintClc(HWND hwnd,struct ClcData *dat,HDC hdc,RECT *rcPaint)
   subindex=-1;
   line_num = -1;
   //---
+
   if (dat->row_heights ) 
   {
-    //	if (NotInMain || dat->force_in_dialog|| !LayeredFlag ||grey)
-    //	{
-    //		SelectObject(hdcMem,oldbmp);
-    //		DeleteObject(hBmpOsb);
-    //		ModernDeleteDC(hdcMem);
-    //	}
-    //	if (grey && (!LayeredFlag))
-    //	{
-    //		SelectObject(hdcMem2,oldbmp2);
-    //		DeleteObject(hBmpOsb2);
-    //		ModernDeleteDC(hdcMem2);
-    //	}
-    //	return;
-    //}
-    //EnterCriticalSection(&(dat->lockitemCS));
+
+    
+	
     while(y < rcPaint->bottom)
     {
       if (subindex==-1)
@@ -2757,11 +2749,12 @@ void InternalPaintClc(HWND hwnd,struct ClcData *dat,HDC hdc,RECT *rcPaint)
         // Something to draw?
         if (!(!Drawing || IsBadCodePtr((FARPROC)Drawing)))
         {
-
+		 //LeaveCriticalSection(&(dat->lockitemCS));
+		 //TRACE("LeaveCritical 4\n");
           /*		SelectObject(hdcMem,oldbmp);
           DeleteObject(hBmpOsb);
           ModernDeleteDC(hdcMem);
-          //LeaveCriticalSection(&(dat->lockitemCS));
+  //        LeaveCriticalSection(&(dat->lockitemCS));
           return;
           */
 

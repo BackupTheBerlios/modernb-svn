@@ -1129,7 +1129,7 @@ int MenuModulesLoaded(WPARAM wParam,LPARAM lParam)
   };
   
   BuildStatusMenu(0,0);
-  pos=600000;
+  pos=300000;
   //mir_free(menusProto);
   return 0;
 }
@@ -1243,13 +1243,14 @@ int MenuModulesShutdown(WPARAM wParam,LPARAM lParam)
   UnhookEvent(hAckHook);
   return 0;
 }
-
+extern void DisconnectAll();
 int CloseAction(WPARAM wParam,LPARAM lParam)
 {
   int k;
   k=CallService(MS_SYSTEM_OKTOEXIT,(WPARAM)0,(LPARAM)0);
   if(k)
   {
+	DisconnectAll();
     SendMessage((HWND)CallService(MS_CLUI_GETHWND,(WPARAM)0,(LPARAM)0),WM_DESTROY,0,0);
     PostQuitMessage(0);
     SleepEx(0,TRUE);
@@ -1444,9 +1445,9 @@ static int AddStatusMenuItem(WPARAM wParam,LPARAM lParam)
 			_snprintf(buf,sizeof(buf),Translate("%s Custom Status"),menusProtoSingle.szProto);
 		if ( (val && boolstrcmpi(menusProtoSingle.szProto,mi->pszContactOwner))||
             (wParam==0 && boolstrcmpi(buf,mi->pszPopupName)) )
-      {
+		 {
 			mp=&menusProtoSingle;
-		}
+		 }
 	}
 	// End 
   }
@@ -1464,7 +1465,7 @@ static int AddStatusMenuItem(WPARAM wParam,LPARAM lParam)
   if (wParam)
   {
     int * res=(int*)wParam;
-    *res=(int)mp->hasAdded;
+	*res=mp?(int)mp->hasAdded:0;
   }
   memset(&tmi,0,sizeof(tmi));
   tmi.cbSize=sizeof(tmi);
