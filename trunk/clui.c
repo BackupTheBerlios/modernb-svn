@@ -46,7 +46,7 @@ extern BYTE CALLED_FROM_SHOWHIDE;
 #define TM_STATUSBARUPDATE  200
 #define MENU_MIRANDAMENU         0xFFFF1234
 #define MENU_STATUSMENU         0xFFFF1235
-
+extern int CLUIFramesGetTotalHeight();
 extern BOOL TransparentFlag;
 extern int UnhookAll();
 extern void Docking_GetMonitorRectFromWindow(HWND hWnd,RECT *rc);
@@ -3153,16 +3153,16 @@ LRESULT CALLBACK ContactListWndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM l
 			SleepEx(1000,TRUE);
 			pcli->hwndStatus=NULL;
 			
-			SleepEx(2000,TRUE);
+			SleepEx(500,TRUE);
 			{
 				if(DBGetContactSettingByte(NULL,"CLUI","AutoSize",0))
 					{
 						RECT r;
 						GetWindowRect(pcli->hwndContactList,&r);
 						if(DBGetContactSettingByte(NULL,"CLUI","AutoSizeUpward",0))
-							r.top=r.bottom-CLUIFramesGetMinHeight();
+							r.top=r.bottom-CLUIFramesGetTotalHeight();
 						else 
-							r.bottom=r.top+CLUIFramesGetMinHeight();
+							r.bottom=r.top+CLUIFramesGetTotalHeight();
 						DBWriteContactSettingDword(NULL,"CList","y",r.top);
 						DBWriteContactSettingDword(NULL,"CList","Height",10/*r.bottom-r.top*/);
 					}

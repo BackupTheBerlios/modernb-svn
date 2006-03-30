@@ -45,7 +45,8 @@ typedef struct
 static char *gl_Mask=NULL;
 HWND gl_Dlg=NULL;
 int  gl_controlID=0;
-
+int EnableGroup(HWND hwndDlg, HWND first, BOOL bEnable);
+int ShowGroup(HWND hwndDlg, HWND first, BOOL bEnable);
 
 HTREEITEM FindChild(HWND hTree, HTREEITEM Parent, char * Caption)
 {
@@ -119,6 +120,7 @@ int TreeAddObject(HWND hwndDlg, int ID, OPT_OBJECT_DATA * data)
 	mir_free(path);
 	return 0;
 }
+
 int EnumSkinObjectsInBase(const char *szSetting,LPARAM lParam)
 {
 	if (WildCompare((char *)szSetting,gl_Mask,0))
@@ -161,6 +163,9 @@ int FillObjectTree(HWND hwndDlg, int ObjectTreeID, char * wildmask)
 	CallService(MS_DB_CONTACT_ENUMSETTINGS,0,(LPARAM)&dbces);
 	return 0;
 }
+TCHAR *TYPES[]={_T("- Empty - (do not draw this object)"),_T("Solid fill object"),_T("Image (draw image)"),_T("Fragment (draw portion of image)")};
+TCHAR *FITMODES[]={_T("Stretch Both dir"),_T("Stretch Vert, Tile Horiz"),_T("Tile Vert, Stretch Horiz"),_T("Tile Both dir")};
+	
 
 static BOOL CALLBACK DlgSkinEditorOpts(HWND hwndDlg, UINT msg, WPARAM wParam, LPARAM lParam)
 {
@@ -175,6 +180,21 @@ static BOOL CALLBACK DlgSkinEditorOpts(HWND hwndDlg, UINT msg, WPARAM wParam, LP
 		{ 			
 			TranslateDialogDefault(hwndDlg);
 			FillObjectTree(hwndDlg,IDC_OBJECT_TREE,"$%*");
+			{	//Fill types combo
+				int i=0;
+				for (i=0; i<SIZEOF(TYPES); i++)
+					SendDlgItemMessage(hwndDlg,IDC_TYPE,CB_ADDSTRING,0,(LPARAM)TranslateTS(TYPES[i]));
+				SendDlgItemMessage(hwndDlg,IDC_TYPE,CB_SETCURSEL,(WPARAM)0,(LPARAM)0);
+			}
+			{	//Fill fit combo
+				int i=0;
+				for (i=0; i<SIZEOF(FITMODES); i++)
+					SendDlgItemMessage(hwndDlg,IDC_FIT,CB_ADDSTRING,0,(LPARAM)TranslateTS(FITMODES[i]));
+				SendDlgItemMessage(hwndDlg,IDC_FIT,CB_SETCURSEL,(WPARAM)0,(LPARAM)0);
+			}
+			//ShowGroup(hwndDlg,GetDlgItem(hwndDlg,IDC_GROUP_1),FALSE);
+			//ShowGroup(hwndDlg,GetDlgItem(hwndDlg,IDC_GROUP_2),FALSE);
+			//ShowGroup(hwndDlg,GetDlgItem(hwndDlg,IDC_GROUP_3),FALSE);
 			break;
 		}
 
@@ -245,5 +265,33 @@ int SkinEditorOptInit(WPARAM wParam,LPARAM lParam)
 	//	odp.expertOnlyControls=expertOnlyControls;
 	//	odp.nExpertOnlyControls=sizeof(expertOnlyControls)/sizeof(expertOnlyControls[0]);
 	CallService(MS_OPT_ADDPAGE,wParam,(LPARAM)&odp);
+	return 0;
+}
+
+int EnableGroup(HWND hwndDlg, HWND first, BOOL bEnable)
+{
+	HWND hwnd=first;
+	BOOL exit=FALSE;
+	if (!hwnd) return 0;
+    do
+	{
+		EnableWindow(hwnd,bEnable);
+		hwnd=GetWindow(hwnd,GW_HWNDNEXT);
+		if (!hwnd || GetWindowLong(hwnd,GWL_STYLE)&WS_GROUP) exit=TRUE;
+	}while (!exit);
+	return 0;
+}
+
+int ShowGroup(HWND hwndDlg, HWND first, BOOL bEnable)
+{
+	HWND hwnd=first;
+	BOOL exit=FALSE;
+	if (!hwnd) return 0;
+    do
+	{
+		ShowWindow(hwnd,bEnable?SW_SHOW:SW_HIDE);
+		hwnd=GetWindow(hwnd,GW_HWNDNEXT);
+		if (!hwnd || GetWindowLong(hwnd,GWL_STYLE)&WS_GROUP) exit=TRUE;
+	}while (!exit);
 	return 0;
 }

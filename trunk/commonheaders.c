@@ -88,11 +88,11 @@ BOOL __cdecl boolstrcmpiT(const TCHAR *a, const TCHAR *b)
 int __cdecl MyStrCmp (const char *a, const char *b)
 {
 	
-	if (a==NULL&&b==NULL) return 0;
-	if ((int)a<1000||(int)b<1000||IsBadCodePtr((FARPROC)a)||IsBadCodePtr((FARPROC)b)) 
-	{
-		return 1;
-	}
+	if (!(a&&b)) return a!=b;
+//	if ((int)a<1000||(int)b<1000||IsBadCodePtr((FARPROC)a)||IsBadCodePtr((FARPROC)b)) 
+//	{
+//		return 1;
+//	}
 	//TRACE("MY\r\n");
 	//undef();
 	return (strcmp(a,b));

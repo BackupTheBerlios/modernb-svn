@@ -27,6 +27,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #include "SkinEngine.h"
 #include "io.h"
 #include "commonprototypes.h"
+//#include "shlwapi.h"
 /*******************************/
 // Main skin selection routine //
 /*******************************/
@@ -38,6 +39,7 @@ typedef struct _SkinListData
 } SkinListData;
 HBITMAP hPreviewBitmap=NULL;
 extern HWND hCLUIwnd;
+static int AddItemToTree(HWND hTree, char * folder, char * itemName, void * data);
 extern int LoadSkinFromIniFile(char*);
 extern int RedrawCompleteWindow();
 extern int LoadSkinFromDB();
@@ -80,7 +82,6 @@ static BOOL CALLBACK DlgSkinOpts(HWND hwndDlg, UINT msg, WPARAM wParam, LPARAM l
 			int it;
 			TranslateDialogDefault(hwndDlg);
 			it=FillAvailableSkinList(hwndDlg);
-
 			{
 				/* Text Colors */
 				DWORD c1,c2,c3,c4;
@@ -99,19 +100,10 @@ static BOOL CALLBACK DlgSkinOpts(HWND hwndDlg, UINT msg, WPARAM wParam, LPARAM l
 				SendDlgItemMessage(hwndDlg,IDC_COLOUR_STATUSBAR,CPM_SETDEFAULTCOLOUR,0,c4);                              
 				/* End of Text colors */
 			}
-			SendDlgItemMessage(hwndDlg,IDC_SKINS_LIST,LB_SETCURSEL,it,0); 
-			SendMessage(hwndDlg,WM_COMMAND,MAKEWPARAM(IDC_SKINS_LIST,LBN_SELCHANGE),0);
+
+			TreeView_SelectItem(GetDlgItem(hwndDlg,IDC_TREE1),(HTREEITEM)it);						
 		}
 		return TRUE;
-	case WM_DELETEITEM:
-		if (wParam==IDC_SKINS_LIST)
-		{
-			DELETEITEMSTRUCT *dis=(DELETEITEMSTRUCT*)lParam;
-			if (dis->itemData) 
-				mir_free((void *)dis->itemData);   
-			return TRUE;
-		}
-		return FALSE;
 	case WM_COMMAND:
 		{
 			int isLoad=0;
@@ -131,11 +123,16 @@ static BOOL CALLBACK DlgSkinOpts(HWND hwndDlg, UINT msg, WPARAM wParam, LPARAM l
 					char Contact[255];
 					char Description[400];
 					char text[2000];
-					int item;
-					SkinListData *sd;           
-					item=SendDlgItemMessage(hwndDlg,IDC_SKINS_LIST,LB_GETCURSEL,0,0); 
-					if (item==-1) return 0;
-					sd=(SkinListData*)SendDlgItemMessage(hwndDlg,IDC_SKINS_LIST,LB_GETITEMDATA,(WPARAM)item,(LPARAM)0);              
+					SkinListData *sd=NULL;  
+					HTREEITEM hti=TreeView_GetSelection(GetDlgItem(hwndDlg,IDC_TREE1));				
+					if (hti==0) return 0;
+					{
+						TVITEMA tvi={0};
+						tvi.hItem=hti;
+						tvi.mask=TVIF_HANDLE|TVIF_PARAM;
+						TreeView_GetItem(GetDlgItem(hwndDlg,IDC_TREE1),&tvi);
+						sd=(SkinListData*)(tvi.lParam);
+					}
 					if (!sd) return 0;
 					GetPrivateProfileStringA("Skin_Description_Section","Author","(unknown)",Author,sizeof(Author),sd->File);
 					GetPrivateProfileStringA("Skin_Description_Section","URL","",URL,sizeof(URL),sd->File);
@@ -148,12 +145,17 @@ static BOOL CALLBACK DlgSkinOpts(HWND hwndDlg, UINT msg, WPARAM wParam, LPARAM l
 				break;
 			case IDC_BUTTON_APPLY_SKIN:
 				if (HIWORD(wParam)==BN_CLICKED)
-				{
-					int item;
-					SkinListData *sd;           
-					item=SendDlgItemMessage(hwndDlg,IDC_SKINS_LIST,LB_GETCURSEL,0,0); 
-					if (item==-1) return 0;
-					sd=(SkinListData*)SendDlgItemMessage(hwndDlg,IDC_SKINS_LIST,LB_GETITEMDATA,(WPARAM)item,(LPARAM)0);              
+				{ 
+					SkinListData *sd=NULL;  
+					HTREEITEM hti=TreeView_GetSelection(GetDlgItem(hwndDlg,IDC_TREE1));				
+					if (hti==0) return 0;
+					{
+						TVITEM tvi={0};
+						tvi.hItem=hti;
+						tvi.mask=TVIF_HANDLE|TVIF_PARAM;
+						TreeView_GetItem(GetDlgItem(hwndDlg,IDC_TREE1),&tvi);
+						sd=(SkinListData*)(tvi.lParam);
+					}
 					if (!sd) return 0;
 					LoadSkinFromIniFile(sd->File);
 					LoadSkinFromDB();	
@@ -212,87 +214,91 @@ static BOOL CALLBACK DlgSkinOpts(HWND hwndDlg, UINT msg, WPARAM wParam, LPARAM l
 						if (res)
 						{
 							int it=AddSkinToListFullName(hwndDlg,ofn.lpstrFile);
-							SendDlgItemMessage(hwndDlg,IDC_SKINS_LIST,LB_SETCURSEL,it,0); 
-							SendMessage(hwndDlg,WM_COMMAND,MAKEWPARAM(IDC_SKINS_LIST,LBN_SELCHANGE),0);
+							TreeView_SelectItem(GetDlgItem(hwndDlg,IDC_TREE1),(HTREEITEM)it);
+							//SendDlgItemMessage(hwndDlg,IDC_SKINS_LIST,LB_SETCURSEL,it,0); 
+							//SendMessage(hwndDlg,WM_COMMAND,MAKEWPARAM(IDC_SKINS_LIST,LBN_SELCHANGE),0);
 						}
 					}
 				}
-			case IDC_SKINS_LIST:
-				{
-					switch (HIWORD(wParam))
-					{
-					case LBN_SELCHANGE:
-						//TODO: Skin list selection was changed
-						{
-							int item;            
-							if (hPreviewBitmap) 
-							{
-								DeleteObject(hPreviewBitmap);
-								hPreviewBitmap=NULL;
-							}
-							item=SendDlgItemMessage(hwndDlg,IDC_SKINS_LIST,LB_GETCURSEL,0,0); 
-							if (item!=-1)
-							{
-								//selected
-								SkinListData * sd;
-								sd=(SkinListData*)SendDlgItemMessage(hwndDlg,IDC_SKINS_LIST,LB_GETITEMDATA,(WPARAM)item,(LPARAM)0); 
-								if (sd)
-								{
-									//enable 'Apply' button
-									//enable 'Info' button
-									//update preview
-									SendDlgItemMessageA(hwndDlg,IDC_EDIT_SKIN_FILENAME,WM_SETTEXT,0,(LPARAM)sd->File); //TODO made filepath unicode
-									{
-										char prfn[MAX_PATH]={0};
-										char imfn[MAX_PATH]={0};
-										char skinfolder[MAX_PATH]={0};
-										GetPrivateProfileStringA("Skin_Description_Section","Preview","",imfn,sizeof(imfn),sd->File);
-										GetSkinFolder(sd->File,skinfolder);
-										_snprintf(prfn,sizeof(prfn),"%s\\%s",skinfolder,imfn);
-										CallService(MS_UTILS_PATHTOABSOLUTE,(WPARAM)prfn,(LPARAM) imfn);
-										hPreviewBitmap=intLoadGlyphImage(imfn);
-									}
-									EnableWindow(GetDlgItem(hwndDlg,IDC_BUTTON_APPLY_SKIN),TRUE);
-									EnableWindow(GetDlgItem(hwndDlg,IDC_BUTTON_INFO),TRUE);
+			//case IDC_SKINS_LIST:
+			//	{
+			//		switch (HIWORD(wParam))
+			//		{
+			//		case LBN_SELCHANGE:
+			//			//TODO: Skin list selection was changed
+			//			{
+			//				/*
+			//				int item;            
+			//				if (hPreviewBitmap) 
+			//				{
+			//					DeleteObject(hPreviewBitmap);
+			//					hPreviewBitmap=NULL;
+			//				}
+			//				item=SendDlgItemMessage(hwndDlg,IDC_SKINS_LIST,LB_GETCURSEL,0,0); 
+			//				if (item!=-1)
+			//				{
+			//					//selected
+			//					SkinListData * sd;
+			//					sd=(SkinListData*)SendDlgItemMessage(hwndDlg,IDC_SKINS_LIST,LB_GETITEMDATA,(WPARAM)item,(LPARAM)0); 
+			//					if (sd)
+			//					{
+			//						//enable 'Apply' button
+			//						//enable 'Info' button
+			//						//update preview
+			//						SendDlgItemMessageA(hwndDlg,IDC_EDIT_SKIN_FILENAME,WM_SETTEXT,0,(LPARAM)sd->File); //TODO made filepath unicode
+			//						{
+			//							char prfn[MAX_PATH]={0};
+			//							char imfn[MAX_PATH]={0};
+			//							char skinfolder[MAX_PATH]={0};
+			//							GetPrivateProfileStringA("Skin_Description_Section","Preview","",imfn,sizeof(imfn),sd->File);
+			//							GetSkinFolder(sd->File,skinfolder);
+			//							_snprintf(prfn,sizeof(prfn),"%s\\%s",skinfolder,imfn);
+			//							CallService(MS_UTILS_PATHTOABSOLUTE,(WPARAM)prfn,(LPARAM) imfn);
+			//							hPreviewBitmap=intLoadGlyphImage(imfn);
+			//						}
+			//						EnableWindow(GetDlgItem(hwndDlg,IDC_BUTTON_APPLY_SKIN),TRUE);
+			//						EnableWindow(GetDlgItem(hwndDlg,IDC_BUTTON_INFO),TRUE);
 
-								}
-							}
-							else
-							{
-								//no selected
-								SendDlgItemMessage(hwndDlg,IDC_EDIT_SKIN_FILENAME,WM_SETTEXT,0,(LPARAM)TranslateT("Select skin from list"));
-								EnableWindow(GetDlgItem(hwndDlg,IDC_BUTTON_APPLY_SKIN),FALSE);
-								EnableWindow(GetDlgItem(hwndDlg,IDC_BUTTON_INFO),FALSE);
-							} 
-							ShowWindowNew(GetDlgItem(hwndDlg,IDC_PREVIEW),hPreviewBitmap?SW_SHOW:SW_HIDE);
-							if (hPreviewBitmap) InvalidateRect(GetDlgItem(hwndDlg,IDC_PREVIEW),NULL,TRUE);
-							else  //prepeare text
-							{
-								char Author[255];
-								char URL[MAX_PATH];
-								char Contact[255];
-								char Description[400];
-								char text[2000];
-								int item;
-								SkinListData *sd;           
-								item=SendDlgItemMessage(hwndDlg,IDC_SKINS_LIST,LB_GETCURSEL,0,0); 
-								if (item==-1) return 0;
-								sd=(SkinListData*)SendDlgItemMessage(hwndDlg,IDC_SKINS_LIST,LB_GETITEMDATA,(WPARAM)item,(LPARAM)0);              
-								if (!sd) return 0;
-								GetPrivateProfileStringA("Skin_Description_Section","Author","(unknown)",Author,sizeof(Author),sd->File);
-								GetPrivateProfileStringA("Skin_Description_Section","URL","",URL,sizeof(URL),sd->File);
-								GetPrivateProfileStringA("Skin_Description_Section","Contact","",Contact,sizeof(Contact),sd->File);
-								GetPrivateProfileStringA("Skin_Description_Section","Description","",Description,sizeof(Description),sd->File);
-								_snprintf(text,sizeof(text),Translate("Preview is not available\n\n%s\n----------------------\n\n%s\n\nAUTHOR(S):\n%s\n\nCONTACT:\n%s\n\nHOMEPAGE:\n%s"),
-									sd->Name,Description,Author,Contact,URL);
-								SendDlgItemMessageA(hwndDlg,IDC_STATIC_INFO,WM_SETTEXT,0,(LPARAM)text);
-							}
-						}
-						break;
+			//					}
+			//				}
+			//				else
+			//				{
+			//					//no selected
+			//					SendDlgItemMessage(hwndDlg,IDC_EDIT_SKIN_FILENAME,WM_SETTEXT,0,(LPARAM)TranslateT("Select skin from list"));
+			//					EnableWindow(GetDlgItem(hwndDlg,IDC_BUTTON_APPLY_SKIN),FALSE);
+			//					EnableWindow(GetDlgItem(hwndDlg,IDC_BUTTON_INFO),FALSE);
+			//				} 
+			//				ShowWindowNew(GetDlgItem(hwndDlg,IDC_PREVIEW),hPreviewBitmap?SW_SHOW:SW_HIDE);
+			//				if (hPreviewBitmap) InvalidateRect(GetDlgItem(hwndDlg,IDC_PREVIEW),NULL,TRUE);
+			//				else  //prepeare text
 
-					}
-					break;
-				}
+			//				{
+			//					char Author[255];
+			//					char URL[MAX_PATH];
+			//					char Contact[255];
+			//					char Description[400];
+			//					char text[2000];
+			//					int item;
+			//					SkinListData *sd;           
+			//					item=SendDlgItemMessage(hwndDlg,IDC_SKINS_LIST,LB_GETCURSEL,0,0); 
+			//					if (item==-1) return 0;
+			//					sd=(SkinListData*)SendDlgItemMessage(hwndDlg,IDC_SKINS_LIST,LB_GETITEMDATA,(WPARAM)item,(LPARAM)0);              
+			//					if (!sd) return 0;
+			//					GetPrivateProfileStringA("Skin_Description_Section","Author","(unknown)",Author,sizeof(Author),sd->File);
+			//					GetPrivateProfileStringA("Skin_Description_Section","URL","",URL,sizeof(URL),sd->File);
+			//					GetPrivateProfileStringA("Skin_Description_Section","Contact","",Contact,sizeof(Contact),sd->File);
+			//					GetPrivateProfileStringA("Skin_Description_Section","Description","",Description,sizeof(Description),sd->File);
+			//					_snprintf(text,sizeof(text),Translate("Preview is not available\n\n%s\n----------------------\n\n%s\n\nAUTHOR(S):\n%s\n\nCONTACT:\n%s\n\nHOMEPAGE:\n%s"),
+			//						sd->Name,Description,Author,Contact,URL);
+			//					SendDlgItemMessageA(hwndDlg,IDC_STATIC_INFO,WM_SETTEXT,0,(LPARAM)text);
+			//				}
+			//				*/
+			//			}
+			//			break;
+
+			//		}
+			//		break;
+			//	}
 			}
 			break;
 		}
@@ -357,10 +363,95 @@ static BOOL CALLBACK DlgSkinOpts(HWND hwndDlg, UINT msg, WPARAM wParam, LPARAM l
 			ModernDeleteDC(memDC);
 		}
 		break;
+
 	case WM_NOTIFY:
 		switch (((LPNMHDR)lParam)->idFrom) 
 		{
-
+		case IDC_TREE1:
+		{		
+			NMTREEVIEWA * nmtv = (NMTREEVIEWA *) lParam;
+			if (!nmtv) return 0;
+			if (nmtv->hdr.code==TVN_SELCHANGEDA)
+			{	
+				SkinListData * sd=NULL;
+				if (hPreviewBitmap) 
+				{
+					DeleteObject(hPreviewBitmap);
+					hPreviewBitmap=NULL;
+				}
+				if (nmtv->itemNew.lParam)
+				{
+					//char sdFile[MAX_PATH]={0};
+					sd=(SkinListData*)nmtv->itemNew.lParam;
+				    //PathCompactPathExA(sdFile,sd->File,60,0);
+					{
+						char buf[MAX_PATH];
+						CallService(MS_UTILS_PATHTORELATIVE, (WPARAM)sd->File, (LPARAM)buf);
+						SendDlgItemMessageA(hwndDlg,IDC_EDIT_SKIN_FILENAME,WM_SETTEXT,0,(LPARAM)buf); //TODO made filepath unicode
+					}
+					{
+							char prfn[MAX_PATH]={0};
+							char imfn[MAX_PATH]={0};
+							char skinfolder[MAX_PATH]={0};
+							GetPrivateProfileStringA("Skin_Description_Section","Preview","",imfn,sizeof(imfn),sd->File);
+							GetSkinFolder(sd->File,skinfolder);
+							_snprintf(prfn,sizeof(prfn),"%s\\%s",skinfolder,imfn);
+							CallService(MS_UTILS_PATHTOABSOLUTE,(WPARAM)prfn,(LPARAM) imfn);
+							hPreviewBitmap=intLoadGlyphImage(imfn);
+						}
+					EnableWindow(GetDlgItem(hwndDlg,IDC_BUTTON_APPLY_SKIN),TRUE);
+					EnableWindow(GetDlgItem(hwndDlg,IDC_BUTTON_INFO),TRUE);
+					if (hPreviewBitmap) 
+						InvalidateRect(GetDlgItem(hwndDlg,IDC_PREVIEW),NULL,TRUE);
+					else  //prepeare text
+						{
+							char Author[255];
+							char URL[MAX_PATH];
+							char Contact[255];
+							char Description[400];
+							char text[2000];
+							SkinListData* sd=NULL;
+							HTREEITEM hti=TreeView_GetSelection(GetDlgItem(hwndDlg,IDC_TREE1));				
+							if (hti==0) return 0;
+							{
+								TVITEM tvi={0};
+								tvi.hItem=hti;
+								tvi.mask=TVIF_HANDLE|TVIF_PARAM;
+								TreeView_GetItem(GetDlgItem(hwndDlg,IDC_TREE1),&tvi);
+								sd=(SkinListData*)(tvi.lParam);
+							}
+							if (!sd) return 0;
+							GetPrivateProfileStringA("Skin_Description_Section","Author","(unknown)",Author,sizeof(Author),sd->File);
+							GetPrivateProfileStringA("Skin_Description_Section","URL","",URL,sizeof(URL),sd->File);
+							GetPrivateProfileStringA("Skin_Description_Section","Contact","",Contact,sizeof(Contact),sd->File);
+							GetPrivateProfileStringA("Skin_Description_Section","Description","",Description,sizeof(Description),sd->File);
+							_snprintf(text,sizeof(text),Translate("Preview is not available\n\n%s\n----------------------\n\n%s\n\nAUTHOR(S):\n%s\n\nCONTACT:\n%s\n\nHOMEPAGE:\n%s"),
+							sd->Name,Description,Author,Contact,URL);
+							ShowWindow(GetDlgItem(hwndDlg,IDC_PREVIEW),SW_HIDE);
+							ShowWindow(GetDlgItem(hwndDlg,IDC_STATIC_INFO),SW_SHOW);
+							SendDlgItemMessageA(hwndDlg,IDC_STATIC_INFO,WM_SETTEXT,0,(LPARAM)text);
+						}					
+				}
+				else
+				{
+					//no selected
+					SendDlgItemMessage(hwndDlg,IDC_EDIT_SKIN_FILENAME,WM_SETTEXT,0,(LPARAM)TranslateT("Select skin from list"));
+					EnableWindow(GetDlgItem(hwndDlg,IDC_BUTTON_APPLY_SKIN),FALSE);
+					EnableWindow(GetDlgItem(hwndDlg,IDC_BUTTON_INFO),FALSE);
+					SendDlgItemMessageA(hwndDlg,IDC_STATIC_INFO,WM_SETTEXT,0,(LPARAM)Translate("Please select skin to apply"));
+					ShowWindow(GetDlgItem(hwndDlg,IDC_PREVIEW),SW_HIDE);
+				}
+				ShowWindow(GetDlgItem(hwndDlg,IDC_PREVIEW),hPreviewBitmap?SW_SHOW:SW_HIDE);
+				return 0;
+			}			
+			else if (nmtv->hdr.code==TVN_SELCHANGEDA)
+			{
+				if (nmtv->itemOld.lParam)
+					mir_free((void*)(nmtv->itemOld.lParam));
+				return 0;
+			}
+			break;
+		}
 		case 0:
 			switch (((LPNMHDR)lParam)->code)
 			{
@@ -396,14 +487,45 @@ static BOOL CALLBACK DlgSkinOpts(HWND hwndDlg, UINT msg, WPARAM wParam, LPARAM l
 	return FALSE;
 }
 
+int SearchSkinFiles(HWND hwndDlg, char * Folder)
+{
+	struct _finddata_t fd={0};
+	char mask[MAX_PATH];
+	long hFile; 
+	_snprintf(mask,sizeof(mask),"%s\\*.msf",Folder); 
+	//fd.attrib=_A_SUBDIR;
+	hFile=_findfirst(mask,&fd);
+	if (hFile!=-1)
+	{
+		do {     
+			AddSkinToList(hwndDlg,Folder,fd.name);
+		}while (!_findnext(hFile,&fd));
+		_findclose(hFile);
+	}
+	_snprintf(mask,sizeof(mask),"%s\\*",Folder);
+	hFile=_findfirst(mask,&fd);
+	{
+		do {
+			if (fd.attrib&_A_SUBDIR && !(boolstrcmpi(fd.name,".")||boolstrcmpi(fd.name,"..")))
+			{//Next level of subfolders
+				char path[MAX_PATH];
+				_snprintf(path,sizeof(path),"%s\\%s",Folder,fd.name);
+				SearchSkinFiles(hwndDlg,path);
+			}
+		}while (!_findnext(hFile,&fd));
+		_findclose(hFile);
+	}
+	return 0;
+}
 int FillAvailableSkinList(HWND hwndDlg)
 {
 	struct _finddata_t fd={0};
-	long hFile; 
+	//long hFile; 
 	int res=-1;
-	char path[MAX_PATH],mask[MAX_PATH];
+	char path[MAX_PATH];//,mask[MAX_PATH];
 	CallService(MS_UTILS_PATHTOABSOLUTE, (WPARAM)"Skins", (LPARAM)path);
-	_snprintf(mask,sizeof(mask),"%s\\*.msf",path); 
+	SearchSkinFiles(hwndDlg,path);
+	/*_snprintf(mask,sizeof(mask),"%s\\*.msf",path); 
 	//fd.attrib=_A_SUBDIR;
 	hFile=_findfirst(mask,&fd);
 	if (hFile!=-1)
@@ -438,6 +560,7 @@ int FillAvailableSkinList(HWND hwndDlg)
 		}while (!_findnext(hFile,&fd));
 		_findclose(hFile);
 	}
+	*/
 	{
 		char * skinfile;
 		char skinfull[MAX_PATH];
@@ -446,6 +569,7 @@ int FillAvailableSkinList(HWND hwndDlg)
 		{
 			CallService(MS_UTILS_PATHTOABSOLUTE, (WPARAM)skinfile, (LPARAM)skinfull);
 			res=AddSkinToListFullName(hwndDlg,skinfull);
+
 			mir_free(skinfile);
 		}
 	}
@@ -480,6 +604,11 @@ int AddSkinToList(HWND hwndDlg,char * path, char* file)
 	TRACE(file);
 	TRACE("\n");
 	{
+		char buf[MAX_PATH];
+		_snprintf(buf,sizeof(buf),"%s\\%s",path,file);
+		
+	}
+	{
 		char fullName[MAX_PATH]={0};     
 		char defskinname[MAX_PATH]={0};
 		SkinListData * sd=NULL;
@@ -490,7 +619,8 @@ int AddSkinToList(HWND hwndDlg,char * path, char* file)
 		defskinname[MyStrLen(file)+1]='\0';
 		GetPrivateProfileStringA("Skin_Description_Section","Name",defskinname,sd->Name,sizeof(sd->Name),fullName);
 		strcpy(sd->File,fullName);
-		{
+		return AddItemToTree(GetDlgItem(hwndDlg,IDC_TREE1),fullName,sd->Name,sd);
+		/*{
 			int i,c;
 			SkinListData * sd2;
 			c=SendDlgItemMessage(hwndDlg,IDC_SKINS_LIST,LB_GETCOUNT,0,0);
@@ -509,7 +639,116 @@ int AddSkinToList(HWND hwndDlg,char * path, char* file)
 			}
 			return item;
 		}
+		*/
 	}
 	return -1;
 }
 
+#define TreeView_InsertItemA(hwnd, lpis) \
+	(HTREEITEM)SendMessageA((hwnd), TVM_INSERTITEMA, 0, (LPARAM)(LPTV_INSERTSTRUCTA)(lpis))
+
+#define TreeView_GetItemA(hwnd, pitem) \
+	(BOOL)SendMessageA((hwnd), TVM_GETITEMA, 0, (LPARAM)(TV_ITEM *)(pitem))
+
+static HTREEITEM FindChild(HWND hTree, HTREEITEM Parent, char * Caption, void * data)
+{
+  HTREEITEM res=NULL, tmp=NULL;
+  if (Parent) 
+    tmp=TreeView_GetChild(hTree,Parent);
+  else 
+	tmp=TreeView_GetRoot(hTree);
+  while (tmp)
+  {
+    TVITEMA tvi;
+    char buf[255];
+    tvi.hItem=tmp;
+    tvi.mask=TVIF_TEXT|TVIF_HANDLE;
+    tvi.pszText=(LPSTR)&buf;
+    tvi.cchTextMax=254;
+    TreeView_GetItemA(hTree,&tvi);
+    if (boolstrcmpi(Caption,tvi.pszText))
+	{
+		if (data)
+		{
+			SkinListData * sd=NULL;
+			TVITEM tvi={0};
+			tvi.hItem=tmp;
+			tvi.mask=TVIF_HANDLE|TVIF_PARAM;
+			TreeView_GetItem(hTree,&tvi);
+			sd=(SkinListData*)(tvi.lParam);
+			if (sd)
+				if (!strcmpi(sd->File,((SkinListData*)data)->File))
+					return tmp;
+		}
+		return tmp;
+	}
+    tmp=TreeView_GetNextSibling(hTree,tmp);
+  }
+  return tmp;
+}
+
+
+static int AddItemToTree(HWND hTree, char * folder, char * itemName, void * data)
+{
+	HTREEITEM rootItem=NULL;
+	HTREEITEM cItem=NULL;
+	char path[MAX_PATH];//,mask[MAX_PATH];
+	char * ptr;
+	char * ptrE;
+	BOOL ext=FALSE;
+	CallService(MS_UTILS_PATHTORELATIVE, (WPARAM)folder, (LPARAM)path);
+	ptrE=path;
+	while (*ptrE!='\\' && *ptrE!='\0' && *ptrE!=':') ptrE++;
+	if (*ptrE=='\\')
+	{
+			*ptrE='\0';
+			ptrE++;
+	}
+	else ptrE=path;
+	ptr=ptrE;
+	do 
+	{
+		
+		while (*ptrE!='\\' && *ptrE!='\0') ptrE++;
+		if (*ptrE=='\\')
+		{
+			*ptrE='\0';
+			ptrE++;
+			// find item if not - create;
+			{
+				cItem=FindChild(hTree,rootItem,ptr,NULL);
+				if (!cItem) // not found - create node
+				{
+					TVINSERTSTRUCTA tvis;
+					tvis.hParent=rootItem;
+					tvis.hInsertAfter=TVI_ROOT;
+					tvis.item.mask=TVIF_PARAM|TVIF_TEXT|TVIF_PARAM;
+					tvis.item.pszText=ptr;
+					{
+						tvis.item.lParam=(LPARAM)NULL;
+					}
+					cItem=TreeView_InsertItemA(hTree,&tvis);
+					
+				}	
+				rootItem=cItem;
+			}
+			ptr=ptrE;
+		}
+		else ext=TRUE;
+	}while (!ext);
+	//Insert item node
+	cItem=FindChild(hTree,rootItem,itemName,data);
+	if (!cItem)
+	{
+		TVINSERTSTRUCTA tvis;
+		tvis.hParent=rootItem;
+		tvis.hInsertAfter=TVI_SORT;
+		tvis.item.mask=TVIF_PARAM|TVIF_TEXT|TVIF_PARAM;
+		tvis.item.pszText=itemName;
+		tvis.item.lParam=(LPARAM)data;
+		return (int)TreeView_InsertItemA(hTree,&tvis);
+	}
+	else
+		return (int)cItem;
+	return 0;
+}

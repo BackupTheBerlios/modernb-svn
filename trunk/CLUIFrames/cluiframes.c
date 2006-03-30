@@ -31,6 +31,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 extern BOOL TransparentFlag;
 extern RECT new_window_rect;
 extern RECT old_window_rect;
+extern int CLUIFramesGetTotalHeight();
 int QueueAllFramesUpdating(BYTE queue);
 extern int docked;
 extern BOOL IsOnDesktop;
@@ -2098,7 +2099,7 @@ int CLUIFramesAddFrame(WPARAM wParam,LPARAM lParam)
 	  int mainHeight, minHeight;
 	  GetWindowRect(pcli->hwndContactList,&mainRect);
 	  mainHeight=mainRect.bottom-mainRect.top;
-	  minHeight=CLUIFramesGetMinHeight();
+	  minHeight=CLUIFramesGetTotalHeight();
 	  if (mainHeight<minHeight)
 	  {
 		  BOOL Upward=FALSE;
@@ -2288,6 +2289,33 @@ BOOLEAN CLUIFramesFitInSize(void)
     }
   }
   return TRUE;
+}
+int CLUIFramesGetTotalHeight()
+{
+  int i;
+  int sumheight=0;
+  RECT border;
+  if(pcli->hwndContactList==NULL) return 0; 
+  lockfrm();
+  for(i=0;i<nFramescount;i++)
+  {
+	  if((Frames[i].visible)&&(!Frames[i].needhide)&&(!Frames[i].floating)&&(pcli->hwndContactTree)&& (Frames[i].hWnd!=pcli->hwndContactTree))
+      sumheight+=(Frames[i].height)+(TitleBarH*btoint(Frames[i].TitleBar.ShowTitleBar))+3;
+  };
+  ulockfrm();
+  GetBorderSize(pcli->hwndContactList,&border);
+
+  //GetWindowRect(pcli->hwndContactList,&winrect);
+  //GetClientRect(pcli->hwndContactList,&clirect);
+  //	clirect.bottom-=clirect.top;
+  //	clirect.bottom+=border.top+border.bottom;
+  //allbord=(winrect.bottom-winrect.top)-(clirect.bottom-clirect.top);
+
+  //TODO minsize
+  sumheight+=DBGetContactSettingByte(NULL,"CLUI","TopClientMargin",0);
+  sumheight+=DBGetContactSettingByte(NULL,"CLUI","BottomClientMargin",0); //$$ BOTTOM border
+  return  max(DBGetContactSettingWord(NULL,"CLUI","MinHeight",0),
+        (sumheight+border.top+border.bottom+3)       );
 }
 
 int CLUIFramesGetMinHeight()
@@ -3936,118 +3964,17 @@ LRESULT CALLBACK CLUIFrameSubContainerProc(HWND hwnd, UINT msg, WPARAM wParam, L
         return 0;
     }
     break;
-    /*	case WM_GETMINMAXINFO:
-    //DefWindowProc(hwnd,msg,wParam,lParam);
-    {
-    int framepos;
-    MINMAXINFO minmax;
-
-    lockfrm();
-    framepos=id2pos(Frameid);
-    if(framepos<0||framepos>=nFramescount){ulockfrm();break;};
-    if (!Frames[framepos].minmaxenabled){ulockfrm();break;};
-    if (Frames[framepos].ContainerWnd==0){ulockfrm();break;};
-
-    if (Frames[framepos].Locked)
-    {
-    RECT rct;
-
-   GetWindowRect(hwnd,&rct);
-    ((LPMINMAXINFO)lParam)->ptMinTrackSize.x=rct.right-rct.left;
-    ((LPMINMAXINFO)lParam)->ptMinTrackSize.y=rct.bottom-rct.top;
-    ((LPMINMAXINFO)lParam)->ptMaxTrackSize.x=rct.right-rct.left;
-    ((LPMINMAXINFO)lParam)->ptMaxTrackSize.y=rct.bottom-rct.top;
-    //ulockfrm();
-    //return(0);
-    };
-
-
-    memset(&minmax,0,sizeof(minmax));
-    if (SendMessage(Frames[framepos].hWnd,WM_GETMINMAXINFO,(WPARAM)0,(LPARAM)&minmax)==0)
-    {
-    RECT border;
-    int tbh=TitleBarH*btoint(Frames[framepos].TitleBar.ShowTitleBar);
-    GetBorderSize(hwnd,&border);
-    if (minmax.ptMaxTrackSize.x!=0&&minmax.ptMaxTrackSize.y!=0){
-
-    ((LPMINMAXINFO)lParam)->ptMinTrackSize.x=minmax.ptMinTrackSize.x;
-    ((LPMINMAXINFO)lParam)->ptMinTrackSize.y=minmax.ptMinTrackSize.y;
-    ((LPMINMAXINFO)lParam)->ptMaxTrackSize.x=minmax.ptMaxTrackSize.x+border.left+border.right;
-    ((LPMINMAXINFO)lParam)->ptMaxTrackSize.y=minmax.ptMaxTrackSize.y+tbh+border.top+border.bottom;
-    }; 
-
-    }
-    else
-    {
-
-    ulockfrm();
-    return(DefWindowProc(hwnd, msg, wParam, lParam));
-    };
-    ulockfrm();
-
-
-    }
-    //return 0;
-
-    case WM_MOVE:
-    {
-    int framepos;
-    RECT rect;
-
-
-    lockfrm();
-    framepos=id2pos(Frameid);
-
-    if(framepos<0||framepos>=nFramescount){ulockfrm();break;};
-    if (Frames[framepos].ContainerWnd==0){ulockfrm();return(0);};
-
-   GetWindowRect(Frames[framepos].ContainerWnd,&rect);
-    Frames[framepos].FloatingPos.x=rect.left;
-    Frames[framepos].FloatingPos.y=rect.top;
-    Frames[framepos].FloatingSize.x=rect.right-rect.left;
-    Frames[framepos].FloatingSize.y=rect.bottom-rect.top;
-
-    CLUIFramesStoreFrameSettings(framepos);		
-    ulockfrm();
-
-    return(0);
-    };
-
-    case WM_SIZE:
-    {
-    int framepos;
-    RECT rect;
-
-
-    lockfrm();
-    framepos=id2pos(Frameid);
-
-    if(framepos<0||framepos>=nFramescount){ulockfrm();break;};
-    if (Frames[framepos].ContainerWnd==0){ulockfrm();return(0);};
-    CLUIFrameResizeFloatingFrame(framepos);
-
-   GetWindowRect(Frames[framepos].ContainerWnd,&rect);
-    Frames[framepos].FloatingPos.x=rect.left;
-    Frames[framepos].FloatingPos.y=rect.top;
-    Frames[framepos].FloatingSize.x=rect.right-rect.left;
-    Frames[framepos].FloatingSize.y=rect.bottom-rect.top;
-
-    CLUIFramesStoreFrameSettings(framepos);
-    ulockfrm();
-
-    return(0);
-    };
-    case WM_CLOSE:
-    {
-    DestroyWindow(hwnd);
-    break;
-    };
-    case WM_DESTROY:
-    {
-    //{ CLUIFramesStoreAllFrames();};
-    return(0);
-    };
-    */
+  case WM_NCPAINT:
+  case WM_PAINT:
+	  {
+		  //ValidateRect(hwnd,NULL);
+		  return DefWindowProc(hwnd, msg, wParam, lParam);
+	  }
+  case WM_ERASEBKGND:
+	  {
+		  return 1;
+	  }
+	  
   };
 
   return DefWindowProc(hwnd, msg, wParam, lParam);

@@ -817,6 +817,7 @@
 #define IDC_SHOW_ONLY_IF_DIFFERENT      1842
 #define IDC_COMBO2                      1842
 #define IDC_EDIT1                       1843
+#define IDC_GROUP_4                     1843
 #define IDC_HIDE_GROUPSICON             1844
 #define IDC_STATIC_INFO                 1845
 #define IDC_DESIGNTREE                  1848
@@ -827,9 +828,8 @@
 #define IDC_EFFECT_COLOUR_TEXT1         1853
 #define IDC_EFFECT_COLOUR_SPIN1         1854
 #define IDC_OBJECT_TREE                 1856
-#define IDC_COMBO_TYPE                  1857
 #define IDC_COMBO_TYPE2                 1858
-#define IDC_EDIT3                       1859
+#define IDC_FIT                         1858
 #define IDC_EDIT4                       1860
 #define IDC_BUTTON3                     1861
 #define IDC_EDIT5                       1862
@@ -840,7 +840,7 @@
 #define IDC_EDIT10                      1867
 #define IDC_EDIT11                      1868
 #define IDC_EDIT12                      1869
-#define IDC_SPIN1                       1870
+#define IDC_TREE1                       1871
 #define IDC_SPIN2                       1871
 #define IDC_SPIN3                       1872
 #define IDC_SPIN4                       1873
@@ -849,6 +849,11 @@
 #define IDC_SPIN7                       1876
 #define IDC_SPIN8                       1877
 #define IDC_SPIN9                       1878
+#define IDC_GROUP_0                     1879
+#define IDC_GROUP_1                     1880
+#define IDC_GROUP_2                     1881
+#define IDC_GROUP_3                     1883
+#define IDC_COLOR                       1884
 #define IDC_CLSORT1                     6666
 #define IDC_CLSORT2                     6667
 #define IDC_CLSORT3                     6668
@@ -918,7 +923,7 @@
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        399
 #define _APS_NEXT_COMMAND_VALUE         40020
-#define _APS_NEXT_CONTROL_VALUE         1871
+#define _APS_NEXT_CONTROL_VALUE         1885
 #define _APS_NEXT_SYMED_VALUE           101
 #endif
 #endif
