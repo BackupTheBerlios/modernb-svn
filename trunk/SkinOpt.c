@@ -680,7 +680,8 @@ static HTREEITEM FindChild(HWND hTree, HTREEITEM Parent, char * Caption, void * 
 				if (!strcmpi(sd->File,((SkinListData*)data)->File))
 					return tmp;
 		}
-		return tmp;
+		else
+			return tmp;
 	}
     tmp=TreeView_GetNextSibling(hTree,tmp);
   }
