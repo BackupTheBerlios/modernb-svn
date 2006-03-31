@@ -192,7 +192,7 @@ static BOOL CALLBACK DlgSkinOpts(HWND hwndDlg, UINT msg, WPARAM wParam, LPARAM l
 						ofn.hInstance = NULL;
 
 						sprintf(filter,"%s",Translate("Miranda skin file"));
-						memcpy(filter+MyStrLen(filter)," (*.msf)\0*.MSF\0\0",sizeof(" (*.msf)\0*.MSF\0\0"));
+						memmove(filter+MyStrLen(filter)," (*.msf)\0*.MSF\0\0",sizeof(" (*.msf)\0*.MSF\0\0"));
 						ofn.lpstrFilter = filter;
 						ofn.lpstrFile = str;
 						ofn.Flags = isLoad?(OFN_FILEMUSTEXIST | OFN_HIDEREADONLY) : (OFN_OVERWRITEPROMPT|OFN_HIDEREADONLY);
@@ -599,10 +599,6 @@ int AddSkinToListFullName(HWND hwndDlg,char * fullName)
 
 int AddSkinToList(HWND hwndDlg,char * path, char* file)
 {
-	TRACE(path);
-	TRACE("\\");
-	TRACE(file);
-	TRACE("\n");
 	{
 		char buf[MAX_PATH];
 		_snprintf(buf,sizeof(buf),"%s\\%s",path,file);
@@ -615,7 +611,7 @@ int AddSkinToList(HWND hwndDlg,char * path, char* file)
 		sd=(SkinListData *)mir_alloc(sizeof(SkinListData));
 		if (!sd) return 0;
 		_snprintf(fullName,sizeof(fullName),"%s\\%s",path,file);
-		memcpy(defskinname,file,MyStrLen(file)-4);
+		memmove(defskinname,file,MyStrLen(file)-4);
 		defskinname[MyStrLen(file)+1]='\0';
 		GetPrivateProfileStringA("Skin_Description_Section","Name",defskinname,sd->Name,sizeof(sd->Name),fullName);
 		strcpy(sd->File,fullName);

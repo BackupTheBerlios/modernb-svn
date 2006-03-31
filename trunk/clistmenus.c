@@ -128,8 +128,6 @@ static int RemoveMainMenuItem(WPARAM wParam,LPARAM lParam)
   mir_free(mmep);
   }
   */
-	TRACE("MO_REMOVEMENUITEM");
-	TRACE("\n");
   CallService(MO_REMOVEMENUITEM,wParam,0);
   return 0;
 }
@@ -160,7 +158,6 @@ static int AddMainMenuItem(WPARAM wParam,LPARAM lParam)
   CLISTMENUITEM *mi=(CLISTMENUITEM*)lParam;
   TMO_MenuItem tmi;
   OptParam op;
- //TRACE("AddMainMenuItem\n");
   if(mi->cbSize!=sizeof(CLISTMENUITEM)) return 0;
 
   memset(&tmi,0,sizeof(tmi));
@@ -428,7 +425,6 @@ int MenuProcessCommand(WPARAM wParam,LPARAM lParam)
         int pos=statustopos(hst);
         if (pos!=-1&&hStatusMainMenuHandles!=NULL)
         {
-          TRACE("Processing WM_COMAND for status menus\r\n");
           return(CallService(MO_PROCESSCOMMAND,(WPARAM)hStatusMainMenuHandles[pos],lParam));
         };
 
@@ -722,13 +718,9 @@ int FreeOwnerDataStatusMenu (WPARAM wParam,LPARAM lParam)
   smep=(lpStatusMenuExecParam)lParam;
 
   if (smep!=NULL) {
-    if (smep->custom)
-	{
       FreeAndNil(&smep->proto);
-   // else
       FreeAndNil(&smep->svc);
-	}
-    FreeAndNil(&smep);
+	  FreeAndNil(&smep);
   }
 
   return (0);
@@ -777,30 +769,32 @@ static int DrawMenuItem(WPARAM wParam,LPARAM lParam)
   return (CallService(MO_DRAWMENUITEM,(WPARAM)0,lParam));
 }
 
-static int MenuGetMain(WPARAM wParam,LPARAM lParam)
-{
-  if (hMainMenu!=NULL){
-    while(GetMenuItemCount(hMainMenu)>0){DeleteMenu(hMainMenu,0,MF_BYPOSITION);};
-  }
-  BuildMainMenu(0,0);
-  return (int)hMainMenu;
-}
+
 int RecurciveDeleteMenu(HMENU hMenu)
 {
 	int i=GetMenuItemCount(hMenu);	
 	while (i>0)
 	{
+		BOOL res=FALSE;
 		HMENU submenu=GetSubMenu(hMenu,0);
 		if (submenu)
+		{
 			RecurciveDeleteMenu(submenu);
+			DestroyMenu(submenu);
+		}
 		DeleteMenu(hMenu,0,MF_BYPOSITION);
 		i=GetMenuItemCount(hMenu);
 	};
   return 0;
 }
+static int MenuGetMain(WPARAM wParam,LPARAM lParam)
+{
+  RecurciveDeleteMenu(hMainMenu);
+  BuildMainMenu(0,0);
+  return (int)hMainMenu;
+}
 static int BuildStatusMenu(WPARAM wParam,LPARAM lParam)
 {
-  int tick;
   HMENU hMenu;
   ListParam param;
 
@@ -809,12 +803,8 @@ static int BuildStatusMenu(WPARAM wParam,LPARAM lParam)
   param.rootlevel=-1;
 
   hMenu=hStatusMenu;
-  TRACE("clear statusmenu\n");
   RecurciveDeleteMenu(hStatusMenu);
-  tick=GetTickCount();
   CallService(MO_BUILDMENU,(WPARAM)hMenu,(LPARAM)&param);
-  TRACE("statusmenu builded\n");
-  tick=GetTickCount()-tick;
   return (int)hMenu;
 }
 
@@ -836,14 +826,8 @@ int GetProtoIndexByPos(PROTOCOLDESCRIPTOR ** proto, int protoCnt, int Pos)
   int p;
   char buf[10];
   char * b2=NULL;
-  /*
-  spcnt=DBGetContactSettingDword(0,"Protocols","ProtoCount",-1);
-  _itoa(Pos+200,buf,10);
-  p=DBGetContactSettingDword(0,"Protocols",buf,-1);
-  */
   _itoa(Pos,buf,10);
   b2=DBGetStringA(NULL,"Protocols",buf);
-  //TRACE("GetProtoIndexByPos \r\n");
 
   if (b2)
   {
@@ -1397,6 +1381,12 @@ int InitCustomMenus(void)
 
 void UninitCustomMenus(void)
 {
+  int i;
+  for (i=0; i<AllocedProtos; i++)
+        if (menusProto[i].szProto) 
+			mir_free(menusProto[i].szProto);
+  if (menusProto) mir_free(menusProto);
+
   if (hStatusMainMenuHandles!=NULL) {
     mir_free(hStatusMainMenuHandles);
   };
@@ -1406,7 +1396,6 @@ void UninitCustomMenus(void)
     mir_free(hStatusMenuHandles);
   };
   hStatusMenuHandles=NULL;
-
   UnitGenMenu();
 }
 static int AddStatusMenuItem(WPARAM wParam,LPARAM lParam)

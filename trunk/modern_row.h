@@ -77,4 +77,5 @@ typedef struct tagRowCell
   extern int cppCalculateRowHeight(ROWCELL	*RowRoot);
   extern void cppCalculateRowItemsPos(ROWCELL	*RowRoot, int width);
   extern ROWCELL *cppInitModernRow(ROWCELL	** tabAccess);
+  extern void cppDeleteTree(ROWCELL	* RowRoot);
 #endif

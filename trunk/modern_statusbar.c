@@ -60,9 +60,9 @@ char * ApendSubSetting(char * buf, int size, char *first, char *second)
   return buf;
 }
 
-LOGFONTA LoadLogFontFromDB(char * section, char * id, DWORD * color);
+//LOGFONTA LoadLogFontFromDB(char * section, char * id, DWORD * color);
 
-HFONT LoadFontFromDB(char * section, char * id, DWORD * color)
+/*HFONT LoadFontFromDB(char * section, char * id, DWORD * color)
 {
   LOGFONTA logfont=LoadLogFontFromDB(section, id, color);
   HFONT hfont=NULL;
@@ -83,7 +83,7 @@ LOGFONTA LoadLogFontFromDB(char * section, char * id, DWORD * color)
 	BYTE len=min(MyStrLen(facename)+1,sizeof(logfont.lfFaceName));
     memset(&logfont,0,sizeof(logfont));
 
-    memcpy(logfont.lfFaceName,facename,len);
+    memmove(logfont.lfFaceName,facename,len);
     style=(BYTE)DBGetContactSettingByte(NULL,section,ApendSubSetting(buf,sizeof(buf),id,"Sty"),0);
     logfont.lfWeight=style&DBFONTF_BOLD?FW_BOLD:FW_NORMAL;
     logfont.lfItalic=(style&DBFONTF_ITALIC)!=0;
@@ -104,7 +104,7 @@ LOGFONTA LoadLogFontFromDB(char * section, char * id, DWORD * color)
   }
   return logfont;
 }
-
+*/
 
 extern int FindFrameID(HWND FrameHwnd);
 
@@ -119,7 +119,7 @@ int LoadStatusBarData()
   sbdat.sameWidth=DBGetContactSettingByte(NULL,"CLUI","EqualSections",0);
   sbdat.connectingIcon=DBGetContactSettingByte(NULL,"CLUI","UseConnectingIcon",1);
   if (sbdat.BarFont) DeleteObject(sbdat.BarFont);
-  sbdat.BarFont=LoadFontFromDB("ModernData","StatusBar",&sbdat.fontColor);
+  sbdat.BarFont=NULL;//LoadFontFromDB("ModernData","StatusBar",&sbdat.fontColor);
   {
     int vis=DBGetContactSettingByte(NULL,"CLUI","ShowSBar",1);
     int frameopt;
@@ -430,7 +430,6 @@ LRESULT CALLBACK ModernStatusProc(HWND hwnd,UINT msg,WPARAM wParam,LPARAM lParam
 		HDC hdc, hdc2;
 		HBITMAP hbmp,hbmpo;
 		RECT rc={0};
-		TRACE("Modern STATUSBAR PAINT ant non-layered mode\n");
 		GetClientRect(hwnd,&rc);
 		rc.right++;
 		rc.bottom++;
@@ -461,7 +460,6 @@ LRESULT CALLBACK ModernStatusProc(HWND hwnd,UINT msg,WPARAM wParam,LPARAM lParam
       HBRUSH br=GetSysColorBrush(COLOR_3DFACE);
       GetClientRect(hwnd,&rc);
       hdc=BeginPaint(hwnd,&ps);
-      TRACE("Modern STATUSBAR PAINT\n");
       hdc2=CreateCompatibleDC(hdc);
       hbmp=CreateBitmap32(rc.right,rc.bottom);
       hbmpo=SelectObject(hdc2,hbmp);

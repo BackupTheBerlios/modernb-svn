@@ -244,7 +244,7 @@ int HotkeysProcessMessage(WPARAM wParam,LPARAM lParam)
 	switch(msg->message) {
 		case WM_CREATE:
 			HotKeysRegister(msg->hwnd);
-			break;
+			return 0;
 		case WM_HOTKEY:
 			//*((LRESULT*)lParam)=HotKeysProcess(msg->hwnd,msg->wParam,msg->lParam);
 			{
@@ -255,7 +255,7 @@ int HotkeysProcessMessage(WPARAM wParam,LPARAM lParam)
 			return TRUE;
 		case WM_DESTROY:
 			UnRegistersAllHotkey(msg->hwnd);
-			break;
+			return 0;
 	}
 
 	return FALSE;

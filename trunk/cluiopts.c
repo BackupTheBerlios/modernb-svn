@@ -29,7 +29,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 extern int SkinEditorOptInit(WPARAM wParam,LPARAM lParam);
 extern BOOL (WINAPI *MyUpdateLayeredWindow)(HWND,HDC,POINT*,SIZE*,HDC,POINT*,COLORREF,BLENDFUNCTION*,DWORD);
 HWND hCLUIwnd=NULL;
-LOGFONTA LoadLogFontFromDB(char * section, char * id, DWORD * color);
+//LOGFONTA LoadLogFontFromDB(char * section, char * id, DWORD * color);
 extern HMENU hMenuMain;
 extern BOOL IsOnDesktop;
 extern BOOL (WINAPI *MySetLayeredWindowAttributes)(HWND,COLORREF,BYTE,DWORD);
@@ -417,7 +417,7 @@ static BOOL CALLBACK DlgProcCluiOpts(HWND hwndDlg, UINT msg, WPARAM wParam, LPAR
         DBWriteContactSettingByte(NULL,"CList","NoBorder",(BYTE)IsDlgButtonChecked(hwndDlg,IDC_NOBORDERWND));
         {	
           TCHAR title[256];
-          GetDlgItemText(hwndDlg,IDC_TITLETEXT,title,sizeof(title));
+          GetDlgItemText(hwndDlg,IDC_TITLETEXT,title,SIZEOF(title));
           DBWriteContactSettingTString(NULL,"CList","TitleText",title);
           //			SetWindowText(pcli->hwndContactList,title);
         }
@@ -533,11 +533,6 @@ static BOOL CALLBACK DlgProcSBarOpts(HWND hwndDlg, UINT msg, WPARAM wParam, LPAR
         item=SendDlgItemMessage(hwndDlg,IDC_COMBO2,CB_ADDSTRING,0,(LPARAM)TranslateTS(align[i]));
         SendDlgItemMessage(hwndDlg,IDC_COMBO2,CB_SETCURSEL,DBGetContactSettingByte(NULL,"CLUI","Align",0),0);
       }
-    }
-    {
-      DWORD color;
-      lf=LoadLogFontFromDB("ModernData","StatusBar", &color);
-      SendDlgItemMessage(hwndDlg,IDC_COLOUR,CPM_SETCOLOUR,0,color);
     }
     {
       int en=IsDlgButtonChecked(hwndDlg,IDC_SHOWSBAR);

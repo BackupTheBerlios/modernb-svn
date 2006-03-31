@@ -228,13 +228,6 @@ static int TrayIconAdd(HWND hwnd,const char *szProto,const char *szIconProto,int
 	NOTIFYICONDATA nid={0};
 	NOTIFYICONDATA_NEW nidn={0};
 	int i;
-#ifdef _DEBUG
-	{
-		char buf[255];
-		_snprintf(buf,sizeof(buf),"Add Icon %s - %s - %d\n",szProto,szIconProto,status);
-		TRACE(buf);
-	}
-#endif
 	for(i=0;i<trayIconCount;i++) if(trayIcon[i].id==0) break;
 	trayIcon[i].id=TRAYICON_ID_BASE+i;
 	trayIcon[i].szProto=(char*)szProto;
@@ -760,11 +753,6 @@ int TrayIconProcessMessage(WPARAM wParam,LPARAM lParam)
 case WM_CREATE: {			
 	WM_TASKBARCREATED=RegisterWindowMessage(TEXT("TaskbarCreated"));
 	PostMessage(msg->hwnd,TIM_CREATE,0,0);	
-	{//++//
-		char b[260];
-		sprintf(b,"%s was posted in FILELINE3\n","TIM_CREATE" );
-		TRACE (b);
-	}//--//
 	break;
 				}
 case WM_DRAWITEM:

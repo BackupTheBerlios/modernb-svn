@@ -44,6 +44,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #define MAXSN_BUFF_SIZE 255*1000
 #define TEST_SECTION DEFAULTSKINSECTION
 
+static BOOL ON_TERMINATION=TRUE;
 int LOCK_UPDATING=0;
 BYTE UseKeyColor=1;
 DWORD KeyColor=RGB(255,0,255);
@@ -136,7 +137,6 @@ int LoadSkinModule()
   InitializeCriticalSection(&skin_cs);
   MainModernMaskList=mir_alloc(sizeof(ModernMaskList));
   memset(MainModernMaskList,0,sizeof(ModernMaskList));   
-  TRACE("LOAD SKIN MODULE\n");
   //init variables
   glObjectList.dwObjLPAlocated=0;
   glObjectList.dwObjLPReserved=0;
@@ -210,21 +210,27 @@ int LoadSkinModule()
 
   return 1;
 }
-
+extern int UnloadModernButtonModule(WPARAM,LPARAM);
 int UnloadSkinModule()
 {
 
   //unload services
+  UnloadModernButtonModule(0,0);
   UnloadSkin(&glObjectList);
+  if (glObjectList.Objects) 
+	  mir_free(glObjectList.Objects);
   if (cachedWindow)
   {
 	  SelectObject(cachedWindow->hBackDC,cachedWindow->hBackOld);
 	  SelectObject(cachedWindow->hImageDC,cachedWindow->hImageOld);
+	  DeleteObject(cachedWindow->hBackDIB);
+	  DeleteObject(cachedWindow->hImageDIB);
 	  ModernDeleteDC(cachedWindow->hBackDC);
 	  ModernDeleteDC(cachedWindow->hImageDC);
 	  ReleaseDC(NULL,cachedWindow->hScreenDC);
 	  mir_free(cachedWindow);
 	  cachedWindow=NULL;
+	  ON_TERMINATION=TRUE;
   }
   DeleteCriticalSection(&skin_cs);
   GdiFlush();
@@ -795,7 +801,9 @@ int DrawSkinObject(SKINDRAWREQUEST * preq, GLYPHOBJECT * pobj)
     if (pobj->hGlyph)
     {
       glyphdc=CreateCompatibleDC(preq->hDC);
-      oldglyph=SelectObject(glyphdc,pobj->hGlyph);
+	  if (!oldglyph) oldglyph=SelectObject(glyphdc,pobj->hGlyph);
+	  else 
+		  SelectObject(glyphdc,pobj->hGlyph);
     }
     // Drawing
     {    
@@ -1147,7 +1155,7 @@ int AddObjectDescriptorToSkinObjectList (LPSKINOBJECTDESCRIPTOR lpDescr, SKINOBJ
           GLYPHOBJECT * gl=(GLYPHOBJECT*)lpDescr->Data;
           sk->Objects[sk->dwObjLPAlocated].Data=mir_alloc(sizeof(GLYPHOBJECT));
           obdat=(GLYPHOBJECT*)sk->Objects[sk->dwObjLPAlocated].Data;
-          memcpy(obdat,gl,sizeof(GLYPHOBJECT));
+          memmove(obdat,gl,sizeof(GLYPHOBJECT));
           if (gl->szFileName!=NULL)                    
           {
             obdat->szFileName=mir_strdup(gl->szFileName);
@@ -1303,7 +1311,7 @@ HBITMAP intLoadGlyphImageByImageDecoder(char * szFileName)
   {
     int l;
     l=MyStrLen(szFileName);
-    memcpy(ext,szFileName +(l-4),5);   
+    memmove(ext,szFileName +(l-4),5);   
   }
   if (!PathFileExistsA(szFileName)) return NULL;
 
@@ -1395,11 +1403,13 @@ int UnloadGlyphImage(HBITMAP hbmp)
       glLoadedImages[i].dwLoadedTimes--;
       if (glLoadedImages[i].dwLoadedTimes==0)
       {
-        LPGLYPHIMAGE gl=glLoadedImages;
-        if (gl->szFileName)mir_free(gl->szFileName);
-        memcpy(&(glLoadedImages[i]),&(glLoadedImages[i+1]),sizeof(GLYPHIMAGE)*(glLoadedImagesCount-i-1));
+        LPGLYPHIMAGE gl=&(glLoadedImages[i]);
+        if (gl->szFileName) mir_free(gl->szFileName);
+        memmove(&(glLoadedImages[i]),&(glLoadedImages[i+1]),sizeof(GLYPHIMAGE)*(glLoadedImagesCount-i-1));
         glLoadedImagesCount--;
         DeleteObject(hbmp);
+		if (glLoadedImages && glLoadedImagesCount==0) 
+			mir_free(glLoadedImages);
       }
       return 0;
     }
@@ -1409,13 +1419,11 @@ int UnloadGlyphImage(HBITMAP hbmp)
   return 0;
 }
 
-CRITICAL_SECTION skin;
 int UnloadSkin(SKINOBJECTSLIST * Skin)
 {   
 
   DWORD i;
-  InitializeCriticalSection(&skin);
-  EnterCriticalSection(&skin);
+  LockSkin();
   ClearMaskList(Skin->MaskList);
   {//clear font list
     int i;
@@ -1437,7 +1445,7 @@ int UnloadSkin(SKINOBJECTSLIST * Skin)
 
   if (Skin->SkinPlace) mir_free(Skin->SkinPlace);
   DeleteButtons();
-  if (Skin->dwObjLPAlocated==0) return 0;
+  if (Skin->dwObjLPAlocated==0) { UnlockSkin(); return 0;}
   for (i=0; i<Skin->dwObjLPAlocated; i++)
   {
     switch(Skin->Objects[i].bType)
@@ -1478,8 +1486,7 @@ int UnloadSkin(SKINOBJECTSLIST * Skin)
   mir_free(Skin->Objects);
   Skin->dwObjLPAlocated=0;
   Skin->dwObjLPReserved=0;
-  LeaveCriticalSection(&skin);
-  DeleteCriticalSection(&skin);
+  UnlockSkin();
   return 0;
 }
 
@@ -2948,19 +2955,9 @@ int UpdateFrameImage(WPARAM wParam, LPARAM lParam)           // Immideately reca
     GetWindowRect(pcli->hwndContactList,&wnd);
   else
     wnd=ON_EDGE_SIZING_POS;
-  //   GetWindowRect(pcli->hwndContactList,&wnd);
-  //#ifdef _DEBUG
-  //    {
-  //        char deb[100];
-  //        sprintf(deb,"%d : --- UPDATE FRAME IMAGE ---\n",MSG_COUNTER++);
-  //        TRACE(deb);
-  //    }
-  //#endif
-  //Check validity If not ok ->ValidateFrameImageProc
   if (!LayeredFlag)
   {
 	  RedrawWindow((HWND)wParam,NULL,NULL,RDW_UPDATENOW|RDW_ERASE|RDW_INVALIDATE|RDW_FRAME);
-	  //InvalidateRect((HWND)wParam,NULL,FALSE);
 	  return 0;
   }
   if (cachedWindow==NULL) ValidateFrameImageProc(&wnd);
@@ -3001,13 +2998,6 @@ int UpdateFrameImage(WPARAM wParam, LPARAM lParam)           // Immideately reca
 int InvalidateFrameImage(WPARAM wParam, LPARAM lParam)       // Post request for updating
 {
 
-  //#ifdef _DEBUG
-  //    {
-  //        char deb[100];
-  //        sprintf(deb,"%d : --- INVALIDATE FRAME IMAGE ---",MSG_COUNTER++);
-  //        TRACE(deb);
-  //    }
-  //#endif
   if (wParam)
   {
     wndFrame *frm=FindFrameByItsHWND((HWND)wParam);
@@ -3052,26 +3042,13 @@ int InvalidateFrameImage(WPARAM wParam, LPARAM lParam)       // Post request for
     {            
       UPDATE_ALLREADY_QUEUED=1;
       POST_WAS_CANCELED=0;
-      {
-        //TRACE("  message is POSTED");
-      }
     }
-    //TRACE("\n");
     return 1;
 }
 
 
 int ValidateSingleFrameImage(wndFrame * Frame, BOOL SkipBkgBlitting)                              // Calling frame paint proc
 {
-
-  //#ifdef _DEBUG
-  //    {
-  //        char deb[100];
-  //        sprintf(deb,"%d : ValidateSingleFrameImage\n",MSG_COUNTER++);
-  //        TRACE(deb);
-  //    }
-  //#endif
-
   if (!cachedWindow) { TRACE("ValidateSingleFrameImage calling without cached\n"); return 0;}
   if (Frame->hWnd==(HWND)-1 && !Frame->PaintCallbackProc)  { TRACE("ValidateSingleFrameImage calling without FrameProc\n"); return 0;}
   { // if ok update image 
@@ -3084,8 +3061,6 @@ int ValidateSingleFrameImage(wndFrame * Frame, BOOL SkipBkgBlitting)            
 
     SizingGetWindowRect(pcli->hwndContactList,&wnd);
     rcPaint=Frame->wndSize;
-    //OffsetRect(&rcPaint,wnd.left,wnd.top);
-    //GetWindowRect(Frame->hWnd,&rcPaint);
     {
       int dx,dy,bx,by;
       if (ON_EDGE_SIZING)
@@ -3331,16 +3306,8 @@ int ReCreateBackImage(BOOL Erase,RECT *w)
 		SelectObject(cachedWindow->hBackDC,hb2);
 		DeleteObject(cachedWindow->hBackDIB);
 		cachedWindow->hBackDIB=hb2;
-		//SkinDrawGlyph(cachedWindow->hBackDC,&wnd,&wnd,"Main,ID=Background");.
 		SkinDrawGlyph(cachedWindow->hBackDC,&wnd,&wnd,"Main,ID=Background,Opt=Non-Layered");
 		FillRect255Alpha(cachedWindow->hBackDC,&wnd);
-#ifdef _DEBUG
-		{
-			char buf[255];
-			_snprintf(buf,sizeof(buf),"Recreated Back with size %dx%d\n",cachedWindow->Width,cachedWindow->Height);
-			TRACE(buf);
-		}
-#endif
 	}
 	return 1;
 }
@@ -3388,14 +3355,6 @@ int ValidateFrameImageProc(RECT * r)                                // Calling q
 	RECT wnd={0};
   BOOL IsNewCache=0;
   BOOL IsForceAllPainting=0;
-
-  //#ifdef _DEBUG
-  //    {
-  //        char deb[100];
-  //        sprintf(deb,"%d : VALIDATING _____ FrameImageProc\n",MSG_COUNTER++);
-  //        TRACE(deb);
-  //    }
-  //#endif
   if (r) wnd=*r;
   else GetWindowRect(pcli->hwndContactList,&wnd);
   if (wnd.right-wnd.left==0 || wnd.bottom-wnd.top==0) return 0;
@@ -3435,14 +3394,6 @@ int ValidateFrameImageProc(RECT * r)                                // Calling q
   }
   if (IsNewCache)
   {
-    //-- Draw Back, frame captions, non-client area
-    //#ifdef _DEBUG
-    //    {
-    //        char deb[100];
-    //        sprintf(deb,"%d : Draw Back, frame captions, non-client area to ImageFrameImageProc\n",MSG_COUNTER++);
-    //        TRACE(deb);
-    //    }
-    //#endif
     DrawNonFramedObjects(0,&wnd);       
     IsForceAllPainting=1;
   }
@@ -3453,15 +3404,6 @@ int ValidateFrameImageProc(RECT * r)                                // Calling q
   }
   if (IsForceAllPainting) 
   { 
-    //BitBlt whole back to Image
-    //#ifdef _DEBUG
-    //    {
-    //        char deb[100];
-    //        sprintf(deb,"%d : BitBlt whole back to ImageFrameImageProc\n",MSG_COUNTER++);
-    //        TRACE(deb);
-    //    }
-    //#endif
-
     BitBlt(cachedWindow->hImageDC,0,0,cachedWindow->Width,cachedWindow->Height,cachedWindow->hBackDC,0,0,SRCCOPY);
     QueueAllFramesUpdating(1);
   }
@@ -3488,6 +3430,8 @@ int ValidateFrameImageProc(RECT * r)                                // Calling q
 
 int UpdateWindowImage()
 {
+  if (Miranda_Terminated()) 
+	  return 0;
   if (LayeredFlag)
   {
 	  RECT r;
@@ -3530,20 +3474,8 @@ void ApplyTransluency()
 		CURRENT_ALPHA=255;
 	if (!LayeredFlag && (/*(CURRENT_ALPHA==255)||*/(MySetLayeredWindowAttributesNew && IsTransparancy)))
 	{
-		//if (CURRENT_ALPHA==255)
-		//	SetWindowLong(hwnd, GWL_EXSTYLE, GetWindowLong(hwnd, GWL_EXSTYLE)&(~WS_EX_LAYERED));
-		//else
-		{
 			if (!layered) SetWindowLong(hwnd, GWL_EXSTYLE, GetWindowLong(hwnd, GWL_EXSTYLE) | WS_EX_LAYERED);
 			if (MySetLayeredWindowAttributesNew) MySetLayeredWindowAttributesNew(hwnd, RGB(0,0,0), (BYTE)CURRENT_ALPHA, LWA_ALPHA);
-#ifdef _DEBUG
-			{
-				char buf[255];
-				_snprintf(buf,sizeof(buf),"--- Set alpha %d\n",CURRENT_ALPHA);
-				TRACE(buf);
-			}
-#endif
-		}
 	}
 	return;
 }
@@ -3582,13 +3514,6 @@ int JustUpdateWindowImageRect(RECT * rty)
   dest.y=rect.top;
   sz.cx=rect.right-rect.left;
   sz.cy=rect.bottom-rect.top;
-  //#ifdef _DEBUG
-  //{
-  //        char b[250];
-  //        sprintf(b,"Update in rect=%d,%d  - %d,%d\n",dest.x,dest.y,rect.right,rect.bottom);
-  //        TRACE(b);
-  //    }
-  //#endif
   if (MyUpdateLayeredWindow && LayeredFlag)
   {
     if (!(GetWindowLong(pcli->hwndContactList, GWL_EXSTYLE)&WS_EX_LAYERED))
@@ -3598,50 +3523,6 @@ int JustUpdateWindowImageRect(RECT * rty)
     res=MyUpdateLayeredWindow(pcli->hwndContactList,cachedWindow->hScreenDC,&dest,&sz,cachedWindow->hImageDC,&src,RGB(1,1,1),&bf,ULW_ALPHA);
   }
   else InvalidateRect(pcli->hwndContactList,NULL,TRUE);
-  //{
-  //  //		PAINTSTRUCT ps;
-  //  HDC hdcWin;
-  //  //		HBITMAP bmp;
-  //  RECT rc;
-  //  HRGN rgn;	
-  //  //
-  //  {
-  //    if ((GetWindowLong(pcli->hwndContactList, GWL_EXSTYLE)&WS_EX_LAYERED))
-  //      SetWindowLong(pcli->hwndContactList,GWL_EXSTYLE, GetWindowLong(pcli->hwndContactList, GWL_EXSTYLE) & ~WS_EX_LAYERED);
-  //  }
-  //  TRACE("DRAWING\n");
-
-  //  hdcWin=GetWindowDC(pcli->hwndContactList);//DCEx(pcli->hwndContactList,rgn,DCX_VALIDATE);		
-  //  {
-  //    GetClientRect(pcli->hwndContactList,&rc);
-  //    rgn=CreateRectRgn(rc.left,rc.top,rc.right,rc.bottom);
-  //    {
-  //      int i;
-  //      for(i=0;i<nFramescount;i++)
-  //        if (Frames[i].PaintCallbackProc && Frames[i].visible)
-  //        {
-  //          HRGN rgn2;
-  //          RECT clr;
-  //          GetClientRect(Frames[i].hWnd,&clr);
-  //          OffsetRect(&clr,Frames[i].wndSize.left,Frames[i].wndSize.top);
-  //          rgn2=CreateRectRgn(Frames[i].wndSize.left,Frames[i].wndSize.top,Frames[i].wndSize.right,Frames[i].wndSize.bottom);
-  //          CombineRgn(rgn,rgn,rgn2,RGN_DIFF);
-  //          DeleteObject(rgn2);
-  //          rgn2=CreateRectRgn(clr.left,clr.top,clr.right,clr.bottom);						
-  //          CombineRgn(rgn,rgn,rgn2,RGN_OR);
-  //          DeleteObject(rgn2);
-  //        }			
-  //    }
-  //  }
-  //  {
-
-  //    SelectClipRgn(hdcWin,rgn);
-  //    res=BitBlt(hdcWin,0,0,sz.cx,sz.cy,cachedWindow->hImageDC,0,0,SRCCOPY);
-
-  //  }
-  //  DeleteObject(rgn);
-  //  ReleaseDC(pcli->hwndContactList,hdcWin);
-  //}
   LOCK_IMAGE_UPDATING=0;
   return 0;
 }
@@ -3707,8 +3588,8 @@ TCHAR *reappend(TCHAR *lfirst, TCHAR * lsecond, int len)
   int l2=(len?len:lstrlen(lsecond))*sizeof(TCHAR);
   int size=l1+l2+sizeof(TCHAR);
   TCHAR *buf=mir_alloc(size);
-  if (lfirst) memcpy(buf,lfirst,l1);
-  memcpy(((BYTE*)buf)+l1,lsecond,l2+sizeof(TCHAR));
+  if (lfirst) memmove(buf,lfirst,l1);
+  memmove(((BYTE*)buf)+l1,lsecond,l2+sizeof(TCHAR));
   if (lfirst) mir_free(lfirst);
   if (len) buf[(l1+l2+1)/sizeof(TCHAR)]=(TCHAR)'\0';
   return buf;
@@ -3775,7 +3656,7 @@ TCHAR *parseText(TCHAR *stzText)
         if (curpos-stpos>0) 
         {
           TCHAR *var=mir_alloc((curpos-stpos+1)*sizeof(TCHAR));
-          memcpy(var,stzText+stpos,(curpos-stpos)*sizeof(TCHAR));
+          memmove(var,stzText+stpos,(curpos-stpos)*sizeof(TCHAR));
           var[curpos-stpos]=(TCHAR)'\0';
           var=replacevar(var);
           result=reappend(result,var,0);
@@ -3800,7 +3681,6 @@ TCHAR *parseText(TCHAR *stzText)
       break;
     }   
   }
-  //TRACET(result);
   return result;
 }
 /*

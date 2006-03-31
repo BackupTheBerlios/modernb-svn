@@ -51,9 +51,7 @@ static BOOL ImageArray_Alloc(LP_IMAGE_ARRAY_DATA iad, int size)
 			if (tmp == NULL)
 			{
 				TRACE("Out of memory: realloc returned NULL (ImageArray_Alloc)");
-
 				ImageArray_Free(iad, FALSE);
-
 				return FALSE;
 			}
 

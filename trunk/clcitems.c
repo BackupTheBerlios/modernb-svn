@@ -36,7 +36,6 @@ void AddSubcontacts(struct ClcData *dat, struct ClcContact * cont, BOOL showOffl
 	pdisplayNameCacheEntry cacheEntry;
 	DWORD style=GetWindowLong(dat->hWnd,GWL_STYLE);
 	cacheEntry=(pdisplayNameCacheEntry)pcli->pfnGetCacheEntry(cont->hContact);
-	TRACE("Proceed AddSubcontacts\r\n");
 	cont->SubExpanded=(DBGetContactSettingByte(cont->hContact,"CList","Expanded",0) && (DBGetContactSettingByte(NULL,"CLC","MetaExpanding",1)));
 	subcount=(int)CallService(MS_MC_GETNUMCONTACTS,(WPARAM)cont->hContact,0);
 
@@ -341,7 +340,6 @@ void RebuildEntireList(HWND hwnd,struct ClcData *dat)
 	int tick=GetTickCount();
 	KillTimer(hwnd,TIMERID_REBUILDAFTER);
 	//EnterCriticalSection(&(dat->lockitemCS));
-	//TRACE("Critical 2\n");
 	ClearRowByIndexCache();
 	ImageArray_Clear(&dat->avatar_cache);
 	RowHeights_Clear(dat);
@@ -437,19 +435,16 @@ void RebuildEntireList(HWND hwnd,struct ClcData *dat)
 		}
 	}
 	//LeaveCriticalSection(&(dat->lockitemCS));
-	//TRACE("LeaveCritical 2\n");
+
 	pcli->pfnSortCLC(hwnd,dat,0);
 
 }
 
 //void SortCLC( HWND hwnd, struct ClcData *dat, int useInsertionSort )
 //{
-
 //	EnterCriticalSection(&(dat->lockitemCS));
-//TRACE("Critical 3\n");
 //	saveSortCLC(hwnd,dat,useInsertionSort);
 //	LeaveCriticalSection(&(dat->lockitemCS));
-//TRACE("LeaveCritical 3\n");
 //}
 
 int GetNewSelection(struct ClcGroup *group, int selection, int direction)

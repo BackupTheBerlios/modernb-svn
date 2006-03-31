@@ -423,8 +423,6 @@ int ShowHide(WPARAM wParam,LPARAM lParam)
 
 int HideWindow(HWND hwndContactList, int mode)
 {
-	TRACE("HIDE WINDOW\n");
-
 	KillTimer(pcli->hwndContactList,1/*TM_AUTOALPHA*/);
 	if (!BehindEdge_Hide())  return SmoothAlphaTransition(pcli->hwndContactList, 0, 1);
 	return 0;

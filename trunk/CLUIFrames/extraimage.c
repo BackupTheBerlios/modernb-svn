@@ -199,7 +199,6 @@ void ReloadExtraIcons()
 		SetNewExtraColumnCount();
 		NotifyEventHooks(hExtraImageListRebuilding,0,0);
 		ImageCreated=TRUE;
-		TRACE("ReloadExtraIcons Done\r\n");
 	}
 
 };
@@ -248,7 +247,6 @@ void SetAllExtraIcons(HWND hwndList,HANDLE hContact)
 	int em,pr,sms,a1,a2,w1,c1;
 	int tick=0;
 	int inphcont=(int)hContact;
-  TRACE("Start Set All ExtraIcons\n");
 	ON_SETALLEXTRAICON_CYCLE=1;
 	hcontgiven=(hContact!=0);
 
@@ -383,13 +381,6 @@ void SetAllExtraIcons(HWND hwndList,HANDLE hContact)
 	} while(hContact=(HANDLE)CallService(MS_DB_CONTACT_FINDNEXT,(WPARAM)hContact,0));
 
 	tick=GetTickCount()-tick;
-	if (tick>0)
-	{
-		char buf[256];
-		mir_snprintf(buf,sizeof(buf),"SetAllExtraIcons %d ms, for %x\r\n",tick,inphcont);
-		TRACE(buf);
-		DBWriteContactSettingDword((HANDLE)0,"CLUI","PF:Last SetAllExtraIcons Time:",tick);
-	}	
 	ON_SETALLEXTRAICON_CYCLE=0;
 	skinInvalidateRect(hwndList,NULL,FALSE);
 	Sleep(0);

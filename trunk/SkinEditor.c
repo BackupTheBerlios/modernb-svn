@@ -192,6 +192,18 @@ static BOOL CALLBACK DlgSkinEditorOpts(HWND hwndDlg, UINT msg, WPARAM wParam, LP
 					SendDlgItemMessage(hwndDlg,IDC_FIT,CB_ADDSTRING,0,(LPARAM)TranslateTS(FITMODES[i]));
 				SendDlgItemMessage(hwndDlg,IDC_FIT,CB_SETCURSEL,(WPARAM)0,(LPARAM)0);
 			}
+			//SPIN Ranges
+			{
+				SendDlgItemMessage(hwndDlg,IDC_SPIN_TOP,UDM_SETRANGE,0,MAKELONG(100,0));
+				SendDlgItemMessage(hwndDlg,IDC_SPIN_LEFT,UDM_SETRANGE,0,MAKELONG(100,0));
+				SendDlgItemMessage(hwndDlg,IDC_SPIN_BOTTOM,UDM_SETRANGE,0,MAKELONG(100,0));
+				SendDlgItemMessage(hwndDlg,IDC_SPIN_RIGHT,UDM_SETRANGE,0,MAKELONG(100,0));
+				
+				SendDlgItemMessage(hwndDlg,IDC_SPIN_POSLEFT,UDM_SETRANGE,0,MAKELONG(1000,0));
+				SendDlgItemMessage(hwndDlg,IDC_SPIN_POSTOP,UDM_SETRANGE,0,MAKELONG(1000,0));
+				SendDlgItemMessage(hwndDlg,IDC_SPIN_WIDTH,UDM_SETRANGE,0,MAKELONG(1000,0));
+				SendDlgItemMessage(hwndDlg,IDC_SPIN_HEIGHT,UDM_SETRANGE,0,MAKELONG(1000,0));
+			}
 			//ShowGroup(hwndDlg,GetDlgItem(hwndDlg,IDC_GROUP_1),FALSE);
 			//ShowGroup(hwndDlg,GetDlgItem(hwndDlg,IDC_GROUP_2),FALSE);
 			//ShowGroup(hwndDlg,GetDlgItem(hwndDlg,IDC_GROUP_3),FALSE);

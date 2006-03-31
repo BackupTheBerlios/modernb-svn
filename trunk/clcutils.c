@@ -186,7 +186,6 @@ void RecalcScrollBar(HWND hwnd,struct ClcData *dat)
 	RECT clRect;
 	NMCLISTCONTROL nm;
 
-	//TRACE("RecalcScrollBar\r\n");
 	RowHeights_CalcRowHeights(dat, hwnd);
 
 	GetClientRect(hwnd,&clRect);
@@ -199,7 +198,7 @@ void RecalcScrollBar(HWND hwnd,struct ClcData *dat)
 
 	nm.hdr.code=CLN_LISTSIZECHANGE;
 	nm.hdr.hwndFrom=hwnd;
-	nm.hdr.idFrom=GetDlgCtrlID(hwnd);
+	nm.hdr.idFrom=0;//GetDlgCtrlID(hwnd);
 	nm.pt.y=si.nMax;
 
 	SendMessage(GetParent(hwnd),WM_NOTIFY,0,(LPARAM)&nm);       //post
@@ -685,7 +684,7 @@ void LoadClcOptions(HWND hwnd, struct ClcData *dat)
 		NMHDR hdr;
 	hdr.code=CLN_OPTIONSCHANGED;
 	hdr.hwndFrom=hwnd;
-	hdr.idFrom=GetDlgCtrlID(hwnd);
+	hdr.idFrom=0;//GetDlgCtrlID(hwnd);
 	SendMessage(GetParent(hwnd),WM_NOTIFY,0,(LPARAM)&hdr);
 	}
 	SendMessage(hwnd,WM_SIZE,0,0);

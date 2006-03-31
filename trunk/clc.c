@@ -475,7 +475,6 @@ LRESULT CALLBACK ContactListControlWndProc(HWND hwnd, UINT msg, WPARAM wParam, L
 	switch (msg) {
 	case WM_CREATE:
 		{
-			TRACE("Create New ClistControl BEGIN\r\n");
 			dat=(struct ClcData*)mir_calloc(1,sizeof(struct ClcData));
 			SetWindowLong(hwnd,0,(long)dat);
 			dat->hWnd=hwnd;
@@ -509,8 +508,6 @@ LRESULT CALLBACK ContactListControlWndProc(HWND hwnd, UINT msg, WPARAM wParam, L
 
 			LoadClcOptions(hwnd,dat);
 			//pcli->pfnRebuildEntireList(hwnd,dat);
-
-			TRACE("Create New ClistControl TO CORE\r\n");
 			SetTimer(hwnd,TIMERID_INVALIDATE,5000,NULL);
 			saveContactListControlWndProc(hwnd, msg, wParam, lParam);		
 			TRACE("Create New ClistControl TO END\r\n");		
@@ -709,7 +706,6 @@ LRESULT CALLBACK ContactListControlWndProc(HWND hwnd, UINT msg, WPARAM wParam, L
 	case INTM_STATUSCHANGED:
 		{
       int ret=saveContactListControlWndProc(hwnd, msg, wParam, lParam);
-			TRACE("INTM_STATUSCHANGED\n");
 			if (wParam != 0)
 			{
 				pdisplayNameCacheEntry pdnce = (pdisplayNameCacheEntry)pcli->pfnGetCacheEntry((HANDLE)wParam);

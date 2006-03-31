@@ -36,6 +36,12 @@ extern int GetBasicFontID(struct ClcContact * contact);
 #include "modern_row.h"
 ROWCELL	* gl_RowTabAccess[TC_ELEMENTSCOUNT+1]={0};	// Массив, через который осуществляется доступ к элементам контакта.
 ROWCELL * gl_RowRoot;
+
+void FreeRowCell ()
+{
+	if (gl_RowRoot) 
+		cppDeleteTree(gl_RowRoot);
+}
 extern void GetTextSize(SIZE *text_size, HDC hdcMem, RECT free_row_rc, TCHAR *szText, SortedList *plText, UINT uTextFormat, int smiley_height);
 extern HFONT ChangeToFont(HDC hdc,struct ClcData *dat,int id,int *fontHeight);
 
@@ -511,7 +517,6 @@ void RowHeights_CalcRowHeights(struct ClcData *dat, HWND hwnd)
   struct ClcGroup *group;
 
   //EnterCriticalSection(&(dat->lockitemCS));
-  //TRACE("Critical 6\n");
  
   // Draw lines
   group=&dat->list;
@@ -585,7 +590,6 @@ void RowHeights_CalcRowHeights(struct ClcData *dat, HWND hwnd)
   }
 
   //LeaveCriticalSection(&(dat->lockitemCS));
-  //TRACE("LeaveCritical 6\n");
 }
 
 

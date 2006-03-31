@@ -647,6 +647,7 @@
 #define IDC_DOWN                        1634
 #define IDC_C_SPLIT                     1634
 #define IDC_BUTTON2                     1634
+#define IDC_PASTE                       1634
 #define IDC_IDLECHECK                   1636
 #define IDC_IDLEONWINDOWS               1637
 #define IDC_IDLEONMIRANDA               1638
@@ -828,7 +829,6 @@
 #define IDC_EFFECT_COLOUR_TEXT1         1853
 #define IDC_EFFECT_COLOUR_SPIN1         1854
 #define IDC_OBJECT_TREE                 1856
-#define IDC_COMBO_TYPE2                 1858
 #define IDC_FIT                         1858
 #define IDC_EDIT4                       1860
 #define IDC_BUTTON3                     1861
@@ -841,19 +841,16 @@
 #define IDC_EDIT11                      1868
 #define IDC_EDIT12                      1869
 #define IDC_TREE1                       1871
-#define IDC_SPIN2                       1871
-#define IDC_SPIN3                       1872
-#define IDC_SPIN4                       1873
-#define IDC_SPIN5                       1874
-#define IDC_SPIN6                       1875
-#define IDC_SPIN7                       1876
-#define IDC_SPIN8                       1877
-#define IDC_SPIN9                       1878
+#define IDC_SPIN_POSLEFT                1875
+#define IDC_SPIN_POSTOP                 1876
+#define IDC_SPIN_WIDTH                  1877
+#define IDC_SPIN_HEIGHT                 1878
 #define IDC_GROUP_0                     1879
 #define IDC_GROUP_1                     1880
 #define IDC_GROUP_2                     1881
 #define IDC_GROUP_3                     1883
 #define IDC_COLOR                       1884
+#define IDC_COPY                        1885
 #define IDC_CLSORT1                     6666
 #define IDC_CLSORT2                     6667
 #define IDC_CLSORT3                     6668
@@ -923,7 +920,7 @@
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        399
 #define _APS_NEXT_COMMAND_VALUE         40020
-#define _APS_NEXT_CONTROL_VALUE         1885
+#define _APS_NEXT_CONTROL_VALUE         1886
 #define _APS_NEXT_SYMED_VALUE           101
 #endif
 #endif

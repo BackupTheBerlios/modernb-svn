@@ -214,11 +214,6 @@ int __declspec(dllexport) CListInitialise(PLUGINLINK * link)
 {
 	int rc=0;
 	pluginLink=link;
-//#ifdef _DEBUG
-//	_CrtSetDbgFlag( _CRTDBG_ALLOC_MEM_DF | _CRTDBG_LEAK_CHECK_DF);
-//#endif
-	// get the internal malloc/free()
-	TRACE("CListInitialise ClistMW\r\n");
 	memset(&memoryManagerInterface,0,sizeof(memoryManagerInterface));
 	memoryManagerInterface.cbSize = sizeof(memoryManagerInterface);
 	CallService(MS_SYSTEM_GET_MMI, 0, (LPARAM)&memoryManagerInterface);
@@ -306,11 +301,7 @@ int __declspec(dllexport) CListInitialise(PLUGINLINK * link)
 	LoadSkinModule();
 	rc=LoadContactListModule();
 	if (rc==0) rc=LoadCLCModule();
-
 	LoadMoveToGroup();
-	//BGModuleLoad();
-
-	//CallTest();
 	TRACE("CListInitialise ClistMW...Done\r\n");
 	return rc;
 }
@@ -324,23 +315,21 @@ int __declspec(dllexport) Load(PLUGINLINK * link)
 	return 1;
 }
 extern void UnloadAvatarOverlayIcon();
+extern void FreeRowCell ();
+extern void UninitCustomMenus(void);
 int __declspec(dllexport) Unload(void)
 {
 	TRACE("Unloading ClistMW\r\n");	
 	if (IsWindow(pcli->hwndContactList)) DestroyWindow(pcli->hwndContactList);
-	Sleep(100);
-	//BGModuleUnload();
-	//    UnLoadContactListModule();
+	UninitCustomMenus();
 	UnloadAvatarOverlayIcon();
 	UninitSkinHotKeys();
 	UnhookEvent(hSkinLoaded);
-	Sleep(100);
 	UnhookAll();
 	UnloadSkinModule();
-
+	FreeRowCell();
 	pcli->hwndContactList=0;
-	TRACE("***&&& NEED TO UNHOOK ALL EVENTS &&&***\r\n");
-	
+	UnhookAll();
 	TRACE("Unloading ClistMW COMPLETE\r\n");
 	return 0;
 }

@@ -73,11 +73,7 @@ int CheckProtocolOrder()
 	char buf[10];
 	int ver;
 	
-	//curproto=0;
-	//curproto[1]='22';
 	protochanged=FALSE;
-//	TRACE("Calling CheckProtocolOrder\r\n");
-
 	ver=DBGetContactSettingDword(0,"Protocols","PrVer",-1);
 	if (ver!=PrVer){protochanged=TRUE;};
 	

@@ -210,7 +210,6 @@ void ReAskStatusMessage(HANDLE wParam)
   res=AddHandleToChain(wParam); 
   if (!ISTREADSTARTED && res) 
   {
-    TRACE("....start ask thread\n");
     forkthread(AskStatusMessageThread,0,0);
   }
   return;
@@ -917,7 +916,7 @@ BOOL RestoreOneContactData(struct ClcContact *contact, BOOL subcontact, void *pa
 		if (StoredContactsList[i].hContact==contact->hContact)
 		{
 			CONTACTDATASTORED data=StoredContactsList[i];
-			memcpy(StoredContactsList+i,StoredContactsList+i+1,sizeof(CONTACTDATASTORED)*(ContactsStoredCount-1));
+			memmove(StoredContactsList+i,StoredContactsList+i+1,sizeof(CONTACTDATASTORED)*(ContactsStoredCount-1));
 			ContactsStoredCount--;
 			{
 				if (data.szSecondLineText)

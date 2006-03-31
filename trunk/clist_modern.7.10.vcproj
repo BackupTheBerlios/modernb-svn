@@ -1129,9 +1129,6 @@
 					RelativePath=".\genmenuopt.c">
 				</File>
 				<File
-					RelativePath=".\newrowopts.c">
-				</File>
-				<File
 					RelativePath=".\CLUIFrames\protocolorder.c">
 					<FileConfiguration
 						Name="Release|Win32">

@@ -73,7 +73,7 @@ void rowSizeWithReposition(ROWCELL* &root, int width);
 void rowCalculateMinSize(ROWCELL* cell);
 void rowEqualize(ROWCELL* cell);
 void rowResetEmptyRects(ROWCELL* cell);
-
+int rowDeleteTree(ROWCELL* &cell);
 ////////
 
 
@@ -139,6 +139,12 @@ ROWCELL *cppInitModernRow(ROWCELL	** tabAccess)
   }
   return NULL;
 
+}
+
+extern "C" void cppDeleteTree(ROWCELL	* RowRoot)
+{
+	ROWCELL *&rc=RowRoot;
+	rowDeleteTree(rc);
 }
 
 extern "C" int cppCalculateRowHeight(ROWCELL	*RowRoot)
@@ -257,9 +263,6 @@ char * rowParserGetNextWord(char *tbuf, int &hbuf)
 void rowParserGetParam(ROWCELL* &cell, char *tbuf, int &hbuf)
 {
   	char * word=rowParserGetNextWord(tbuf, hbuf);
-    OutputDebugStringA("param:");
-    OutputDebugStringA(word);
-    OutputDebugStringA("\n");
   	int param=0;
   	
 	     if (!_strnicmp(word, "avatar",     strlen(word))) param = TC_AVATAR; 
@@ -364,9 +367,6 @@ BOOL rowParse(ROWCELL* &cell, ROWCELL* parent, char *tbuf, int &hbuf, int &seque
 {
 	char * word;
 	word = rowParserGetNextWord(tbuf, hbuf);
-  OutputDebugStringA("rowParse:");
-  OutputDebugStringA(word);
-  OutputDebugStringA("\n");
 	int cont;
 		
 	if      (!_strnicmp(word, "<tr",   strlen(word)) ||!_strnicmp(word, "<tr>",   strlen(word))) cont = TC_ROW; 

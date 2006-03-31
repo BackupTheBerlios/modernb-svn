@@ -155,8 +155,8 @@ BEGIN
     GROUPBOX        "Available objects",IDC_GROUP_0,4,18,124,208,WS_GROUP
     CONTROL         "",IDC_OBJECT_TREE,"SysTreeView32",WS_BORDER | 
                     WS_TABSTOP,10,31,112,173
-    PUSHBUTTON      "Copy",IDC_BUTTON1,11,207,50,13
-    PUSHBUTTON      "Paste",IDC_BUTTON2,72,207,50,13
+    PUSHBUTTON      "Copy",IDC_COPY,11,207,50,13
+    PUSHBUTTON      "Paste",IDC_PASTE,72,207,50,13
     GROUPBOX        "Object properties",IDC_GROUP_1,131,18,178,49,WS_GROUP
     LTEXT           "Type",IDC_STATIC,140,30,29,11,NOT WS_GROUP
     COMBOBOX        IDC_TYPE,172,28,133,69,CBS_DROPDOWN | WS_VSCROLL | 
@@ -175,19 +175,19 @@ BEGIN
     PUSHBUTTON      "...",IDC_BUTTON3,290,82,15,11
     LTEXT           "Borders",IDC_STATIC,140,97,49,9,NOT WS_GROUP
     EDITTEXT        IDC_EDIT9,153,109,45,12,ES_NUMBER
-    CONTROL         "",IDC_SPIN3,"msctls_updown32",UDS_SETBUDDYINT | 
+    CONTROL         "",IDC_SPIN_LEFT,"msctls_updown32",UDS_SETBUDDYINT | 
                     UDS_ALIGNRIGHT | UDS_AUTOBUDDY | UDS_ARROWKEYS,194,109,
                     10,14
     EDITTEXT        IDC_EDIT10,208,100,45,12,ES_NUMBER
-    CONTROL         "",IDC_SPIN2,"msctls_updown32",UDS_SETBUDDYINT | 
+    CONTROL         "",IDC_SPIN_TOP,"msctls_updown32",UDS_SETBUDDYINT | 
                     UDS_ALIGNRIGHT | UDS_AUTOBUDDY | UDS_ARROWKEYS,248,99,10,
                     14
     EDITTEXT        IDC_EDIT11,259,109,43,12,ES_NUMBER
-    CONTROL         "",IDC_SPIN4,"msctls_updown32",UDS_SETBUDDYINT | 
+    CONTROL         "",IDC_SPIN_RIGHT,"msctls_updown32",UDS_SETBUDDYINT | 
                     UDS_ALIGNRIGHT | UDS_AUTOBUDDY | UDS_ARROWKEYS,296,104,
                     10,14
     EDITTEXT        IDC_EDIT12,208,117,45,12,ES_NUMBER
-    CONTROL         "",IDC_SPIN5,"msctls_updown32",UDS_SETBUDDYINT | 
+    CONTROL         "",IDC_SPIN_BOTTOM,"msctls_updown32",UDS_SETBUDDYINT | 
                     UDS_ALIGNRIGHT | UDS_AUTOBUDDY | UDS_ARROWKEYS,250,116,
                     10,14
     RTEXT           "Fit mode",IDC_STATIC,138,137,58,11,NOT WS_GROUP
@@ -197,26 +197,26 @@ BEGIN
     LTEXT           "Position:",IDC_STATIC,137,167,42,11,NOT WS_GROUP
     RTEXT           "Left",IDC_STATIC,138,180,23,11,NOT WS_GROUP
     EDITTEXT        IDC_EDIT5,170,179,43,12,ES_NUMBER
-    CONTROL         "",IDC_SPIN6,"msctls_updown32",UDS_SETBUDDYINT | 
+    CONTROL         "",IDC_SPIN_POSLEFT,"msctls_updown32",UDS_SETBUDDYINT | 
                     UDS_ALIGNRIGHT | UDS_AUTOBUDDY | UDS_ARROWKEYS,215,178,
                     10,14
     RTEXT           "Top",IDC_STATIC,218,180,34,11,NOT WS_GROUP
     EDITTEXT        IDC_EDIT6,256,179,46,12,ES_NUMBER
-    CONTROL         "",IDC_SPIN7,"msctls_updown32",UDS_SETBUDDYINT | 
+    CONTROL         "",IDC_SPIN_POSTOP,"msctls_updown32",UDS_SETBUDDYINT | 
                     UDS_ALIGNRIGHT | UDS_AUTOBUDDY | UDS_ARROWKEYS,296,178,
                     10,14
     LTEXT           "Size:",IDC_STATIC,137,196,67,11,NOT WS_GROUP
     RTEXT           "Width",IDC_STATIC,142,209,24,11,NOT WS_GROUP
     EDITTEXT        IDC_EDIT7,170,208,45,12,ES_NUMBER
-    CONTROL         "",IDC_SPIN8,"msctls_updown32",UDS_SETBUDDYINT | 
+    CONTROL         "",IDC_SPIN_WIDTH,"msctls_updown32",UDS_SETBUDDYINT | 
                     UDS_ALIGNRIGHT | UDS_AUTOBUDDY | UDS_ARROWKEYS,215,207,
                     10,14
     RTEXT           "Height",IDC_STATIC,219,210,34,9,NOT WS_GROUP
     EDITTEXT        IDC_EDIT8,256,208,46,12,ES_NUMBER
-    CONTROL         "",IDC_SPIN9,"msctls_updown32",UDS_SETBUDDYINT | 
+    CONTROL         "",IDC_SPIN_HEIGHT,"msctls_updown32",UDS_SETBUDDYINT | 
                     UDS_ALIGNRIGHT | UDS_AUTOBUDDY | UDS_ARROWKEYS,297,207,
                     10,14
-    EDITTEXT        IDC_GROUP_4,4,230,305,12,ES_AUTOHSCROLL | WS_GROUP
+    EDITTEXT        IDC_EDIT1,4,230,305,12,ES_AUTOHSCROLL | WS_GROUP
 END
 
 
@@ -232,12 +232,6 @@ BEGIN
     BEGIN
         LEFTMARGIN, 4
         RIGHTMARGIN, 309
-        VERTGUIDE, 118
-        VERTGUIDE, 131
-        VERTGUIDE, 170
-        VERTGUIDE, 215
-        VERTGUIDE, 256
-        VERTGUIDE, 302
         TOPMARGIN, 7
         BOTTOMMARGIN, 242
         HORZGUIDE, 22

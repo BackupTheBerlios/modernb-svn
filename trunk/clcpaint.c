@@ -2750,14 +2750,6 @@ void InternalPaintClc(HWND hwnd,struct ClcData *dat,HDC hdc,RECT *rcPaint)
         if (!(!Drawing || IsBadCodePtr((FARPROC)Drawing)))
         {
 		 //LeaveCriticalSection(&(dat->lockitemCS));
-		 //TRACE("LeaveCritical 4\n");
-          /*		SelectObject(hdcMem,oldbmp);
-          DeleteObject(hBmpOsb);
-          ModernDeleteDC(hdcMem);
-  //        LeaveCriticalSection(&(dat->lockitemCS));
-          return;
-          */
-
           // Calc row height
           if (!gl_RowRoot) RowHeights_GetRowHeight(dat, hwnd, Drawing, line_num);
           else ModernCalcRowHeight(dat, hwnd, Drawing, line_num);
@@ -2825,8 +2817,6 @@ void InternalPaintClc(HWND hwnd,struct ClcData *dat,HDC hdc,RECT *rcPaint)
           if (!dat->force_in_dialog)
           {   //Build request string
             request=GetCLCContactRowBackObject(group,Drawing,indent,line_num,selected,hottrack,dat);
-            //TRACE(request);
-            //TRACE("\n");
 			{
 				RECT mrc=row_rc;
 				if (group->parent==0 

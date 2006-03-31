@@ -2,15 +2,16 @@
 
 int mir_realloc_proxy(void *ptr,int size)
 {
-		if (IsBadCodePtr((FARPROC)ptr))
+	/*	if (IsBadCodePtr((FARPROC)ptr))
 		{
 			char buf[256];
 			mir_snprintf(buf,sizeof(buf),"Bad code ptr in mir_realloc_proxy ptr: %x\r\n",ptr);
-			//ASSERT("Bad code ptr");
-			DebugBreak();
+			//ASSERT("Bad code ptr");		
 			TRACE(buf);
+			DebugBreak();
 			return 0;
 		}
+		*/
 	memoryManagerInterface.mmi_realloc(ptr,size);
 	return 0;
 
@@ -19,18 +20,10 @@ int mir_realloc_proxy(void *ptr,int size)
 
 int mir_free_proxy(void *ptr)
 {
-	if (ptr==NULL||IsBadCodePtr((FARPROC)ptr))
-	{
-		char buf[256];
-		mir_snprintf(buf,sizeof(buf),"Bad code ptr in mir_free_proxy ptr: %x\r\n",ptr);
-		//ASSERT("Bad code ptr");
-		DebugBreak();
-		TRACE(buf);
+	if (ptr==NULL) //||IsBadCodePtr((FARPROC)ptr))
 		return 0;
-	}
     memoryManagerInterface.mmi_free(ptr);
 	return 0;
-
 }
 BOOL __cdecl strstri(const char *a, const char *b)
 {
@@ -89,27 +82,15 @@ int __cdecl MyStrCmp (const char *a, const char *b)
 {
 	
 	if (!(a&&b)) return a!=b;
-//	if ((int)a<1000||(int)b<1000||IsBadCodePtr((FARPROC)a)||IsBadCodePtr((FARPROC)b)) 
-//	{
-//		return 1;
-//	}
-	//TRACE("MY\r\n");
-	//undef();
 	return (strcmp(a,b));
 };
 
 _inline int MyStrLen (const char *a)	
- 	 {	
- 	 	
- 	         if (a==NULL) return 0;	
- 	         if ((int)a<1000||IsBadCodePtr((FARPROC)a))	
- 	         {	
- 	                 return 0;	
- 	         }	
- 	         //TRACE("MY\r\n");	
- 	         //undef();	
- 	         return (strlen(a));	
- 	 };	
+{	
+
+	if (a==NULL) return 0;	
+	return (strlen(a));	
+};	
  	 	
 #define strlen(a) MyStrLen(a)
 #define strcmp(a,b) MyStrCmp(a,b)
@@ -231,15 +212,7 @@ BOOL DebugDeleteObject(HGDIOBJ a)
 		return res;
 		}
 
-		// Process any inserts in lpMsgBuf.
-		// ...
-
-		// Display the string.
 		MessageBox( NULL, (LPCTSTR)lpMsgBuf, _T("Error"), MB_OK | MB_ICONINFORMATION );
-		TRACE("******************** ");
-		TRACET(lpMsgBuf);
-		TRACE("\n");
-		// Free the buffer.
 		LocalFree( lpMsgBuf );
 
 	}

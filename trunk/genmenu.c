@@ -213,6 +213,7 @@ void RemoveAndClearOneObject(int arpos)
   FreeAndNil(&MenuObjects[arpos].MenuItems);
   MenuObjects[arpos].MenuItemsCount=0;
   FreeAndNil(&MenuObjects[arpos].FreeService);
+  FreeAndNil(&MenuObjects[arpos].onAddService);
   FreeAndNil(&MenuObjects[arpos].CheckService);
   FreeAndNil(&MenuObjects[arpos].ExecService);
   FreeAndNil(&MenuObjects[arpos].Name);
@@ -422,11 +423,6 @@ int MO_ProcessCommand(WPARAM wParam,LPARAM lParam)
   if (GetAllIdx(globid,&objidx,&menuitemidx)==0){unlockmo();return(0);};
   srvname=MenuObjects[objidx].ExecService;
   ownerdata=MenuObjects[objidx].MenuItems[menuitemidx].mi.ownerdata;
-  {
-    char buf[256];
-    sprintf(buf,"Process Command %s ",srvname);
-    TRACE(buf);
-  }
   unlockmo();
   return CallService(srvname,(WPARAM)ownerdata,lParam);
 };
@@ -441,10 +437,9 @@ int MO_SetOptionsMenuItem(WPARAM wParam,LPARAM lParam)
 
   if (!isGenMenuInited) return -1;
   if (lParam==0){return(0);};
-  //TRACE("MO_SetOptionsMenuItem lock try\r\n");
+
   lockmo();
   setcnt++;
-  //TRACE("MO_SetOptionsMenuItem in lock\r\n");
   __try
   {
     lpop=(lpOptParam)lParam;
@@ -468,13 +463,6 @@ int MO_SetOptionsMenuItem(WPARAM wParam,LPARAM lParam)
   {
     setcnt--;
     unlockmo();
-    {
-      //	char buf[256];
-
-      //sprintf(buf,"MO_SetOptionsMenuItem in unlock %d\r\n",setcnt);
-      //TRACE(buf);
-    }
-
   }
   return 1;
 };
@@ -539,18 +527,10 @@ int MO_CreateNewMenuObject(WPARAM wParam,LPARAM lParam)
   MenuObjects[MenuObjectsCount].CheckService=mir_strdup(pmp->CheckService);
   MenuObjects[MenuObjectsCount].ExecService=mir_strdup(pmp->ExecService);
 
-  //if(IsWinVerXPPlus())		//need 32-bit icons on XP for alpha channels
-    MenuObjects[MenuObjectsCount].hMenuIcons=ImageList_Create(GetSystemMetrics(SM_CXSMICON),GetSystemMetrics(SM_CYSMICON),ILC_COLOR32|ILC_MASK,15,100);
-  //else	  //Win2k won't blend icons with imagelist_drawex when color-depth>16-bit. Don't know about WinME, but it certainly doesn't support alpha channels
-  //  MenuObjects[MenuObjectsCount].hMenuIcons=ImageList_Create(GetSystemMetrics(SM_CXSMICON),GetSystemMetrics(SM_CYSMICON),ILC_COLOR16|ILC_MASK,15,100);
-
+  MenuObjects[MenuObjectsCount].hMenuIcons=ImageList_Create(GetSystemMetrics(SM_CXSMICON),GetSystemMetrics(SM_CYSMICON),ILC_COLOR32|ILC_MASK,15,100);
   result=MenuObjects[MenuObjectsCount].id;
   MenuObjectsCount++;
   unlockmo();
-	TRACE("!!! Created New MenuObject \t");
-	if (pmp->name) TRACE(pmp->name);
-	TRACE("\r\n");
-
   return(result);
 };
 //wparam=MenuItemHandle
@@ -710,8 +690,9 @@ int MO_AddOldNewMenuItem(WPARAM wParam,LPARAM lParam)
       tmi.ownerdata=0;
       tmi.root=-1;
       //copy pszPopupName
-      tmi.pszName=mir_strdup((char *)pmi->root);
+	  tmi.pszName=mir_strdup((char *)pmi->root);	  
       oldroot=MO_AddNewMenuItem(wParam,(LPARAM)&tmi);
+	  if (tmi.pszName) mir_free( tmi.pszName);
     };
     pmi->root=oldroot;
     //popup will be created in next commands
@@ -883,11 +864,6 @@ int MO_BuildMenu(WPARAM wParam,LPARAM lParam)
   res=(int)BuildRecursiveMenu((HMENU)wParam,(ListParam *)lParam);
 
   tick=GetTickCount()-tick;
-  {
-    char buf[256];
-    sprintf(buf,"build %s, %d ms\r\n",MenuObjects[pimoidx].Name,tick);
-    TRACE(buf);
-  }
   unlockmo();	
 
   return(res);
@@ -1109,7 +1085,6 @@ HMENU BuildRecursiveMenu(HMENU hMenu,ListParam *param)
         if (GetKeyState(VK_CONTROL)&0x8000)
         {char str[256];				
         sprintf(str,"%s (%d,id %x)",mi->pszName,mi->position,mii.dwItemData);
-        //TRACE(str);
         mii.dwTypeData=str;
         };
 #endif
@@ -1136,11 +1111,11 @@ HMENU BuildRecursiveMenu(HMENU hMenu,ListParam *param)
 
 static int RemoveFromList(int pos,void **lpList,int *ListElemCount,int ElemSize)
 {
-  //memcpy(&((*lpMenuItems)[pos]),&((*lpMenuItems)[pos+1]),sizeof(CListIntMenuItem)*(*MenuItemCount-pos-1));
+  //memmove(&((*lpMenuItems)[pos]),&((*lpMenuItems)[pos+1]),sizeof(CListIntMenuItem)*(*MenuItemCount-pos-1));
   void *p1,*p2;
   p1=(void *)( (int)(*lpList)+pos*ElemSize);
   p2=(void *)( (int)(*lpList)+(pos+1)*ElemSize);
-  memcpy(p1,p2,ElemSize*(*ListElemCount-pos-1));
+  memmove(p1,p2,ElemSize*(*ListElemCount-pos-1));
   (*ListElemCount)--;
   (*lpList)=mir_realloc((*lpList),ElemSize*(*ListElemCount));
   return 0;
@@ -1258,20 +1233,6 @@ int RegisterOneIcon(int mo,int mi)
 
   uname=MenuObjects[mo].MenuItems[mi].UniqName;
   if (uname==NULL) uname=MenuObjects[mo].MenuItems[mi].CustomName;
-
-  {
-    //		char buf[256];
-    /*
-    sprintf(buf,"registerd icon menu: %s, name: %s,id: %d mi.position %d, uname: %s iconid: %d\r\n",MenuObjects[mo].Name,MenuObjects[mo].MenuItems[mi].mi.pszName,
-    MenuObjects[mo].MenuItems[mi].id,
-    MenuObjects[mo].MenuItems[mi].mi.position,
-    uname,
-    MenuObjects[mo].MenuItems[mi].iconId
-    );
-    */
-    //	TRACE(buf);
-  }
-  //&&MenuObjects[mo].MenuItems[mi].iconId!=-1
   if (!MenuObjects[mo].MenuItems[mi].IconRegistred&&uname!=NULL)
   {	
 
@@ -1300,11 +1261,6 @@ int RegisterAllIconsinIconLib()
   {
     for (mo=0;mo<MenuObjectsCount;mo++)
     {
-      TRACE("Trying Register for \t");
-      TRACE(MenuObjects[mo].Name);
-      TRACE("\r\n");
-
-
       for (mi=0;mi<MenuObjects[mo].MenuItemsCount;mi++)
       {
         RegisterOneIcon(mo,mi);
@@ -1315,7 +1271,6 @@ int RegisterAllIconsinIconLib()
   return 0;
 };
 
-//#define PostRegisterTimerID 12001
 int posttimerid;
 VOID CALLBACK PostRegisterIcons(          HWND hwnd,
                                 UINT uMsg,
@@ -1365,15 +1320,11 @@ int InitGenMenu()
   lockmo();
   isGenMenuInited=TRUE;
   unlockmo();
-
-  TRACE("GenMenu Inited Done\r\n");
-
   HookEvent(ME_SYSTEM_MODULESLOADED,OnModulesLoaded);
   return(0);
 };
 int UnitGenMenu()
 {
-  TRACE("GenMenu ShutDown ...\r\n");
   lockmo();
   MO_RemoveAllObjects();	
   isGenMenuInited=FALSE;
@@ -1399,11 +1350,7 @@ int UnitGenMenu()
   DestroyServiceFunction(MO_SETOPTIONSMENUITEM);
   DestroyHookableEvent(ME_OPT_INITIALISE);
   unlockmo();
-
-
   DeleteCriticalSection(&csMenuHook);
-  TRACE("GenMenu ShutDown Done\r\n");
-
   return(0);
 };
 

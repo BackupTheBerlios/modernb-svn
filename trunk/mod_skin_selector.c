@@ -107,7 +107,7 @@ int AddModernMaskToList(ModernMask * mm,  ModernMaskList * mmTemplateList)
     mmTemplateList->MaskList=mir_realloc(mmTemplateList->MaskList,sizeof(ModernMask)*(mmTemplateList->AllocatedMask+1));
     //if (mm->MaskID==0)
 //mm->MaskID=mmTemplateList->AllocatedMask;   
-    memcpy(&(mmTemplateList->MaskList[mmTemplateList->AllocatedMask]),mm,sizeof(ModernMask));
+    memmove(&(mmTemplateList->MaskList[mmTemplateList->AllocatedMask]),mm,sizeof(ModernMask));
     mmTemplateList->AllocatedMask++;
     return mmTemplateList->AllocatedMask-1;
 }
@@ -141,7 +141,7 @@ int DeleteMaskByItID(DWORD mID,ModernMaskList * mmTemplateList)
       DWORD i;
       DeleteMask(&(mmTemplateList->MaskList[mID]));
       newAlocation=mir_alloc(sizeof(ModernMask)*mmTemplateList->AllocatedMask-1);
-      memcpy(newAlocation,mmTemplateList->MaskList,sizeof(ModernMask)*(mID+1));
+      memmove(newAlocation,mmTemplateList->MaskList,sizeof(ModernMask)*(mID+1));
       for (i=mID; i<mmTemplateList->AllocatedMask-1; i++)
       {
           newAlocation[i]=mmTemplateList->MaskList[i+1];
@@ -265,7 +265,7 @@ int ParseToModernMask(ModernMask * mm, char * szText)
                     mm->ParamsList=mir_realloc(mm->ParamsList,(mm->ParamsCount+1)*sizeof(ModernParam));
                     mm->ParamsCount++;                    
                   }
-                  memcpy(&(mm->ParamsList[curParam]),&param,sizeof(ModernParam));
+                  memmove(&(mm->ParamsList[curParam]),&param,sizeof(ModernParam));
                   curParam++;
                   memset(&param,0,sizeof(ModernParam));
             }

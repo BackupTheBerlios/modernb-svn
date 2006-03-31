@@ -309,7 +309,7 @@ static LRESULT CALLBACK ModernButtonWndProc(HWND hwndDlg, UINT msg,  WPARAM wPar
           //		    bct->HandleService=NULL;
           //            bct->ID=NULL;
           //			SetWindowLong(hwndDlg, 0, (long)bct);
-          if (((CREATESTRUCT *)lParam)->lpszName) SetWindowText(hwndDlg, ((CREATESTRUCT *)lParam)->lpszName);  
+          if (((CREATESTRUCTA *)lParam)->lpszName) SetWindowTextA(hwndDlg, ((CREATESTRUCTA *)lParam)->lpszName);  
           return TRUE;
         }
       case WM_DESTROY:
@@ -639,14 +639,6 @@ int ReposButtons(HWND parent, BOOL draw, RECT * r)
   RECT rd;
   BOOL altDraw=FALSE;
   if (!ModernButtonModuleIsLoaded) return 0;
-#ifdef _DEBUG
-  {
-	  char buf[256];
-	  static unsigned long c=0;
-	  _snprintf(buf, sizeof(buf),"Reposition Buttons N%d\n",c++);
-	  TRACE(buf);
-  }
-#endif
   GetWindowRect(parent,&rd);
   GetClientRect(parent,&clr);
   if (!r)
