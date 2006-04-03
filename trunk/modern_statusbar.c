@@ -170,6 +170,7 @@ int ModernDrawStatusBarWorker(HWND hWnd, HDC hDC)
   int spaceWidth;
   int maxwidth=0;
 
+
   GetClientRect(hWnd,&rc);
 
 

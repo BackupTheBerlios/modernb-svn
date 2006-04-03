@@ -646,7 +646,6 @@
 #define IDC_UP                          1633
 #define IDC_DOWN                        1634
 #define IDC_C_SPLIT                     1634
-#define IDC_BUTTON2                     1634
 #define IDC_PASTE                       1634
 #define IDC_IDLECHECK                   1636
 #define IDC_IDLEONWINDOWS               1637
@@ -818,7 +817,6 @@
 #define IDC_SHOW_ONLY_IF_DIFFERENT      1842
 #define IDC_COMBO2                      1842
 #define IDC_EDIT1                       1843
-#define IDC_GROUP_4                     1843
 #define IDC_HIDE_GROUPSICON             1844
 #define IDC_STATIC_INFO                 1845
 #define IDC_DESIGNTREE                  1848
@@ -830,16 +828,14 @@
 #define IDC_EFFECT_COLOUR_SPIN1         1854
 #define IDC_OBJECT_TREE                 1856
 #define IDC_FIT                         1858
-#define IDC_EDIT4                       1860
-#define IDC_BUTTON3                     1861
-#define IDC_EDIT5                       1862
-#define IDC_EDIT6                       1863
-#define IDC_EDIT7                       1864
-#define IDC_EDIT8                       1865
-#define IDC_EDIT9                       1866
-#define IDC_EDIT10                      1867
-#define IDC_EDIT11                      1868
-#define IDC_EDIT12                      1869
+#define IDC_E_X                         1862
+#define IDC_E_Y                         1863
+#define IDC_E_W                         1864
+#define IDC_E_H                         1865
+#define IDC_E_LEFT                      1866
+#define IDC_E_TOP                       1867
+#define IDC_E_RIGHT                     1868
+#define IDC_E_BOTTOM                    1869
 #define IDC_TREE1                       1871
 #define IDC_SPIN_POSLEFT                1875
 #define IDC_SPIN_POSTOP                 1876
@@ -851,6 +847,9 @@
 #define IDC_GROUP_3                     1883
 #define IDC_COLOR                       1884
 #define IDC_COPY                        1885
+#define IDC_ST_COLOUR                   1886
+#define IDC_ST_ALPHA                    1887
+#define IDC_S_SIZE                      1888
 #define IDC_CLSORT1                     6666
 #define IDC_CLSORT2                     6667
 #define IDC_CLSORT3                     6668
@@ -920,7 +919,7 @@
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        399
 #define _APS_NEXT_COMMAND_VALUE         40020
-#define _APS_NEXT_CONTROL_VALUE         1886
+#define _APS_NEXT_CONTROL_VALUE         1889
 #define _APS_NEXT_SYMED_VALUE           101
 #endif
 #endif

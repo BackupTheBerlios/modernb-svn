@@ -138,11 +138,11 @@ BEGIN
     CONTROL         "",IDC_COLOUR_FRAMES,"ColourPicker",WS_TABSTOP,270,226,
                     32,12
     LTEXT           "WARNING: \tSkins can modify your current profile. Rollback is not possible. \n\t\tPlease BACKUP your database before applying skin.",
-                    IDC_STATIC,3,197,299,17,NOT WS_VISIBLE
+                    IDC_STATIC,3,197,299,17
     LTEXT           "* Restart can be required to all changes take effect",
                     IDC_STATIC,3,218,200,8
-    COMBOBOX        IDC_COMBO1,177,194,123,76,CBS_DROPDOWN | CBS_SORT | 
-                    WS_VSCROLL | WS_TABSTOP
+    COMBOBOX        IDC_COMBO1,177,194,123,76,CBS_DROPDOWN | CBS_SORT | NOT 
+                    WS_VISIBLE | WS_VSCROLL | WS_TABSTOP
     CONTROL         "",IDC_TREE1,"SysTreeView32",TVS_HASBUTTONS | 
                     TVS_HASLINES | TVS_LINESATROOT | TVS_SHOWSELALWAYS | 
                     WS_BORDER | WS_TABSTOP | 0x400,5,25,170,147
@@ -152,71 +152,75 @@ IDD_OPT_SKINEDITOR DIALOGEX 0, 0, 316, 249
 STYLE DS_SETFONT | DS_FIXEDSYS | WS_POPUP | WS_SYSMENU
 FONT 8, "MS Shell Dlg", 400, 0, 0x1
 BEGIN
-    GROUPBOX        "Available objects",IDC_GROUP_0,4,18,124,208,WS_GROUP
-    CONTROL         "",IDC_OBJECT_TREE,"SysTreeView32",WS_BORDER | 
-                    WS_TABSTOP,10,31,112,173
-    PUSHBUTTON      "Copy",IDC_COPY,11,207,50,13
-    PUSHBUTTON      "Paste",IDC_PASTE,72,207,50,13
+    GROUPBOX        "Available objects",IDC_GROUP_0,4,18,124,216,WS_GROUP
+    CONTROL         "",IDC_OBJECT_TREE,"SysTreeView32",TVS_HASBUTTONS | 
+                    TVS_LINESATROOT | TVS_SHOWSELALWAYS | WS_BORDER | 
+                    WS_TABSTOP,10,31,112,182
+    PUSHBUTTON      "Copy",IDC_COPY,11,217,50,13
+    PUSHBUTTON      "Paste",IDC_PASTE,72,217,50,13
     GROUPBOX        "Object properties",IDC_GROUP_1,131,18,178,49,WS_GROUP
     LTEXT           "Type",IDC_STATIC,140,30,29,11,NOT WS_GROUP
-    COMBOBOX        IDC_TYPE,172,28,133,69,CBS_DROPDOWN | WS_VSCROLL | 
+    COMBOBOX        IDC_TYPE,172,28,133,69,CBS_DROPDOWNLIST | WS_VSCROLL | 
                     WS_TABSTOP
-    LTEXT           "Colour",IDC_STATIC,140,50,29,11,NOT WS_GROUP
+    LTEXT           "Colour",IDC_ST_COLOUR,140,50,29,11
     CONTROL         "",IDC_COLOR,"ColourPicker",WS_TABSTOP,172,49,41,12
-    LTEXT           "Alpha",IDC_STATIC,226,50,33,11,NOT WS_GROUP
+    LTEXT           "Alpha",IDC_ST_ALPHA,226,50,33,11
     EDITTEXT        IDC_EDIT_ALPHA,265,49,40,12,ES_NUMBER
     CONTROL         "",IDC_SPIN_ALPHA,"msctls_updown32",UDS_SETBUDDYINT | 
                     UDS_ALIGNRIGHT | UDS_AUTOBUDDY | UDS_ARROWKEYS,295,45,10,
                     14
-    GROUPBOX        "Image file and fitting mode",IDC_GROUP_2,131,68,178,85,
+    GROUPBOX        "Image file and fitting mode",IDC_GROUP_2,131,68,178,93,
                     WS_GROUP
     LTEXT           "File",IDC_STATIC,140,84,29,11,NOT WS_GROUP
-    EDITTEXT        IDC_EDIT4,172,82,115,12,ES_AUTOHSCROLL
-    PUSHBUTTON      "...",IDC_BUTTON3,290,82,15,11
-    LTEXT           "Borders",IDC_STATIC,140,97,49,9,NOT WS_GROUP
-    EDITTEXT        IDC_EDIT9,153,109,45,12,ES_NUMBER
+    EDITTEXT        IDC_FILE,172,82,115,12,ES_AUTOHSCROLL
+    PUSHBUTTON      "...",IDC_BROWSE,290,82,15,11
+    LTEXT           "Borders",IDC_STATIC,140,105,49,9,NOT WS_GROUP
+    EDITTEXT        IDC_E_LEFT,153,117,45,12,ES_NUMBER
     CONTROL         "",IDC_SPIN_LEFT,"msctls_updown32",UDS_SETBUDDYINT | 
-                    UDS_ALIGNRIGHT | UDS_AUTOBUDDY | UDS_ARROWKEYS,194,109,
+                    UDS_ALIGNRIGHT | UDS_AUTOBUDDY | UDS_ARROWKEYS,194,117,
                     10,14
-    EDITTEXT        IDC_EDIT10,208,100,45,12,ES_NUMBER
+    EDITTEXT        IDC_E_TOP,208,108,45,12,ES_NUMBER
     CONTROL         "",IDC_SPIN_TOP,"msctls_updown32",UDS_SETBUDDYINT | 
-                    UDS_ALIGNRIGHT | UDS_AUTOBUDDY | UDS_ARROWKEYS,248,99,10,
-                    14
-    EDITTEXT        IDC_EDIT11,259,109,43,12,ES_NUMBER
+                    UDS_ALIGNRIGHT | UDS_AUTOBUDDY | UDS_ARROWKEYS,248,107,
+                    10,14
+    EDITTEXT        IDC_E_RIGHT,259,117,43,12,ES_NUMBER
     CONTROL         "",IDC_SPIN_RIGHT,"msctls_updown32",UDS_SETBUDDYINT | 
-                    UDS_ALIGNRIGHT | UDS_AUTOBUDDY | UDS_ARROWKEYS,296,104,
+                    UDS_ALIGNRIGHT | UDS_AUTOBUDDY | UDS_ARROWKEYS,296,112,
                     10,14
-    EDITTEXT        IDC_EDIT12,208,117,45,12,ES_NUMBER
+    EDITTEXT        IDC_E_BOTTOM,208,125,45,12,ES_NUMBER
     CONTROL         "",IDC_SPIN_BOTTOM,"msctls_updown32",UDS_SETBUDDYINT | 
-                    UDS_ALIGNRIGHT | UDS_AUTOBUDDY | UDS_ARROWKEYS,250,116,
+                    UDS_ALIGNRIGHT | UDS_AUTOBUDDY | UDS_ARROWKEYS,250,124,
                     10,14
-    RTEXT           "Fit mode",IDC_STATIC,138,137,58,11,NOT WS_GROUP
-    COMBOBOX        IDC_FIT,202,135,100,69,CBS_DROPDOWN | WS_VSCROLL | 
+    RTEXT           "Fit mode",IDC_STATIC,138,145,58,11,NOT WS_GROUP
+    COMBOBOX        IDC_FIT,202,143,100,69,CBS_DROPDOWNLIST | WS_VSCROLL | 
                     WS_TABSTOP
-    GROUPBOX        "Fragment location",IDC_GROUP_3,131,154,178,72,WS_GROUP
-    LTEXT           "Position:",IDC_STATIC,137,167,42,11,NOT WS_GROUP
-    RTEXT           "Left",IDC_STATIC,138,180,23,11,NOT WS_GROUP
-    EDITTEXT        IDC_EDIT5,170,179,43,12,ES_NUMBER
+    GROUPBOX        "Fragment location",IDC_GROUP_3,131,162,178,72,WS_GROUP
+    LTEXT           "Position:",IDC_STATIC,137,175,42,11,NOT WS_GROUP
+    RTEXT           "Left",IDC_STATIC,138,188,23,11,NOT WS_GROUP
+    EDITTEXT        IDC_E_X,170,187,43,12,ES_NUMBER
     CONTROL         "",IDC_SPIN_POSLEFT,"msctls_updown32",UDS_SETBUDDYINT | 
-                    UDS_ALIGNRIGHT | UDS_AUTOBUDDY | UDS_ARROWKEYS,215,178,
+                    UDS_ALIGNRIGHT | UDS_AUTOBUDDY | UDS_ARROWKEYS,215,186,
                     10,14
-    RTEXT           "Top",IDC_STATIC,218,180,34,11,NOT WS_GROUP
-    EDITTEXT        IDC_EDIT6,256,179,46,12,ES_NUMBER
+    RTEXT           "Top",IDC_STATIC,218,188,34,11,NOT WS_GROUP
+    EDITTEXT        IDC_E_Y,256,187,46,12,ES_NUMBER
     CONTROL         "",IDC_SPIN_POSTOP,"msctls_updown32",UDS_SETBUDDYINT | 
-                    UDS_ALIGNRIGHT | UDS_AUTOBUDDY | UDS_ARROWKEYS,296,178,
+                    UDS_ALIGNRIGHT | UDS_AUTOBUDDY | UDS_ARROWKEYS,296,186,
                     10,14
-    LTEXT           "Size:",IDC_STATIC,137,196,67,11,NOT WS_GROUP
-    RTEXT           "Width",IDC_STATIC,142,209,24,11,NOT WS_GROUP
-    EDITTEXT        IDC_EDIT7,170,208,45,12,ES_NUMBER
+    LTEXT           "Size:",IDC_STATIC,137,204,67,11,NOT WS_GROUP
+    RTEXT           "Width",IDC_STATIC,142,217,24,11,NOT WS_GROUP
+    EDITTEXT        IDC_E_W,170,216,45,12,ES_NUMBER
     CONTROL         "",IDC_SPIN_WIDTH,"msctls_updown32",UDS_SETBUDDYINT | 
-                    UDS_ALIGNRIGHT | UDS_AUTOBUDDY | UDS_ARROWKEYS,215,207,
+                    UDS_ALIGNRIGHT | UDS_AUTOBUDDY | UDS_ARROWKEYS,215,215,
                     10,14
-    RTEXT           "Height",IDC_STATIC,219,210,34,9,NOT WS_GROUP
-    EDITTEXT        IDC_EDIT8,256,208,46,12,ES_NUMBER
+    RTEXT           "Height",IDC_STATIC,219,218,34,9,NOT WS_GROUP
+    EDITTEXT        IDC_E_H,256,216,46,12,ES_NUMBER
     CONTROL         "",IDC_SPIN_HEIGHT,"msctls_updown32",UDS_SETBUDDYINT | 
-                    UDS_ALIGNRIGHT | UDS_AUTOBUDDY | UDS_ARROWKEYS,297,207,
+                    UDS_ALIGNRIGHT | UDS_AUTOBUDDY | UDS_ARROWKEYS,297,215,
                     10,14
-    EDITTEXT        IDC_EDIT1,4,230,305,12,ES_AUTOHSCROLL | WS_GROUP
+    EDITTEXT        IDC_EDIT1,4,236,305,12,ES_AUTOHSCROLL | NOT WS_VISIBLE | 
+                    WS_GROUP
+    RTEXT           "W x H: 0 x 0 pixels",IDC_S_SIZE,139,96,148,8,
+                    WS_DISABLED
 END
 
 
@@ -1252,12 +1256,13 @@ BEGIN
                     UDS_ALIGNRIGHT | UDS_AUTOBUDDY | UDS_ARROWKEYS | 
                     UDS_NOTHOUSANDS | UDS_HOTTRACK,125,115,10,12
     RTEXT           "Space between ",IDC_STATIC,23,118,60,10
-    COMBOBOX        IDC_COMBO2,88,134,49,48,CBS_DROPDOWN | WS_VSCROLL | 
+    COMBOBOX        IDC_COMBO2,88,134,49,48,CBS_DROPDOWNLIST | WS_VSCROLL | 
                     WS_TABSTOP
     RTEXT           "Align",IDC_STATIC,25,136,57,10
-    PUSHBUTTON      "Choose font ...",IDC_BUTTON1,76,182,62,12
-    CONTROL         "",IDC_COLOUR,"ColourPicker",WS_GROUP | WS_TABSTOP,32,
-                    182,35,12
+    PUSHBUTTON      "Choose font ...",IDC_BUTTON1,76,182,62,12,NOT 
+                    WS_VISIBLE
+    CONTROL         "",IDC_COLOUR,"ColourPicker",NOT WS_VISIBLE | WS_GROUP | 
+                    WS_TABSTOP,32,182,35,12
 END
 
 IDD_OPT_ITEM_AVATAR DIALOGEX 0, 0, 260, 164

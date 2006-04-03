@@ -1290,6 +1290,27 @@ char * StrConcat(char * dest, char * first, char * delim, char * second, DWORD m
   strncat(dest,second,maxSize);
   return dest;
 }
+
+int GetFullFilename(char * buf, char *file, char * skinfolder,BOOL madeAbsolute)
+{
+	char b2[MAX_PATH]={0};
+	char *SkinPlace=DBGetStringA(NULL,SKIN,"SkinFolder");
+	if (!SkinPlace) SkinPlace=mir_strdup("\\Skin\\default");
+	if (file[0]!='\\' && file[1]!=':') 
+		_snprintf(b2, MAX_PATH,"%s\\%s",((int)skinfolder==0)?SkinPlace:((int)skinfolder!=-1)?skinfolder:"",file);
+	else
+		_snprintf(b2, MAX_PATH,"%s",file);
+	if (madeAbsolute) 
+		if (b2[0]=='\\' && b2[1]!='\\')
+			CallService(MS_UTILS_PATHTOABSOLUTE, (WPARAM)(b2+1), (LPARAM)buf);
+		else
+			CallService(MS_UTILS_PATHTOABSOLUTE, (WPARAM)(b2), (LPARAM)buf);
+	else
+		memcpy(buf,b2,MAX_PATH);
+
+	if(SkinPlace) mir_free(SkinPlace);
+	return 0;
+}
 HBITMAP intLoadGlyphImageByImageDecoder(char * szFileName);
 extern HBITMAP intLoadGlyphImageByGDIPlus(char *szFileName);
 
@@ -1362,10 +1383,11 @@ HBITMAP LoadGlyphImage(char * szfileName)
   DWORD i;HBITMAP hbmp;
   char szFileName [MAX_PATH];
   char fn[MAX_PATH];
-  {
+  GetFullFilename(szFileName,szfileName,glObjectList.SkinPlace,TRUE);
+  /*{
     _snprintf(fn,sizeof(fn),"%s\\%s",glObjectList.SkinPlace,szfileName);
     CallService(MS_UTILS_PATHTOABSOLUTE, (WPARAM)fn, (LPARAM)&szFileName);
-  }
+  }*/
   //CallService(MS_UTILS_PATHTOABSOLUTE,(WPARAM)szfileName,(LPARAM) &szFileName);
   for (i=0; i<glLoadedImagesCount; i++)
   {
@@ -1409,7 +1431,10 @@ int UnloadGlyphImage(HBITMAP hbmp)
         glLoadedImagesCount--;
         DeleteObject(hbmp);
 		if (glLoadedImages && glLoadedImagesCount==0) 
+		{
+			glLoadedImagesAlocated=0;
 			mir_free(glLoadedImages);
+		}
       }
       return 0;
     }

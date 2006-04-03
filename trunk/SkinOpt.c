@@ -27,6 +27,9 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #include "SkinEngine.h"
 #include "io.h"
 #include "commonprototypes.h"
+
+extern BOOL glOtherSkinWasLoaded;
+extern BYTE glSkinWasModified;
 //#include "shlwapi.h"
 /*******************************/
 // Main skin selection routine //
@@ -145,7 +148,7 @@ static BOOL CALLBACK DlgSkinOpts(HWND hwndDlg, UINT msg, WPARAM wParam, LPARAM l
 				break;
 			case IDC_BUTTON_APPLY_SKIN:
 				if (HIWORD(wParam)==BN_CLICKED)
-				{ 
+				{ 		
 					SkinListData *sd=NULL;  
 					HTREEITEM hti=TreeView_GetSelection(GetDlgItem(hwndDlg,IDC_TREE1));				
 					if (hti==0) return 0;
@@ -157,8 +160,18 @@ static BOOL CALLBACK DlgSkinOpts(HWND hwndDlg, UINT msg, WPARAM wParam, LPARAM l
 						sd=(SkinListData*)(tvi.lParam);
 					}
 					if (!sd) return 0;
+					if (glSkinWasModified>0)
+					{
+						int res=0;
+						if (glSkinWasModified==1)
+							res=MessageBoxA(hwndDlg,Translate("Skin editor contains not stored changes.\n\nAll changes will be lost.\n\n Continue to load new skin?"),Translate("Warning!"),MB_OKCANCEL|MB_ICONWARNING|MB_DEFBUTTON2|MB_TOPMOST);
+						else
+							res=MessageBoxA(hwndDlg,Translate("Current skin was not saved to file.\n\nAll changes will be lost.\n\n Continue to load new skin?"),Translate("Warning!"),MB_OKCANCEL|MB_ICONWARNING|MB_DEFBUTTON2|MB_TOPMOST);
+						if (res!=IDOK) return 0;
+					}
 					LoadSkinFromIniFile(sd->File);
 					LoadSkinFromDB();	
+					glOtherSkinWasLoaded=TRUE;
 					pcli->pfnClcBroadcast( INTM_RELOADOPTIONS,0,0);
 					CLUIFramesOnClistResize2(0,0,0);
 					RedrawCompleteWindow();        
