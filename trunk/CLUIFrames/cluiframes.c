@@ -1295,7 +1295,7 @@ int CLUIFramesGetFrameOptions(WPARAM wParam,LPARAM lParam)
   ulockfrm();
   return retval;
 }
-
+static BOOL PreventSizeCalling=FALSE;
 //hiword(wParam)=frameid,loword(wParam)=flag
 int CLUIFramesSetFrameOptions(WPARAM wParam,LPARAM lParam)
 {
@@ -1391,8 +1391,10 @@ int CLUIFramesSetFrameOptions(WPARAM wParam,LPARAM lParam)
 
   case FO_HEIGHT:
     if(lParam<0) {ulockfrm(); return -1;}
+	TRACEVAR("FO_HEIGHT: %d\n",lParam);
     if (Frames[pos].collapsed)
     {
+	  int oldHeight=Frames[pos].height;
       retval=Frames[pos].height;
       Frames[pos].height=lParam;
       if(!CLUIFramesFitInSize()) Frames[pos].height=retval;
@@ -1407,7 +1409,6 @@ int CLUIFramesSetFrameOptions(WPARAM wParam,LPARAM lParam)
       retval=Frames[pos].HeightWhenCollapsed;
       ulockfrm();
     }
-
     return retval;
 
   case FO_FLOATING:
@@ -2278,7 +2279,13 @@ BOOLEAN CLUIFramesFitInSize(void)
     if((Frames[i].align!=alClient)&&(!Frames[i].floating)&&(Frames[i].visible)&&(!Frames[i].needhide)) {
       sumheight+=(Frames[i].height)+(TitleBarH*btoint(Frames[i].TitleBar.ShowTitleBar))+2/*+btoint(Frames[i].UseBorder)*2*/;
       if(sumheight>ContactListHeight-tbh-2)
+	  {
+		  if (DBGetContactSettingByte(NULL, "CLUI", "AutoSize", 0))
+		  {
+			return TRUE; //Can be required to enlarge
+		  }
         return FALSE;
+	  }
     }
   }
   return TRUE;
@@ -2506,13 +2513,13 @@ int CLUIFramesGetMinHeight()
 int CLUIFramesResizeFrames(const RECT newsize);
 int SizeMoveNewSizes();
 
-int CLUIFramesResize(const RECT newsize)
+int CLUIFramesResize(RECT newsize)
 {
    CLUIFramesResizeFrames(newsize);
    SizeMoveNewSizes();
    return 0;
 }
-int CLUIFramesResizeFrames(const RECT newsize)
+int CLUIFramesResizeFrames(RECT newsize)
 {
   int sumheight=9999999,newheight;
   int prevframe,prevframebottomline;
@@ -2522,6 +2529,7 @@ int CLUIFramesResizeFrames(const RECT newsize)
   int i,j;
   int sepw=GapBetweenFrames;
   int topBorder=newsize.top;
+  int minHeight=CLUIFramesGetTotalHeight();
   SortData *sdarray;
 
 
@@ -2531,10 +2539,6 @@ int CLUIFramesResizeFrames(const RECT newsize)
 
   if(nFramescount<1) return 0; 
   newheight=newsize.bottom-newsize.top;
-  if (newheight<0) 
-  {
-	  newheight=0;
-  }
 
   // search for alClient frame and get the titlebar's height
   tbh=0;
@@ -2576,7 +2580,7 @@ int CLUIFramesResizeFrames(const RECT newsize)
         sumheight+=(Frames[i].height)+curfrmtbh+(i > 0 ? sepw : 0)+(Frames[i].UseBorder?2:0);
         if(sumheight>newheight-tbh) {
           sumheight-=(Frames[i].height)+curfrmtbh + (i > 0 ? sepw : 0);
-          Frames[i].needhide=TRUE;
+		  Frames[i].needhide=DBGetContactSettingByte(NULL,"CLUI","AutoSize",0)?FALSE:TRUE;
           drawitems--;
           break;
         }
@@ -2942,7 +2946,30 @@ int CLUIFramesOnClistResize(WPARAM wParam,LPARAM lParam)
 
   if (FramesSysNotStarted) return -1;
   lockfrm();
-  GetClientRect(pcli->hwndContactList,&nRect);
+  //need to enlarge parent
+  {
+	  RECT mainRect;
+	  int mainHeight, minHeight;
+	  GetWindowRect(pcli->hwndContactList,&mainRect);
+	  mainHeight=mainRect.bottom-mainRect.top;
+	  minHeight=CLUIFramesGetTotalHeight();
+	  if (mainHeight<minHeight)
+	  {
+		  BOOL Upward=FALSE;
+		  Upward=DBGetContactSettingByte(NULL,"CLUI","AutoSize",0)&&DBGetContactSettingByte(NULL,"CLUI","AutoSizeUpward",0);
+		  
+		  if (Upward)
+              mainRect.top=mainRect.bottom-minHeight;
+		  else 
+		  	  mainRect.bottom=mainRect.top+minHeight;	
+		  SetWindowPos(pcli->hwndContactList,NULL,mainRect.left,mainRect.top,mainRect.right-mainRect.left, mainRect.bottom-mainRect.top, SWP_NOZORDER|SWP_NOREDRAW|SWP_NOACTIVATE|SWP_NOSENDCHANGING);
+	  }
+	  GetWindowRect(pcli->hwndContactList,&mainRect);
+	  mainHeight=mainRect.bottom-mainRect.top;
+	  if (mainHeight<minHeight)
+		  DebugBreak();
+  }
+   GetClientRect(pcli->hwndContactList,&nRect);
   //$$$ Fixed borders 
   if (lParam && lParam!=1 && lParam!=2)
   {

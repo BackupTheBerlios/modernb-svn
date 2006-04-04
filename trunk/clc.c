@@ -505,11 +505,11 @@ LRESULT CALLBACK ContactListControlWndProc(HWND hwnd, UINT msg, WPARAM wParam, L
 			sortBy[2]=DBGetContactSettingByte(NULL,"CList","SortBy3",SETTING_SORTBY3_DEFAULT);
 			sortNoOfflineBottom=DBGetContactSettingByte(NULL,"CList","NoOfflineBottom",SETTING_NOOFFLINEBOTTOM_DEFAULT);
 			//InitDisplayNameCache(&dat->lCLCContactsCache);
-
-			LoadClcOptions(hwnd,dat);
-			//pcli->pfnRebuildEntireList(hwnd,dat);
+			LoadClcOptions(hwnd,dat);	
 			SetTimer(hwnd,TIMERID_INVALIDATE,5000,NULL);
-			saveContactListControlWndProc(hwnd, msg, wParam, lParam);		
+			saveContactListControlWndProc(hwnd, msg, wParam, lParam);
+			//if (dat->force_in_dialog)
+			//	pcli->pfnRebuildEntireList(hwnd,dat);		
 			TRACE("Create New ClistControl TO END\r\n");		
 			return 0;
 		}

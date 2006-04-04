@@ -1382,7 +1382,6 @@ HBITMAP LoadGlyphImage(char * szfileName)
   // try to find image in loaded
   DWORD i;HBITMAP hbmp;
   char szFileName [MAX_PATH];
-  char fn[MAX_PATH];
   GetFullFilename(szFileName,szfileName,glObjectList.SkinPlace,TRUE);
   /*{
     _snprintf(fn,sizeof(fn),"%s\\%s",glObjectList.SkinPlace,szfileName);

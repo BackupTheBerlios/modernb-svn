@@ -49,6 +49,12 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #endif
 
 #if defined (_DEBUG)
+  #define TRACEVAR(str,n) {char buf[255]; _snprintf(buf,sizeof(buf),str,n); OutputDebugStringA(buf);}
+#else
+  #define TRACEVAR(str,n)
+#endif
+
+#if defined (_DEBUG)
 #define TRACET(str) OutputDebugString(str)
 #else
 #define TRACET(str)
