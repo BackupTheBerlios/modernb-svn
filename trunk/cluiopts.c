@@ -507,6 +507,10 @@ static BOOL CALLBACK DlgProcSBarOpts(HWND hwndDlg, UINT msg, WPARAM wParam, LPAR
     TranslateDialogDefault(hwndDlg);
     CheckDlgButton(hwndDlg, IDC_SHOWSBAR, DBGetContactSettingByte(NULL,"CLUI","ShowSBar",1) ? BST_CHECKED : BST_UNCHECKED);
     CheckDlgButton(hwndDlg, IDC_USECONNECTINGICON, DBGetContactSettingByte(NULL,"CLUI","UseConnectingIcon",1) ? BST_CHECKED : BST_UNCHECKED);
+	
+	CheckDlgButton(hwndDlg, IDC_SHOWXSTATUS, ((DBGetContactSettingByte(NULL,"CLUI","ShowXStatus",6)&3)>0) ? BST_CHECKED : BST_UNCHECKED);
+	CheckDlgButton(hwndDlg, IDC_SHOWNORMAL, ((DBGetContactSettingByte(NULL,"CLUI","ShowXStatus",6)&3)==2) ? BST_CHECKED : BST_UNCHECKED);
+	CheckDlgButton(hwndDlg, IDC_TRANSPARENTOVERLAY, ((DBGetContactSettingByte(NULL,"CLUI","ShowXStatus",6)&4)) ? BST_CHECKED : BST_UNCHECKED);
     {
       BYTE showOpts=DBGetContactSettingByte(NULL,"CLUI","SBarShow",7);
       CheckDlgButton(hwndDlg, IDC_SHOWICON, showOpts&1 ? BST_CHECKED : BST_UNCHECKED);
@@ -553,6 +557,10 @@ static BOOL CALLBACK DlgProcSBarOpts(HWND hwndDlg, UINT msg, WPARAM wParam, LPAR
       EnableWindow(GetDlgItem(hwndDlg,IDC_BUTTON1),en);
       EnableWindow(GetDlgItem(hwndDlg,IDC_COMBO2),en);
       EnableWindow(GetDlgItem(hwndDlg,IDC_COLOUR),en);
+
+	  EnableWindow(GetDlgItem(hwndDlg,IDC_SHOWXSTATUS),en);
+      EnableWindow(GetDlgItem(hwndDlg,IDC_SHOWNORMAL),en && IsDlgButtonChecked(hwndDlg,IDC_SHOWXSTATUS));
+      EnableWindow(GetDlgItem(hwndDlg,IDC_TRANSPARENTOVERLAY),en && IsDlgButtonChecked(hwndDlg,IDC_SHOWXSTATUS) && IsDlgButtonChecked(hwndDlg,IDC_SHOWNORMAL));
     }
     return TRUE;
   case WM_COMMAND:
@@ -571,8 +579,8 @@ static BOOL CALLBACK DlgProcSBarOpts(HWND hwndDlg, UINT msg, WPARAM wParam, LPAR
         return 0;
       } 
     }
-    else if(LOWORD(wParam)==IDC_COLOUR ||(LOWORD(wParam)==IDC_COMBO2 && HIWORD(wParam)==CBN_SELCHANGE)) SendMessage(GetParent(hwndDlg), PSM_CHANGED, (WPARAM)hwndDlg, 0);
-    else if(LOWORD(wParam)==IDC_SHOWSBAR) {
+    else if (LOWORD(wParam)==IDC_COLOUR ||(LOWORD(wParam)==IDC_COMBO2 && HIWORD(wParam)==CBN_SELCHANGE)) SendMessage(GetParent(hwndDlg), PSM_CHANGED, (WPARAM)hwndDlg, 0);
+    else if (LOWORD(wParam)==IDC_SHOWSBAR) {
       int en=IsDlgButtonChecked(hwndDlg,IDC_SHOWSBAR);
       EnableWindow(GetDlgItem(hwndDlg,IDC_SHOWICON),en);
       EnableWindow(GetDlgItem(hwndDlg,IDC_SHOWPROTO),en);
@@ -591,9 +599,27 @@ static BOOL CALLBACK DlgProcSBarOpts(HWND hwndDlg, UINT msg, WPARAM wParam, LPAR
       EnableWindow(GetDlgItem(hwndDlg,IDC_COMBO2),en);
       EnableWindow(GetDlgItem(hwndDlg,IDC_COLOUR),en);
       EnableWindow(GetDlgItem(hwndDlg,IDC_BUTTON1),en);
+	  
+	  EnableWindow(GetDlgItem(hwndDlg,IDC_SHOWXSTATUS),en);
+      EnableWindow(GetDlgItem(hwndDlg,IDC_SHOWNORMAL),en && IsDlgButtonChecked(hwndDlg,IDC_SHOWXSTATUS));
+      EnableWindow(GetDlgItem(hwndDlg,IDC_TRANSPARENTOVERLAY),en && IsDlgButtonChecked(hwndDlg,IDC_SHOWXSTATUS)&& IsDlgButtonChecked(hwndDlg,IDC_SHOWNORMAL));
+
       SendMessage(GetParent(hwndDlg), PSM_CHANGED, (WPARAM)hwndDlg, 0);	  
     }
-    else if ((LOWORD(wParam)==IDC_OFFSETICON||LOWORD(wParam)==IDC_OFFSETICON2||LOWORD(wParam)==IDC_OFFSETICON3) && HIWORD(wParam) != EN_CHANGE || (HWND)lParam != GetFocus()) return 0; // dont make apply enabled during buddy set crap 
+	else if (LOWORD(wParam)==IDC_SHOWXSTATUS)	
+	{
+		int en=IsDlgButtonChecked(hwndDlg,IDC_SHOWSBAR);
+		EnableWindow(GetDlgItem(hwndDlg,IDC_SHOWNORMAL),en && IsDlgButtonChecked(hwndDlg,IDC_SHOWXSTATUS));
+		EnableWindow(GetDlgItem(hwndDlg,IDC_TRANSPARENTOVERLAY),en && IsDlgButtonChecked(hwndDlg,IDC_SHOWXSTATUS) && IsDlgButtonChecked(hwndDlg,IDC_SHOWNORMAL));
+		SendMessage(GetParent(hwndDlg), PSM_CHANGED, (WPARAM)hwndDlg, 0);	
+	}
+	else if (LOWORD(wParam)==IDC_SHOWNORMAL)	
+	{
+		int en=IsDlgButtonChecked(hwndDlg,IDC_SHOWSBAR);
+		EnableWindow(GetDlgItem(hwndDlg,IDC_TRANSPARENTOVERLAY),en&& IsDlgButtonChecked(hwndDlg,IDC_SHOWXSTATUS) && IsDlgButtonChecked(hwndDlg,IDC_SHOWNORMAL));
+		SendMessage(GetParent(hwndDlg), PSM_CHANGED, (WPARAM)hwndDlg, 0);	
+	}
+	else if ((LOWORD(wParam)==IDC_OFFSETICON||LOWORD(wParam)==IDC_OFFSETICON2||LOWORD(wParam)==IDC_OFFSETICON3) && HIWORD(wParam) != EN_CHANGE || (HWND)lParam != GetFocus()) return 0; // dont make apply enabled during buddy set crap 
     SendMessage(GetParent(hwndDlg), PSM_CHANGED, (WPARAM)hwndDlg, 0);
     break;
   case WM_NOTIFY:
@@ -610,31 +636,16 @@ static BOOL CALLBACK DlgProcSBarOpts(HWND hwndDlg, UINT msg, WPARAM wParam, LPAR
         DBWriteContactSettingDword(NULL,"CLUI","RightOffset",(DWORD)SendDlgItemMessage(hwndDlg,IDC_OFFSETSPIN2,UDM_GETPOS,0,0));
         DBWriteContactSettingDword(NULL,"CLUI","SpaceBetween",(DWORD)SendDlgItemMessage(hwndDlg,IDC_OFFSETSPIN3,UDM_GETPOS,0,0));
         DBWriteContactSettingByte(NULL,"CLUI","Align",(BYTE)SendDlgItemMessage(hwndDlg,IDC_COMBO2,CB_GETCURSEL,0,0));
-
-        {
-          //store lf to db.
-          BYTE style=0;
-          long sz;
-          if(lf.lfHeight<0) 
-          {
-            int a;
-            HFONT hFont=CreateFontIndirectA(&lf);
-            HDC hdc=GetDC(NULL);
-            a=-MulDiv(lf.lfHeight,72,GetDeviceCaps(hdc, LOGPIXELSY));
-            ReleaseDC(NULL,hdc);
-            sz=a;
-          }
-          else sz=lf.lfHeight;
-
-          style|=lf.lfWeight==FW_BOLD?DBFONTF_BOLD:0;
-          style|=lf.lfItalic?DBFONTF_ITALIC:0;
-          style|=lf.lfUnderline?DBFONTF_UNDERLINE:0;
-          DBWriteContactSettingByte(NULL,"ModernData","StatusBarFontSty",style);
-          DBWriteContactSettingByte(NULL,"ModernData","StatusBarFontSet",lf.lfCharSet);
-          DBWriteContactSettingByte(NULL,"ModernData","StatusBarFontSize",(BYTE)sz);
-          DBWriteContactSettingDword(NULL,"ModernData","StatusBarFontCol",(DWORD)SendDlgItemMessage(hwndDlg,IDC_COLOUR,CPM_GETCOLOUR,0,0));
-          DBWriteContactSettingString(NULL,"ModernData","StatusBarFontName",lf.lfFaceName);              
-        }
+		{
+			BYTE val=0;
+			if (IsDlgButtonChecked(hwndDlg,IDC_SHOWXSTATUS))
+			{
+				if (IsDlgButtonChecked(hwndDlg,IDC_SHOWNORMAL)) val=2;
+				else val=1;
+				val+=IsDlgButtonChecked(hwndDlg,IDC_TRANSPARENTOVERLAY)?4:0;
+			}
+			DBWriteContactSettingByte(NULL,"CLUI","ShowXStatus",val);
+		}	
         DBWriteContactSettingDword(NULL,"ModernData","StatusBarFontCol",SendDlgItemMessage(hwndDlg,IDC_COLOUR,CPM_GETCOLOUR,0,0));
         DBWriteContactSettingByte(NULL,"CLUI","ShowSBar",(BYTE)IsDlgButtonChecked(hwndDlg,IDC_SHOWSBAR));
 

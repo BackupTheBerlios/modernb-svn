@@ -1348,6 +1348,9 @@
 				RelativePath=".\m_genmenu.h">
 			</File>
 			<File
+				RelativePath=".\m_icolib.h">
+			</File>
+			<File
 				RelativePath="m_metacontacts.h">
 			</File>
 			<File

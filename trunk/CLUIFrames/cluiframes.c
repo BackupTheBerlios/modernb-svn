@@ -2519,7 +2519,7 @@ int CLUIFramesResize(RECT newsize)
    SizeMoveNewSizes();
    return 0;
 }
-int CLUIFramesResizeFrames(RECT newsize)
+int CLUIFramesResizeFrames(const RECT newsize)
 {
   int sumheight=9999999,newheight;
   int prevframe,prevframebottomline;

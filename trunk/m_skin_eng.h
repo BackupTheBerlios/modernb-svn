@@ -419,5 +419,5 @@ int __inline DrawIconEx_Fix(HDC hdc,int xLeft,int yTop,HICON hIcon,int cxWidth,i
   p.diFlags=diFlags;
   return CallService(MS_SKINENG_DRAWICONEXFIX,(WPARAM)&p,0);
 }
-
+extern HICON CreateJoinedIcon(HICON hBottom, HICON hTop);
 #endif

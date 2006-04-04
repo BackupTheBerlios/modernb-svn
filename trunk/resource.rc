@@ -1221,12 +1221,12 @@ BEGIN
     LTEXT           "pixels",IDC_STATIC,111,125,54,8
 END
 
-IDD_OPT_SBAR DIALOGEX 0, 0, 178, 211
+IDD_OPT_SBAR DIALOGEX 0, 0, 178, 222
 STYLE DS_SETFONT | DS_FIXEDSYS | DS_CENTER | WS_CHILD
 EXSTYLE WS_EX_CONTROLPARENT
 FONT 8, "MS Shell Dlg", 0, 0, 0x1
 BEGIN
-    GROUPBOX        "Status Bar",IDC_STATIC,4,4,170,203
+    GROUPBOX        "Status Bar",IDC_STATIC,4,4,170,214
     CONTROL         "Show status bar",IDC_SHOWSBAR,"Button",BS_AUTOCHECKBOX | 
                     WS_TABSTOP,12,17,152,10
     CONTROL         "Show protocol names",IDC_SHOWPROTO,"Button",
@@ -1259,10 +1259,12 @@ BEGIN
     COMBOBOX        IDC_COMBO2,88,134,49,48,CBS_DROPDOWNLIST | WS_VSCROLL | 
                     WS_TABSTOP
     RTEXT           "Align",IDC_STATIC,25,136,57,10
-    PUSHBUTTON      "Choose font ...",IDC_BUTTON1,76,182,62,12,NOT 
-                    WS_VISIBLE
-    CONTROL         "",IDC_COLOUR,"ColourPicker",NOT WS_VISIBLE | WS_GROUP | 
-                    WS_TABSTOP,32,182,35,12
+    CONTROL         "Show xStatus icon",IDC_SHOWXSTATUS,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,22,179,142,10
+    CONTROL         "Show normal status as overlay",IDC_SHOWNORMAL,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,22,192,131,10
+    CONTROL         "Status overlay opacity is 75% ",IDC_TRANSPARENTOVERLAY,
+                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,22,205,142,10
 END
 
 IDD_OPT_ITEM_AVATAR DIALOGEX 0, 0, 260, 164
@@ -1514,7 +1516,7 @@ BEGIN
         VERTGUIDE, 22
         VERTGUIDE, 164
         TOPMARGIN, 4
-        BOTTOMMARGIN, 207
+        BOTTOMMARGIN, 218
         HORZGUIDE, 33
     END
 

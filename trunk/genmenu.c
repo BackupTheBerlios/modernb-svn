@@ -554,7 +554,7 @@ int MO_RemoveMenuItem(WPARAM wParam,LPARAM lParam)
 
 HICON LoadIconFromLibrary(char *SectName,char *Name,char *Description,HICON hIcon,boolean RegisterIt,boolean *RegistredOk)
 {		
-  SKINICONDESC2 sid={0};
+SKINICONDESC sid={0};
   int retval;
 
   //if (hIcon==NULL) return hIcon;
@@ -572,6 +572,8 @@ HICON LoadIconFromLibrary(char *SectName,char *Name,char *Description,HICON hIco
       {
 
         sid.cbSize = sizeof(sid);
+		sid.cx=16;
+		sid.cy=16;
         sid.pszSection = Translate(SectName);				
         sid.pszName=iconame;
         sid.pszDefaultFile=NULL;

@@ -447,7 +447,9 @@
 #define IDC_HIDETIMESPIN4               1325
 #define IDC_EQUALSECTIONS               1326
 #define IDC_SHOWSIZEGRIP                1327
+#define IDC_SHOWXSTATUS                 1327
 #define IDC_USEOWNERDRAW                1328
+#define IDC_SHOWNORMAL                  1328
 #define IDC_SHOWSBAR                    1329
 #define IDC_RIGHTMIRANDA                1330
 #define IDC_RIGHTSTATUS                 1331
@@ -713,6 +715,8 @@
 #define IDC_V_ALIGN                     1767
 #define IDC_SC_STATIC                   1768
 #define IDC_COMBO_SAME                  1768
+#define IDC_USECONNECTINGICON2          1768
+#define IDC_TRANSPARENTOVERLAY          1768
 #define IDC_EDIT_FILENAME               1773
 #define IDC_EDIT_FILENAME2              1774
 #define IDC_EDIT_SKIN_FILENAME          1774

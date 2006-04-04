@@ -776,7 +776,7 @@ HICON LoadIconFromExternalFile(char *filename,int i,boolean UseLibrary,boolean r
 {
 	char szPath[MAX_PATH],szMyPath[MAX_PATH], szFullPath[MAX_PATH],*str;
 	HICON hIcon=NULL;
-	SKINICONDESC sid;
+	SKINICONDESC sid={0};
 
 	GetModuleFileNameA(GetModuleHandle(NULL), szPath, MAX_PATH);
 	GetModuleFileNameA(g_hInst, szMyPath, MAX_PATH);
@@ -800,6 +800,8 @@ HICON LoadIconFromExternalFile(char *filename,int i,boolean UseLibrary,boolean r
 		if (registerit&&IconName!=NULL&&SectName!=NULL)	
 		{
 			sid.cbSize = sizeof(sid);
+			sid.cx=16;
+			sid.cy=16;
 			sid.pszSection = Translate(SectName);				
 			sid.pszName=IconName;
 			sid.pszDescription=Description;

@@ -54,6 +54,7 @@ struct ClcContact * hitcontact=NULL;
 
 extern void UpdateAllAvatars(struct ClcData *dat);
 extern int GetContactIndex(struct ClcGroup *group,struct ClcContact *contact);
+ 
 struct AvatarOverlayIconConfig 
 {
 	char *name;
@@ -73,6 +74,19 @@ struct AvatarOverlayIconConfig
 	{ "AVATAR_OVERLAY_PHONE", "On the phone", IDI_AVATAR_OVERLAY_PHONE, NULL},
 	{ "AVATAR_OVERLAY_LUNCH", "Out to lunch", IDI_AVATAR_OVERLAY_LUNCH, NULL}
 };
+struct AvatarOverlayIconConfig status_overlay_icons[ID_STATUS_OUTTOLUNCH - ID_STATUS_OFFLINE + 1] = 
+{
+	{ "STATUS_OVERLAY_OFFLINE", "Offline", IDI_AVATAR_OVERLAY_OFFLINE, NULL},
+	{ "STATUS_OVERLAY_ONLINE", "Online", IDI_AVATAR_OVERLAY_ONLINE, NULL},
+	{ "STATUS_OVERLAY_AWAY", "Away", IDI_AVATAR_OVERLAY_AWAY, NULL},
+	{ "STATUS_OVERLAY_DND", "DND", IDI_AVATAR_OVERLAY_DND, NULL},
+	{ "STATUS_OVERLAY_NA", "NA", IDI_AVATAR_OVERLAY_NA, NULL},
+	{ "STATUS_OVERLAY_OCCUPIED", "Occupied", IDI_AVATAR_OVERLAY_OCCUPIED, NULL},
+	{ "STATUS_OVERLAY_CHAT", "Free for chat", IDI_AVATAR_OVERLAY_CHAT, NULL},
+	{ "STATUS_OVERLAY_INVISIBLE", "Invisible", IDI_AVATAR_OVERLAY_INVISIBLE, NULL},
+	{ "STATUS_OVERLAY_PHONE", "On the phone", IDI_AVATAR_OVERLAY_PHONE, NULL},
+	{ "STATUS_OVERLAY_LUNCH", "Out to lunch", IDI_AVATAR_OVERLAY_LUNCH, NULL}
+};
 
 void UnloadAvatarOverlayIcon()
 {
@@ -83,6 +97,11 @@ void UnloadAvatarOverlayIcon()
 		{
 			DestroyIcon(avatar_overlay_icons[i].icon);
 			avatar_overlay_icons[i].icon=NULL;
+		}
+		if (status_overlay_icons[i].icon)
+		{
+			DestroyIcon(status_overlay_icons[i].icon);
+			status_overlay_icons[i].icon=NULL;
 		}
 	}
 }
@@ -192,6 +211,7 @@ static int ReloadAvatarOverlayIcons(WPARAM wParam, LPARAM lParam)
 	for (i = 0 ; i < MAX_REGS(avatar_overlay_icons) ; i++)
 	{
 		avatar_overlay_icons[i].icon = (HICON)CallService(MS_SKIN2_GETICON, 0, (LPARAM)avatar_overlay_icons[i].name);
+		status_overlay_icons[i].icon = (HICON)CallService(MS_SKIN2_GETICON, 0, (LPARAM)status_overlay_icons[i].name);
 	}
 
 	pcli->pfnClcBroadcast( INTM_INVALIDATE,0,0);
@@ -218,7 +238,7 @@ static int ClcModulesLoaded(WPARAM wParam,LPARAM lParam) {
 	// Get icons
 	if(ServiceExists(MS_SKIN2_ADDICON)) 
 	{
-		SKINICONDESC2 sid;
+		SKINICONDESC sid={0};
 		char szMyPath[MAX_PATH];
 		int i;
 
@@ -227,13 +247,23 @@ static int ClcModulesLoaded(WPARAM wParam,LPARAM lParam) {
 		sid.cbSize = sizeof(sid);
 		sid.pszSection = Translate("Contact List/Avatar Overlay");
 		sid.pszDefaultFile = szMyPath;
-
+		sid.cx=16;
+		sid.cy=16;
 
 		for (i = 0 ; i < MAX_REGS(avatar_overlay_icons) ; i++)
 		{
 			sid.pszDescription = Translate(avatar_overlay_icons[i].description);
 			sid.pszName = avatar_overlay_icons[i].name;
 			sid.iDefaultIndex = - avatar_overlay_icons[i].id;
+			CallService(MS_SKIN2_ADDICON, 0, (LPARAM)&sid);
+		}
+		sid.pszSection = Translate("Contact List/Status Overlay");
+		
+		for (i = 0 ; i < MAX_REGS(status_overlay_icons) ; i++)
+		{
+			sid.pszDescription = Translate(status_overlay_icons[i].description);
+			sid.pszName = status_overlay_icons[i].name;
+			sid.iDefaultIndex = - status_overlay_icons[i].id;
 			CallService(MS_SKIN2_ADDICON, 0, (LPARAM)&sid);
 		}
 
@@ -247,6 +277,7 @@ static int ClcModulesLoaded(WPARAM wParam,LPARAM lParam) {
 		for (i = 0 ; i < MAX_REGS(avatar_overlay_icons) ; i++)
 		{
 			avatar_overlay_icons[i].icon = (HICON)LoadImage(g_hInst, MAKEINTRESOURCE(avatar_overlay_icons[i].id), IMAGE_ICON, 0, 0, 0);
+			status_overlay_icons[i].icon = (HICON)LoadImage(g_hInst, MAKEINTRESOURCE(status_overlay_icons[i].id), IMAGE_ICON, 0, 0, 0);
 		}
 	}
 
@@ -273,6 +304,10 @@ static int ClcModulesLoaded(WPARAM wParam,LPARAM lParam) {
 	return 0;
 }
 
+HICON GetMainStatusOverlay(int STATUS)
+{
+	return status_overlay_icons[STATUS-ID_STATUS_OFFLINE].icon;
+}
 /*
  *	Proto ack hook
  */
@@ -761,6 +796,8 @@ LRESULT CALLBACK ContactListControlWndProc(HWND hwnd, UINT msg, WPARAM wParam, L
 			int selMoved=0;
 			int changeGroupExpand=0;
 			int pageSize;
+			if (wParam==VK_CONTROL) 
+				return 0;
 			pcli->pfnHideInfoTip(hwnd,dat);
 			KillTimer(hwnd,TIMERID_INFOTIP);
 			KillTimer(hwnd,TIMERID_RENAME);

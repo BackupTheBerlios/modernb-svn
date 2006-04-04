@@ -33,7 +33,8 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 #define TreeView_GetItemA(hwnd, pitem) \
 	(BOOL)SendMessageA((hwnd), TVM_GETITEMA, 0, (LPARAM)(TV_ITEM *)(pitem))
-
+extern void LoadSkinFromDB(void);
+extern int RedrawCompleteWindow();
 typedef struct 
 {
 	char * szName;
@@ -523,6 +524,7 @@ int GetFileSizes(HWND hwndDlg)
 	}
 	_snprintf(buf, MAX_PATH, "%s %d x %d %s",Translate("Image size is"),sz.cx, sz.cy, Translate("pixels")); 
 	SendDlgItemMessageA(hwndDlg,IDC_S_SIZE,WM_SETTEXT,0,(LPARAM)buf);
+	return 0;
 }
 static BOOL CALLBACK DlgSkinEditorOpts(HWND hwndDlg, UINT msg, WPARAM wParam, LPARAM lParam)
 {
@@ -820,11 +822,11 @@ int SkinEditorOptInit(WPARAM wParam,LPARAM lParam)
 
 	ZeroMemory(&odp,sizeof(odp));
 	odp.cbSize=sizeof(odp);
-	odp.position=-1000000000;
+	odp.position=-1000001000;
 	odp.hInstance=g_hInst;
 	odp.pszTemplate=MAKEINTRESOURCEA(IDD_OPT_SKINEDITOR);
-	odp.pszGroup=Translate("Customize");
-	odp.pszTitle=Translate("Modify Skin");
+	odp.pszGroup=Translate("Skin");
+	odp.pszTitle=Translate("Modify objects");
 	odp.pfnDlgProc=DlgSkinEditorOpts;
 	odp.flags=ODPF_BOLDGROUPS;
 	//	odp.nIDBottomSimpleControl=IDC_STCLISTGROUP;
@@ -861,3 +863,4 @@ int ShowGroup(HWND hwndDlg, HWND first, BOOL bEnable)
 	}while (!exit);
 	return 0;
 }
+

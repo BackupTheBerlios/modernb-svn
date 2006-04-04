@@ -3828,3 +3828,35 @@ void AddParseSkinFont(char * szFontID,char * szDefineString,SKINOBJECTSLIST *Ski
   }
 
 }
+
+HICON CreateJoinedIcon(HICON hBottom, HICON hTop)
+{
+	HDC tempDC;
+	HICON res=NULL;
+	HBITMAP oImage,nImage;
+	ICONINFO iNew={0};
+	ICONINFO iciBottom={0};
+	ICONINFO iciTop={0};
+	BITMAP bmp={0};
+	SIZE sz={0};
+	{
+		if (!GetIconInfo(hBottom,&iciBottom)) return NULL;
+		GetObject(iciBottom.hbmColor,sizeof(BITMAP),&bmp);
+		sz.cx=bmp.bmWidth; sz.cy=bmp.bmHeight;
+		if(iciBottom.hbmColor) DeleteObject(iciBottom.hbmColor);
+		if(iciBottom.hbmMask) DeleteObject(iciBottom.hbmMask);
+	}
+	if (sz.cx==0 || sz.cy==0) return NULL;
+	tempDC=CreateCompatibleDC(NULL);
+	nImage=CreateBitmap32(sz.cx,sz.cy);
+	oImage=SelectObject(tempDC,nImage);
+	DrawIconEx(tempDC,0,0,hBottom,sz.cx,sz.cy,0,NULL,DI_NORMAL);
+	DrawIconEx(tempDC,0,0,hTop,sz.cx,sz.cy,0,NULL,DI_NORMAL);
+	SelectObject(tempDC,oImage);
+	DeleteDC(tempDC);
+	iNew.fIcon=TRUE;
+	iNew.hbmColor=nImage;
+	res=CreateIconIndirect(&iNew);
+	DeleteObject(nImage);
+	return res;
+}
