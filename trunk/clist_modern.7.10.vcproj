@@ -1481,6 +1481,33 @@
 				RelativePath=".\res\lunch.ico">
 			</File>
 			<File
+				RelativePath=".\res\MicroAway.ico">
+			</File>
+			<File
+				RelativePath=".\res\MicroChat.ico">
+			</File>
+			<File
+				RelativePath=".\res\MicroDnd.ico">
+			</File>
+			<File
+				RelativePath=".\res\MicroInvisible.ico">
+			</File>
+			<File
+				RelativePath=".\res\MicroLunch.ico">
+			</File>
+			<File
+				RelativePath=".\res\MicroNa.ico">
+			</File>
+			<File
+				RelativePath=".\res\MicroOccupied.ico">
+			</File>
+			<File
+				RelativePath=".\res\MicroOffline.ico">
+			</File>
+			<File
+				RelativePath=".\res\MicroPhone.ico">
+			</File>
+			<File
 				RelativePath=".\res\Miranda.ico">
 			</File>
 			<File

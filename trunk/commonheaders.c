@@ -190,6 +190,32 @@ DWORD exceptFunction(LPEXCEPTION_POINTERS EP)
 #undef DeleteObject
 #endif 
 
+void TRACE_ERROR()
+{
+		DWORD t = GetLastError();
+		LPVOID lpMsgBuf;
+		if (!FormatMessage( 
+			FORMAT_MESSAGE_ALLOCATE_BUFFER | 
+			FORMAT_MESSAGE_FROM_SYSTEM | 
+			FORMAT_MESSAGE_IGNORE_INSERTS,
+			NULL,
+			t,
+			MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), // Default language
+			(LPTSTR) &lpMsgBuf,
+			0,
+			NULL ))
+		{
+		// Handle the error.
+		return ;
+		}
+#ifdef _DEBUG
+		MessageBox( NULL, (LPCTSTR)lpMsgBuf, _T("Error"), MB_OK | MB_ICONINFORMATION );		
+		DebugBreak();
+#endif
+		LocalFree( lpMsgBuf );
+
+}
+
 BOOL DebugDeleteObject(HGDIOBJ a)
 {
 	BOOL res=DeleteObject(a);

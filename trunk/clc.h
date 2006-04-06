@@ -56,6 +56,8 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #define SETTING_TRAYICON_CYCLE    1
 #define SETTING_TRAYICON_MULTI    2
 
+#define NIIF_INTERN_UNICODE 0x00000100
+
 #define SETTING_STATE_HIDDEN      0
 #define SETTING_STATE_MINIMIZED   1
 #define SETTING_STATE_NORMAL      2
@@ -123,6 +125,8 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #define TIMERID_INFOTIP        13
 #define TIMERID_REBUILDAFTER   14
 #define TIMERID_DELAYEDRESORTCLC   15
+#define TIMERID_TRAYHOVER      16
+#define TIMERID_TRAYHOVER_2    17
 #define TIMERID_SUBEXPAND		21
 #define TIMERID_INVALIDATE 22
 

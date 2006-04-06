@@ -27,6 +27,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #include "clist.h"
 #include "commonprototypes.h"
 extern void Docking_GetMonitorRectFromWindow(HWND hWnd,RECT *rc);
+extern HICON GetMainStatusOverlay(int STATUS);
 int HideWindow(HWND hwndContactList, int mode);
 extern int SmoothAlphaTransition(HWND hwnd, BYTE GoalAlpha, BOOL wParam);
 extern void InitTray(void);
@@ -76,6 +77,52 @@ static HANDLE hSettingChanged;
 
 extern int SkinEditorOptInit(WPARAM wParam,LPARAM lParam);
 
+//returns normal icon or combined with status overlay. Needs to be destroyed.
+HICON GetIconFromStatusMode(HANDLE hContact, const char *szProto,int status)
+{
+	HICON hIcon=NULL;
+	HICON hXIcon=NULL;
+	// check if options is turned on
+	BYTE trayOption=DBGetContactSettingByte(NULL,"CLUI","XStatusTray",15);
+	if (trayOption&3 && szProto!=NULL)
+	{
+		// check service exists
+		char str[MAXMODULELABELLENGTH];
+		strcpy(str,szProto);
+		strcat(str,"/GetXStatusIcon");
+		if (ServiceExists(str))	
+		{
+			// check status is online
+			if (status>ID_STATUS_OFFLINE)
+			{
+				// get xicon
+				hXIcon=(HICON)CallService(str,0,0);	
+				if (hXIcon)
+				{
+					// check overlay mode
+					if (trayOption&2)
+					{
+						// get overlay
+						HICON MainOverlay=(HICON)GetMainStatusOverlay(status);
+						hIcon=CreateJoinedIcon(hXIcon,MainOverlay,(trayOption&4)?192:0);
+						DestroyIcon(hXIcon);
+					}
+					else
+					{
+						// paint it
+						hIcon=hXIcon;
+					}								
+				}
+			}
+		}
+	}
+	if (!hIcon)
+	{
+		hIcon=ImageList_GetIcon(himlCListClc,ExtIconFromStatusMode(hContact,szProto,status),ILD_NORMAL);
+	}
+	// if not ready take normal icon
+	return hIcon;
+}
 ////////// By FYR/////////////
 int ExtIconFromStatusMode(HANDLE hContact, const char *szProto,int status)
 {

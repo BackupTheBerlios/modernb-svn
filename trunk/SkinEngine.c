@@ -3829,11 +3829,12 @@ void AddParseSkinFont(char * szFontID,char * szDefineString,SKINOBJECTSLIST *Ski
 
 }
 
-HICON CreateJoinedIcon(HICON hBottom, HICON hTop)
+HICON CreateJoinedIcon(HICON hBottom, HICON hTop,BYTE alpha)
 {
 	HDC tempDC;
 	HICON res=NULL;
 	HBITMAP oImage,nImage;
+    HBITMAP nMask;
 	ICONINFO iNew={0};
 	ICONINFO iciBottom={0};
 	ICONINFO iciTop={0};
@@ -3850,13 +3851,22 @@ HICON CreateJoinedIcon(HICON hBottom, HICON hTop)
 	tempDC=CreateCompatibleDC(NULL);
 	nImage=CreateBitmap32(sz.cx,sz.cy);
 	oImage=SelectObject(tempDC,nImage);
-	DrawIconEx(tempDC,0,0,hBottom,sz.cx,sz.cy,0,NULL,DI_NORMAL);
-	DrawIconEx(tempDC,0,0,hTop,sz.cx,sz.cy,0,NULL,DI_NORMAL);
+	DrawIconExS(tempDC,0,0,hBottom,sz.cx,sz.cy,0,NULL,DI_NORMAL);
+	DrawIconExS(tempDC,0,0,hTop,sz.cx,sz.cy,0,NULL,DI_NORMAL|(alpha<<24));
 	SelectObject(tempDC,oImage);
 	DeleteDC(tempDC);
-	iNew.fIcon=TRUE;
-	iNew.hbmColor=nImage;
-	res=CreateIconIndirect(&iNew);
-	DeleteObject(nImage);
+	{
+		BYTE * p=malloc(sz.cx*sz.cy/8+10);
+		nMask=CreateBitmap(sz.cx,sz.cy,1,1,(void*)p);
+		iNew.fIcon=TRUE;
+		iNew.hbmColor=nImage;
+		iNew.hbmMask=nMask;
+		res=CreateIconIndirect(&iNew);
+		if (!res) 
+			TRACE_ERROR();
+		DeleteObject(nImage);
+		DeleteObject(nMask);
+		free(p);
+	}
 	return res;
 }

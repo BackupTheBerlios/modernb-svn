@@ -148,9 +148,6 @@
 #define IDI_ICQC6                       372
 #define IDI_ICQC7                       373
 #define IDI_ICQC8                       374
-#define IDI_ICQC9                       375
-#define IDI_ICQC10                      376
-#define IDI_ICQC11                      377
 #define IDD_OPT_ITEMS                   385
 #define IDD_OPT_ITEM_ROW                386
 #define IDD_OPT_ITEM_AVATAR             387
@@ -161,6 +158,16 @@
 #define IDI_ICON2                       396
 #define IDI_ICON3                       397
 #define IDD_OPT_SKINEDITOR              398
+#define IDI_STATUS_OVERLAY_NA           400
+#define IDI_STATUS_OVERLAY_OCCUPIED     401
+#define IDI_STATUS_OVERLAY_OFFLINE      402
+#define IDI_STATUS_OVERLAY_ONLINE       403
+#define IDI_STATUS_OVERLAY_PHONE        404
+#define IDI_STATUS_OVERLAY_AWAY         405
+#define IDI_STATUS_OVERLAY_DND          406
+#define IDI_STATUS_OVERLAY_INVISIBLE    407
+#define IDI_STATUS_OVERLAY_LUNCH        408
+#define IDI_STATUS_OVERLAY_CHAT         409
 #define IDC_RESETPROTOCOLDATA           1000
 #define IDC_SAVE                        1001
 #define IDC_DEFBKCOLOR                  1001
@@ -453,9 +460,12 @@
 #define IDC_SHOWSBAR                    1329
 #define IDC_RIGHTMIRANDA                1330
 #define IDC_RIGHTSTATUS                 1331
+#define IDC_SHOWNORMAL2                 1332
+#define IDC_SHOWBOTH                    1332
 #define IDC_ININAME                     1333
 #define IDC_VIEWINI                     1334
 #define IDC_SECURITYINFO                1335
+#define IDC_SHOWXSTATUSNAME             1335
 #define IDC_SETTINGNAME                 1336
 #define IDC_NEWVALUE                    1337
 #define IDC_WARNNOMORE                  1338
@@ -715,7 +725,6 @@
 #define IDC_V_ALIGN                     1767
 #define IDC_SC_STATIC                   1768
 #define IDC_COMBO_SAME                  1768
-#define IDC_USECONNECTINGICON2          1768
 #define IDC_TRANSPARENTOVERLAY          1768
 #define IDC_EDIT_FILENAME               1773
 #define IDC_EDIT_FILENAME2              1774
@@ -921,7 +930,7 @@
 // 
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
-#define _APS_NEXT_RESOURCE_VALUE        399
+#define _APS_NEXT_RESOURCE_VALUE        413
 #define _APS_NEXT_COMMAND_VALUE         40020
 #define _APS_NEXT_CONTROL_VALUE         1889
 #define _APS_NEXT_SYMED_VALUE           101

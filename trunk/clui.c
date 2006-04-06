@@ -751,7 +751,7 @@ int GetConnectingIconForProtoCount(char *szProto)
 	lstrcpynA(file,szFullPath,sizeof(file));
 	CallService(MS_UTILS_PATHTOABSOLUTE, (WPARAM)file, (LPARAM)fileFull);
 	ret=ExtractIconExA(fileFull,-1,NULL,NULL,1);
-	if (ret==0) ret=11;
+	if (ret==0) ret=8;
 	return ret;
 
 }
