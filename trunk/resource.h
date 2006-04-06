@@ -448,6 +448,8 @@
 #define IDC_CAPTIONSSPIN                1322
 #define IDC_SHOWICON                    1323
 #define IDC_HIDETIMESPIN2               1323
+#define IDC_ALWAYSMULTI2                1323
+#define IDC_ALWAYSPRIMARY               1323
 #define IDC_SHOWPROTO                   1324
 #define IDC_HIDETIMESPIN3               1324
 #define IDC_SHOWSTATUS                  1325

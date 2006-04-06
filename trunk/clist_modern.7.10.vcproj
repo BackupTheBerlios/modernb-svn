@@ -1409,12 +1409,6 @@
 				RelativePath=".\res\1.ico">
 			</File>
 			<File
-				RelativePath=".\res\10.ico">
-			</File>
-			<File
-				RelativePath=".\res\11.ico">
-			</File>
-			<File
 				RelativePath=".\res\2.ico">
 			</File>
 			<File
@@ -1434,9 +1428,6 @@
 			</File>
 			<File
 				RelativePath=".\res\8.ico">
-			</File>
-			<File
-				RelativePath=".\res\9.ico">
 			</File>
 			<File
 				RelativePath=".\res\addgoupp.ico">
