@@ -1424,7 +1424,7 @@ BEGIN
     CONTROL         "",IDC_TOP_SPACE_SPIN,"msctls_updown32",UDS_SETBUDDYINT | 
                     UDS_ALIGNRIGHT | UDS_ARROWKEYS | UDS_NOTHOUSANDS | 
                     UDS_HOTTRACK,84,26,11,12
-    CONTROL         "Draw smileys on second line",IDC_DRAW_SMILEYS,"Button",
+    CONTROL         "Draw smileys on third line",IDC_DRAW_SMILEYS,"Button",
                     BS_AUTOCHECKBOX | WS_TABSTOP,7,43,242,8
     CONTROL         "Status",IDC_STATUS,"Button",BS_AUTORADIOBUTTON,18,70,
                     118,8

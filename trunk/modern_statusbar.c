@@ -286,13 +286,13 @@ int ModernDrawStatusBarWorker(HWND hWnd, HDC hDC)
 		}
 		if ((sbdat.xStatusMode&3))
 		{
-			if (ProtosData[i].ProtoStatus>=ID_STATUS_OFFLINE)
+			if (ProtosData[i].ProtoStatus>ID_STATUS_OFFLINE)
 			{
 				char str[MAXMODULELABELLENGTH];
 				strcpy(str,ProtosData[i].ProtoName);
 				strcat(str,"/GetXStatusIcon");
 				if (ServiceExists(str))
-					ProtosData[i].extraIcon=(HICON)CallService(str,0+2,0);
+					ProtosData[i].extraIcon=(HICON)CallService(str,0,0);
 				if (ProtosData[i].extraIcon && (sbdat.xStatusMode&3)==3)
 					w+=GetSystemMetrics(SM_CXSMICON)+1;
 
@@ -372,7 +372,7 @@ int ModernDrawStatusBarWorker(HWND hWnd, HDC hDC)
         HICON hIcon=NULL;
 		HICON hxIcon=NULL;
         BOOL NeedDestroy=FALSE;
-		if (ProtosData[i].ProtoStatus>=ID_STATUS_OFFLINE && ((sbdat.xStatusMode)&3)>0)
+		if (ProtosData[i].ProtoStatus>ID_STATUS_OFFLINE && ((sbdat.xStatusMode)&3)>0)
 		{
 			char str[MAXMODULELABELLENGTH];
 			strcpy(str,ProtosData[i].ProtoName);
