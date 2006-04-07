@@ -179,12 +179,13 @@ void ScrollTo(HWND hwnd,struct ClcData *dat,int desty,int noSmooth)
 	SetScrollPos(hwnd,SB_VERT,dat->yScroll,TRUE);
 }
 
-
+extern BOOL LOCK_RECALC_SCROLLBAR;
 void RecalcScrollBar(HWND hwnd,struct ClcData *dat)
 {
 	SCROLLINFO si={0};
 	RECT clRect;
 	NMCLISTCONTROL nm;
+	if (LOCK_RECALC_SCROLLBAR) return;
 
 	RowHeights_CalcRowHeights(dat, hwnd);
 

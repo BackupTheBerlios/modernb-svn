@@ -708,7 +708,7 @@ static int CluiModulesLoaded(WPARAM wParam,LPARAM lParam)
 	SleepEx(0,TRUE);
 	OnModulesLoadedCalled=TRUE;	
 	///pcli->pfnInvalidateDisplayNameCacheEntry(INVALID_HANDLE_VALUE);   
-	SendMessage(pcli->hwndContactList,M_CREATECLC,0,0); //$$$
+	PostMessage(pcli->hwndContactList,M_CREATECLC,0,0); //$$$
 	return 0;
 }
 
@@ -1367,6 +1367,7 @@ LRESULT CALLBACK ContactListWndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM l
 		if (msg==WM_WINDOWPOSCHANGING)
 		{
 
+
 			WINDOWPOS * wp;
 			HDWP PosBatch;
 			RECT work_rect={0};
@@ -1450,6 +1451,7 @@ LRESULT CALLBACK ContactListWndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM l
 				}       
 				Sleep(0);               
 				during_sizing=0; 
+				DefWindowProc(hwnd,msg,wParam,lParam);
 				return SendMessage(hwnd,WM_WINDOWPOSCHANGED,wParam,lParam);
 			}
 			else
@@ -1574,7 +1576,15 @@ LRESULT CALLBACK ContactListWndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM l
 			mii.dwItemData=MENU_STATUSMENU;
 			SetMenuItemInfo(GetMenu(hwnd),1,TRUE,&mii);
 		}
+		//PostMessage(hwnd, M_CREATECLC, 0, 0);
+
 		hMsgGetProfile=RegisterWindowMessage(TEXT("Miranda::GetProfile")); // don't localise
+		#ifndef _DEBUG
+			// Miranda is starting up! Restore last status mode.
+			// This is not done in debug builds because frequent
+			// reconnections will get you banned from the servers.
+			RestoreMode();
+		#endif
 		transparentFocus=1;
 		return FALSE;
 
@@ -2305,7 +2315,6 @@ LRESULT CALLBACK ContactListWndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM l
 		{
 			WINDOWPOS * wp;
 			wp=(WINDOWPOS *)lParam; 
-
 			//       if (ON_EDGE_SIZING)
 			//           wp->flags|=SWP_NOSIZE|SWP_NOMOVE;
 			//       ON_EDGE_SIZING=0;

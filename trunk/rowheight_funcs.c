@@ -516,7 +516,7 @@ void RowHeights_CalcRowHeights(struct ClcData *dat, HWND hwnd)
   struct ClcContact *Drawing;
   struct ClcGroup *group;
 
-  //EnterCriticalSection(&(dat->lockitemCS));
+  lockdat;
  
   // Draw lines
   group=&dat->list;
@@ -588,8 +588,7 @@ void RowHeights_CalcRowHeights(struct ClcData *dat, HWND hwnd)
       group->scanIndex++;
     }
   }
-
-  //LeaveCriticalSection(&(dat->lockitemCS));
+  ulockdat;
 }
 
 

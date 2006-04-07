@@ -2626,7 +2626,7 @@ void InternalPaintClc(HWND hwnd,struct ClcData *dat,HDC hdc,RECT *rcPaint)
   GetClientRect(hwnd,&clRect);
   if(rcPaint==NULL) rcPaint=&clRect;
   if(IsRectEmpty(rcPaint)) return;
-//  EnterCriticalSection(&(dat->lockitemCS));
+  lockdat;
   y=-dat->yScroll;
   if (grey && (!LayeredFlag))
   {
@@ -2749,7 +2749,7 @@ void InternalPaintClc(HWND hwnd,struct ClcData *dat,HDC hdc,RECT *rcPaint)
         // Something to draw?
         if (!(!Drawing || IsBadCodePtr((FARPROC)Drawing)))
         {
-		 //LeaveCriticalSection(&(dat->lockitemCS));
+		  //ulockdat;
           // Calc row height
           if (!gl_RowRoot) RowHeights_GetRowHeight(dat, hwnd, Drawing, line_num);
           else ModernCalcRowHeight(dat, hwnd, Drawing, line_num);
@@ -2963,7 +2963,7 @@ void InternalPaintClc(HWND hwnd,struct ClcData *dat,HDC hdc,RECT *rcPaint)
 
     //---
   }
-  //LeaveCriticalSection(&(dat->lockitemCS));
+  ulockdat;
   SelectClipRgn(hdcMem, NULL);
   if(dat->iInsertionMark!=-1) {	//insertion mark
     HBRUSH hBrush,hoBrush;

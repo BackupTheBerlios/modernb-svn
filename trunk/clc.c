@@ -518,7 +518,7 @@ LRESULT CALLBACK ContactListControlWndProc(HWND hwnd, UINT msg, WPARAM wParam, L
 			SetWindowLong(hwnd,0,(long)dat);
 			dat->hWnd=hwnd;
 //			dat->isStarting=TRUE;
-//			InitializeCriticalSectionAndSpinCount(&dat->lockitemCS,100);
+			InitializeCriticalSection(&dat->lockitemCS);
 
 			dat->use_avatar_service = ServiceExists(MS_AV_GETAVATARBITMAP);
 			if (dat->use_avatar_service)
@@ -1694,9 +1694,9 @@ LRESULT CALLBACK ContactListControlWndProc(HWND hwnd, UINT msg, WPARAM wParam, L
 
 			RowHeights_Free(dat);
 			{ 
-//				CRITICAL_SECTION cs=dat->lockitemCS;
+				CRITICAL_SECTION cs=dat->lockitemCS;
 				saveContactListControlWndProc(hwnd, msg, wParam, lParam);			
-//				DeleteCriticalSection(&cs);
+				DeleteCriticalSection(&cs);
 			}
 			return 0;
 		}

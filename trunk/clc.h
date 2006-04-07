@@ -516,6 +516,6 @@ typedef struct {
 #define MS_SKIN_ADDHOTKEY      "Skin/HotKeys/AddNew"
 #define MS_SKIN_PLAYHOTKEY		"Skin/HotKeys/Run"
 
-//extern void (*saveSortCLC) (HWND hwnd, struct ClcData *dat, int useInsertionSort );
+extern void (*saveSortCLC) (HWND hwnd, struct ClcData *dat, int useInsertionSort );
 
 #endif _CLC_H_

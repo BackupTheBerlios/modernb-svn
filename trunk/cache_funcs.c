@@ -289,7 +289,7 @@ int GetTextThread(void * a)
 	BOOL err=FALSE;
 	do
 	{
-		SleepEx(1,TRUE); //1000 contacts per second
+		SleepEx(0,TRUE); //1000 contacts per second
 		if (Miranda_Terminated()) 
 			return 0;
 		else
@@ -302,15 +302,15 @@ int GetTextThread(void * a)
 			else err=TRUE;
 			if (!err)
 			{
-				EnterCriticalSection(&(dat->lockitemCS));
+				lockdat;
 				if (FindItem(dat->hWnd,dat,chain.ContactRequest,&contact,NULL,0,0))
 				{
 					Cache_GetSecondLineText(dat, contact);
 					Cache_GetThirdLineText(dat, contact);
 				}
-				LeaveCriticalSection(&(dat->lockitemCS));
+				ulockdat;
 				KillTimer(dat->hWnd,TIMERID_INVALIDATE_FULL);
-				SetTimer(dat->hWnd,TIMERID_INVALIDATE_FULL,100,NULL);
+				SetTimer(dat->hWnd,TIMERID_INVALIDATE_FULL,500,NULL);
 			}
 			err=FALSE;
 		}
@@ -362,9 +362,9 @@ void Cache_GetText(struct ClcData *dat, struct ClcContact *contact)
 {
 	Cache_GetFirstLineText(dat, contact);
 	if (!dat->force_in_dialog)// && !dat->isStarting)
-	//if (0)
-//		AddToCacheChain(dat,contact, contact->hContact);
-//	else
+	if (1)
+		AddToCacheChain(dat,contact, contact->hContact);
+	else
 	{
 		Cache_GetSecondLineText(dat, contact);
 		Cache_GetThirdLineText(dat, contact);
@@ -916,7 +916,7 @@ BOOL RestoreOneContactData(struct ClcContact *contact, BOOL subcontact, void *pa
 		if (StoredContactsList[i].hContact==contact->hContact)
 		{
 			CONTACTDATASTORED data=StoredContactsList[i];
-			memmove(StoredContactsList+i,StoredContactsList+i+1,sizeof(CONTACTDATASTORED)*(ContactsStoredCount-1));
+			memmove(StoredContactsList+i,StoredContactsList+i+1,sizeof(CONTACTDATASTORED)*(ContactsStoredCount-i-1));
 			ContactsStoredCount--;
 			{
 				if (data.szSecondLineText)
@@ -978,17 +978,17 @@ int RestoreAllContactData(struct ClcData *dat)
 BOOL ExecuteOnAllContacts(struct ClcData *dat, ExecuteOnAllContactsFuncPtr func, void *param)
 {
 	BOOL res;
-	//EnterCriticalSection(&(dat->lockitemCS));
+	lockdat;
 	res=ExecuteOnAllContactsOfGroup(&dat->list, func, param);
-	//LeaveCriticalSection(&(dat->lockitemCS));
+	ulockdat;
 	return res;
 }
 
 BOOL ExecuteOnAllContactsOfGroup(struct ClcGroup *group, ExecuteOnAllContactsFuncPtr func, void *param)
 {
 	int scanIndex, i;
-
-	for(scanIndex = 0 ; scanIndex < group->cl.count ; scanIndex++)
+	if (group)
+		for(scanIndex = 0 ; scanIndex < group->cl.count ; scanIndex++)
 	{
 		if (group->cl.items[scanIndex]->type == CLCIT_CONTACT)
 		{

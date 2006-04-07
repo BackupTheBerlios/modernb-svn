@@ -235,6 +235,8 @@ extern void Utf8Decode( char* str, wchar_t** ucs2 );
 #define DeleteObject(a) DebugDeleteObject(a)
 #endif 
 
+#define lockdat EnterCriticalSection(&(dat->lockitemCS))
+#define ulockdat LeaveCriticalSection(&(dat->lockitemCS))
 
 extern void TRACE_ERROR();
 extern BOOL DebugDeleteObject(HGDIOBJ a);

@@ -28,6 +28,7 @@ Created by Anton Senko aka ZORG , tweaked by Artem Shpynov aka FYR
 
 
 #include <malloc.h>
+#include <tchar.h>
 
 #ifdef _DEBUG
 #ifndef _DEBUG

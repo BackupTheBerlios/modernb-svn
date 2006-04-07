@@ -67,7 +67,7 @@ struct ClcGroup* ( *saveAddGroup )(HWND hwnd,struct ClcData *dat,const TCHAR *sz
 
 void (*savedLoadCluiGlobalOpts)(void);
 extern void LoadCluiGlobalOpts(void);
-//void (*saveSortCLC) (HWND hwnd, struct ClcData *dat, int useInsertionSort );
+void (*saveSortCLC) (HWND hwnd, struct ClcData *dat, int useInsertionSort );
 int ( *saveAddItemToGroup )( struct ClcGroup *group, int iAboveItem );
 int AddItemToGroup(struct ClcGroup *group, int iAboveItem);
 
@@ -94,28 +94,19 @@ extern void FreeContact( struct ClcContact* );
 void ( *saveFreeGroup )( struct ClcGroup* );
 void FreeGroup( struct ClcGroup* );
 
-//void (*saveSaveStateAndRebuildList)(HWND hwnd, struct ClcData *dat);
-//extern int StoreAllContactData(struct ClcData *dat);
-//extern int RestoreAllContactData(struct ClcData *dat);
+void (*saveSaveStateAndRebuildList)(HWND hwnd, struct ClcData *dat);
 
-//char* (*saveGetGroupCountsText)(struct ClcData *dat, struct ClcContact *contact);
-//char* GetGroupCountsText(struct ClcData *dat, struct ClcContact *contact)
-//{
-//	char * res;
-//	EnterCriticalSection(&(dat->lockitemCS));
-//	res=saveGetGroupCountsText(dat, contact);
-//	LeaveCriticalSection(&(dat->lockitemCS));
-//	return res;
-//}
 
-//void SaveStateAndRebuildList(HWND hwnd, struct ClcData *dat)
-//{
-//	StoreAllContactData(dat);
-//	EnterCriticalSection(&(dat->lockitemCS));
-//	saveSaveStateAndRebuildList(hwnd,dat);
-//	LeaveCriticalSection(&(dat->lockitemCS));
-//	RestoreAllContactData(dat);
-//}
+char* (*saveGetGroupCountsText)(struct ClcData *dat, struct ClcContact *contact);
+char* GetGroupCountsText(struct ClcData *dat, struct ClcContact *contact)
+{
+	char * res;
+	lockdat;
+	res=saveGetGroupCountsText(dat, contact);
+	ulockdat;
+	return res;
+}
+
 
 void ( *saveChangeContactIcon)(HANDLE hContact,int iIcon,int add);
 void ChangeContactIcon(HANDLE hContact,int iIcon,int add);
@@ -210,6 +201,7 @@ static ClcCacheEntryBase* fnCreateCacheItem( HANDLE hContact )
 
 extern TCHAR *parseText(TCHAR *stzText);
 extern int LoadModernButtonModule();
+extern void SaveStateAndRebuildList(HWND hwnd, struct ClcData *dat);
 int __declspec(dllexport) CListInitialise(PLUGINLINK * link)
 {
 	int rc=0;
@@ -232,7 +224,7 @@ int __declspec(dllexport) CListInitialise(PLUGINLINK * link)
 	}
 
 	pcli->pfnCheckCacheItem = (void ( * )( ClcCacheEntryBase* )) CheckPDNCE;
-//	pcli->pfnCListTrayNotify = CListTrayNotify;
+	pcli->pfnCListTrayNotify = CListTrayNotify;
 	pcli->pfnCreateClcContact = fnCreateClcContact;
 	pcli->pfnCreateCacheItem = fnCreateCacheItem;
 	pcli->pfnFreeCacheItem = (void( * )( ClcCacheEntryBase* ))FreeDisplayNameCacheItem;
@@ -270,17 +262,17 @@ int __declspec(dllexport) CListInitialise(PLUGINLINK * link)
 	pcli->pfnTrayIconSetToBase=TrayIconSetToBase;
 	pcli->pfnTrayIconIconsChanged=TrayIconIconsChanged;
 
-  pcli->pfnFindItem=sfnFindItem;
+    pcli->pfnFindItem=sfnFindItem;
 
 	pcli->pfnGetRowByIndex=GetRowByIndex;
 
-//	saveSaveStateAndRebuildList=pcli->pfnSaveStateAndRebuildList;
-//	pcli->pfnSaveStateAndRebuildList=SaveStateAndRebuildList;
+	saveSaveStateAndRebuildList=pcli->pfnSaveStateAndRebuildList;
+	pcli->pfnSaveStateAndRebuildList=SaveStateAndRebuildList;
 
-//	saveSortCLC=pcli->pfnSortCLC;	pcli->pfnSortCLC=SortCLC;
+	saveSortCLC=pcli->pfnSortCLC;	pcli->pfnSortCLC=SortCLC;
 	saveAddGroup = pcli->pfnAddGroup; pcli->pfnAddGroup = AddGroup;
-//	saveGetGroupCountsText=pcli->pfnGetGroupCountsText;
-//	pcli->pfnGetGroupCountsText=GetGroupCountsText;
+	saveGetGroupCountsText=pcli->pfnGetGroupCountsText;
+	pcli->pfnGetGroupCountsText=GetGroupCountsText;
     savedAddContactToTree=pcli->pfnAddContactToTree;  pcli->pfnAddContactToTree=AddContactToTree;
 	saveAddInfoItemToGroup = pcli->pfnAddInfoItemToGroup; pcli->pfnAddInfoItemToGroup = AddInfoItemToGroup;
 	saveAddItemToGroup = pcli->pfnAddItemToGroup; pcli->pfnAddItemToGroup = AddItemToGroup;
