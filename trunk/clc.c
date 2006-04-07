@@ -1673,7 +1673,7 @@ LRESULT CALLBACK ContactListControlWndProc(HWND hwnd, UINT msg, WPARAM wParam, L
 	case WM_DESTROY:
 		{
 			int i=0;
-
+			lockdat;
 			for(i=0;i<=FONTID_MODERN_MAX;i++) 
 			{
 				if(dat->fontModernInfo[i].hFont) DeleteObject(dat->fontModernInfo[i].hFont);
@@ -1693,6 +1693,7 @@ LRESULT CALLBACK ContactListControlWndProc(HWND hwnd, UINT msg, WPARAM wParam, L
 				ImageArray_Free(&dat->avatar_cache, FALSE);
 
 			RowHeights_Free(dat);
+			ulockdat;
 			{ 
 				CRITICAL_SECTION cs=dat->lockitemCS;
 				saveContactListControlWndProc(hwnd, msg, wParam, lParam);			

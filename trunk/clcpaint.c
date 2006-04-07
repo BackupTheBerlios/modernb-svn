@@ -78,12 +78,15 @@ HFONT ChangeToFont(HDC hdc,struct ClcData *dat,int id,int *fontHeight)
   {
     dat=(struct ClcData*)GetWindowLong(pcli->hwndContactTree,0);
   }
+  if (!dat) return NULL;
+  lockdat;
   res=SelectObject(hdc,dat->fontModernInfo[id].hFont);
   SetTextColor(hdc,dat->fontModernInfo[id].colour);
   if(fontHeight) *fontHeight=dat->fontModernInfo[id].fontHeight;
   if (dat->hWnd==pcli->hwndContactTree && dat->fontModernInfo[id].effect!=0)
 	  SelectEffect(hdc,dat->fontModernInfo[id].effect-1,dat->fontModernInfo[id].effectColour1,dat->fontModernInfo[id].effectColour2);
   else ResetEffect(hdc);
+  ulockdat;
   return res;
 }
 

@@ -1677,7 +1677,7 @@ int CLUIFramesSetUnSetBorder(WPARAM wParam,LPARAM lParam)
   */
 
   {
-    SetWindowPos(hw,0,0,0,0,0,SWP_NOSIZE|SWP_NOMOVE|SWP_NOACTIVATE|SWP_DRAWFRAME);
+    SetWindowPos(hw,0,0,0,0,0,SWP_NOSIZE|SWP_NOZORDER|SWP_NOMOVE|SWP_NOACTIVATE|SWP_DRAWFRAME);
   };
   return(0);
 };

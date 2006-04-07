@@ -431,7 +431,7 @@ int RowHeights_GetMaxRowHeight(struct ClcData *dat, HWND hwnd)
 {
   int max_height = 0, i, tmp;
   DWORD style=GetWindowLong(hwnd,GWL_STYLE);
-
+  lockdat;
   if (!dat->text_ignore_size_for_row_height)
   {
     int contact_fonts[] = {FONTID_CONTACTS, FONTID_INVIS, FONTID_OFFLINE, FONTID_NOTONLIST, FONTID_OFFINVIS, 
@@ -504,7 +504,7 @@ int RowHeights_GetMaxRowHeight(struct ClcData *dat, HWND hwnd)
   max_height = max(max_height, dat->row_min_heigh);
 
   dat->max_row_height = max_height;
-
+  ulockdat;
   return max_height;
 }
 
