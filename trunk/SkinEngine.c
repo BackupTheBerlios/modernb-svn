@@ -1248,7 +1248,7 @@ int Skin_DrawGlyph(WPARAM wParam,LPARAM lParam)
 void PreMultiplyChanells(HBITMAP hbmp,BYTE Mult)
 {
   BITMAP bmp;     
-
+  BOOL flag=FALSE;
   BYTE * pBitmapBits;
   DWORD Len;
   int bh,bw,y,x;
@@ -1257,8 +1257,14 @@ void PreMultiplyChanells(HBITMAP hbmp,BYTE Mult)
   bh=bmp.bmHeight;
   bw=bmp.bmWidth;
   Len=bh*bw*4;
-  pBitmapBits=(LPBYTE)malloc(Len);
-  GetBitmapBits(hbmp,Len,pBitmapBits);
+  flag=(bmp.bmBits==NULL);
+  if (flag)
+  {
+    pBitmapBits=(LPBYTE)malloc(Len);
+    GetBitmapBits(hbmp,Len,pBitmapBits);
+  }
+  else 
+    pBitmapBits=bmp.bmBits;
   for (y=0; y<bh; ++y)
   {
     BYTE *pPixel= pBitmapBits + bw * 4 * y;
@@ -1278,8 +1284,11 @@ void PreMultiplyChanells(HBITMAP hbmp,BYTE Mult)
       pPixel+= 4;
     }
   }
-  Len=SetBitmapBits(hbmp,Len,pBitmapBits);
-  free (pBitmapBits);
+  if (flag)
+  {
+    Len=SetBitmapBits(hbmp,Len,pBitmapBits);
+    free (pBitmapBits);
+  }
   return;
 }
 
@@ -1319,6 +1328,74 @@ HBITMAP intLoadGlyphImage(char * szFileName)
   if (!gdiPlusFail) return intLoadGlyphImageByGDIPlus(szFileName);
   else return intLoadGlyphImageByImageDecoder(szFileName);
 }
+
+
+#include <m_png.h>
+
+//this function is required to load PNG to dib buffer myself
+HBITMAP intLoadGlyphImageByPng2Dib(char * szFilename)
+{
+	
+  {
+			HANDLE hFile, hMap = NULL;
+			BYTE* ppMap = NULL;
+			long  cbFileSize = 0;
+			BITMAPINFOHEADER* pDib;
+			BYTE* pDibBits;
+
+			if ( !ServiceExists( MS_PNG2DIB )) {
+				MessageBox( NULL, TranslateT( "You need the png2dib plugin v. 0.1.3.x or later to process PNG images" ), TranslateT( "Error" ), MB_OK );
+				return (HBITMAP)NULL;
+			}
+
+			if (( hFile = CreateFileA( szFilename, GENERIC_READ, FILE_SHARE_READ, NULL, OPEN_EXISTING, 0, NULL )) != INVALID_HANDLE_VALUE )
+				if (( hMap = CreateFileMapping( hFile, NULL, PAGE_READONLY, 0, 0, NULL )) != NULL )
+					if (( ppMap = ( BYTE* )MapViewOfFile( hMap, FILE_MAP_READ, 0, 0, 0 )) != NULL )
+						cbFileSize = GetFileSize( hFile, NULL );
+
+			if ( cbFileSize != 0 ) {
+				PNG2DIB param;
+				param.pSource = ppMap;
+				param.cbSourceSize = cbFileSize;
+				param.pResult = &pDib;
+				if ( CallService( MS_PNG2DIB, 0, ( LPARAM )&param ))
+					pDibBits = ( BYTE* )( pDib+1 );
+				else
+					cbFileSize = 0;
+			}
+
+			if ( ppMap != NULL )	UnmapViewOfFile( ppMap );
+			if ( hMap  != NULL )	CloseHandle( hMap );
+			if ( hFile != NULL ) CloseHandle( hFile );
+
+			if ( cbFileSize == 0 )
+				return (HBITMAP)NULL;
+
+      {
+        BITMAPINFO* bi=( BITMAPINFO* )pDib;
+        BYTE *pt=(BYTE*)bi;
+        pt+=bi->bmiHeader.biSize;
+        if (bi->bmiHeader.biBitCount!=32)
+			  {
+          HDC sDC = GetDC( NULL );
+	  		  HBITMAP hBitmap = CreateDIBitmap( sDC, pDib, CBM_INIT, pDibBits, bi, DIB_PAL_COLORS );
+				  SelectObject( sDC, hBitmap );
+				  DeleteDC( sDC );
+				  GlobalFree( pDib );
+				  return hBitmap;
+        }
+        else
+        {
+          BYTE * ptPixels=pt;
+          HBITMAP hBitmap=CreateDIBSection(NULL,bi, DIB_RGB_COLORS, (void **)&ptPixels,  NULL, 0);         
+          memcpy(ptPixels,pt,bi->bmiHeader.biSizeImage);
+				  GlobalFree( pDib );
+				  return hBitmap;
+	      }	
+      }
+    }	
+}
+
 HBITMAP intLoadGlyphImageByImageDecoder(char * szFileName)
 {
   // Loading image from file by imgdecoder...    
@@ -1328,6 +1405,7 @@ HBITMAP intLoadGlyphImageByImageDecoder(char * szFileName)
   LPBYTE pBitmapBits;
   LPVOID pImg= NULL;
   LPVOID m_pImgDecoder;
+  
   BITMAP bmpInfo;
   {
     int l;
@@ -1335,8 +1413,16 @@ HBITMAP intLoadGlyphImageByImageDecoder(char * szFileName)
     memmove(ext,szFileName +(l-4),5);   
   }
   if (!PathFileExistsA(szFileName)) return NULL;
+  if (ServiceExists("Image/Png2Dib") && boolstrcmpi(ext,".png"))
+  {
+    hBitmap=intLoadGlyphImageByPng2Dib(szFileName);
+    GetObject(hBitmap, sizeof(BITMAP), &bmpInfo);
+    f=(bmpInfo.bmBits!=NULL);
+   // hBitmap=(HBITMAP)CallService(MS_UTILS_LOADBITMAP,0,(LPARAM)szFileName);
+   // f=1;
 
-  if (hImageDecoderModule==NULL || !boolstrcmpi(ext,".png"))
+  }
+  else if (hImageDecoderModule==NULL || !boolstrcmpi(ext,".png"))
     hBitmap=(HBITMAP)CallService(MS_UTILS_LOADBITMAP,0,(LPARAM)szFileName);
   else
   {

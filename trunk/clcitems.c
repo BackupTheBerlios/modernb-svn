@@ -336,6 +336,7 @@ void RebuildEntireList(HWND hwnd,struct ClcData *dat)
 	HANDLE hContact;
 	struct ClcContact * cont;
 	struct ClcGroup *group;
+  static int rebuildCounter=0;
 	BOOL GroupShowOfflineHere=FALSE;
 	int tick=GetTickCount();
 	KillTimer(hwnd,TIMERID_REBUILDAFTER);
@@ -344,7 +345,8 @@ void RebuildEntireList(HWND hwnd,struct ClcData *dat)
 	ImageArray_Clear(&dat->avatar_cache);
 	RowHeights_Clear(dat);
 	RowHeights_GetMaxRowHeight(dat, hwnd);
-
+  TRACEVAR("Rebuild Entire List %d times\n",++rebuildCounter);
+  
 	dat->list.expanded=1;
 	dat->list.hideOffline=DBGetContactSettingByte(NULL,"CLC","HideOfflineRoot",0);
 	dat->list.cl.count = dat->list.cl.limit = 0;

@@ -1201,8 +1201,8 @@ LRESULT CALLBACK ContactListControlWndProc(HWND hwnd, UINT msg, WPARAM wParam, L
 			if(dat->iDragItem==-1) 
 			{
 				int iOldHotTrack=dat->iHotTrack;
-				if(dat->hwndRenameEdit!=NULL) break;
-				if(GetKeyState(VK_MENU)&0x8000 || GetKeyState(VK_F10)&0x8000) break;
+				if(dat->hwndRenameEdit!=NULL) return 0;;
+				if(GetKeyState(VK_MENU)&0x8000 || GetKeyState(VK_F10)&0x8000) return 0;
 				dat->iHotTrack=HitTest(hwnd,dat,(short)LOWORD(lParam),(short)HIWORD(lParam),NULL,NULL,NULL);
 				if(iOldHotTrack!=dat->iHotTrack) {
 					if(iOldHotTrack==-1) SetCapture(hwnd);

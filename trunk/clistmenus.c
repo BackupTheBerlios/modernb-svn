@@ -928,7 +928,11 @@ int MenuModulesLoaded(WPARAM wParam,LPARAM lParam)
   
 
   for (s=0;s<storedProtoCount;s++)
-	  if(!((proto[s]->type!=PROTOTYPE_PROTOCOL) || (DBGetContactSettingByte(NULL,"CLUI","DontHideStatusMenu",0)==0&&GetProtocolVisibility(proto[s]->szName)==0)))  visnetworkProtoCount++;
+  {
+    i=GetProtoIndexByPos(proto,protoCount,s);
+    if (i==-1) continue;
+	  if(!((proto[i]->type!=PROTOTYPE_PROTOCOL) || (DBGetContactSettingByte(NULL,"CLUI","DontHideStatusMenu",0)==0&&GetProtocolVisibility(proto[i]->szName)==0)))  visnetworkProtoCount++;
+  }
 
   for(s=0;s<storedProtoCount;s++) {
     pos=0;
