@@ -76,7 +76,7 @@ void AddSubcontacts(struct ClcData *dat, struct ClcContact * cont, BOOL showOffl
 			cont->subcontacts[i].image_is_special=FALSE;
 			cont->subcontacts[i].status=cacheEntry->status;
 			Cache_GetTimezone(dat, &cont->subcontacts[i]);
-			Cache_GetText(dat, &cont->subcontacts[i]);
+			Cache_GetText(dat, &cont->subcontacts[i],0);
 
 			{
 				int apparentMode;
@@ -133,12 +133,12 @@ void FreeContact(struct ClcContact *p)
 			int i;
 			for ( i = 0 ; i < p->SubAllocated ; i++ ) {
 				Cache_DestroySmileyList(p->subcontacts[i].plText);
-				Cache_DestroySmileyList(p->subcontacts[i].plSecondLineText);
-				Cache_DestroySmileyList(p->subcontacts[i].plThirdLineText);
-				if (p->subcontacts[i].szSecondLineText)
-					mir_free(p->subcontacts[i].szSecondLineText);
-				if (p->subcontacts[i].szThirdLineText)
-					mir_free(p->subcontacts[i].szThirdLineText);
+//				Cache_DestroySmileyList(p->subcontacts[i].plSecondLineText);
+//				Cache_DestroySmileyList(p->subcontacts[i].plThirdLineText);
+//				if (p->subcontacts[i].szSecondLineText)
+//					mir_free(p->subcontacts[i].szSecondLineText);
+//				if (p->subcontacts[i].szThirdLineText)
+//					mir_free(p->subcontacts[i].szThirdLineText);
 			}
 
 			mir_free(p->subcontacts);
@@ -146,14 +146,14 @@ void FreeContact(struct ClcContact *p)
 
 	Cache_DestroySmileyList(p->plText);
 	p->plText=NULL;
-	Cache_DestroySmileyList(p->plSecondLineText);
-	p->plSecondLineText=NULL;
-	Cache_DestroySmileyList(p->plThirdLineText);
-	p->plThirdLineText=NULL;
-	if (p->szSecondLineText)
-		mir_free(p->szSecondLineText);
-	if (p->szThirdLineText)
-		mir_free(p->szThirdLineText);
+//	Cache_DestroySmileyList(p->plSecondLineText);
+//	p->plSecondLineText=NULL;
+//	Cache_DestroySmileyList(p->plThirdLineText);
+//	p->plThirdLineText=NULL;
+//	if (p->szSecondLineText)
+//		mir_free(p->szSecondLineText);
+//	if (p->szThirdLineText)
+//		mir_free(p->szThirdLineText);
 
 	saveFreeContact( p );
 }
@@ -193,8 +193,8 @@ static struct ClcContact * AddContactToGroup(struct ClcData *dat,struct ClcGroup
 	group->cl.items[i]->isSubcontact=0;
 	group->cl.items[i]->subcontacts=NULL;
 	group->cl.items[i]->szText[0]=0;
-	group->cl.items[i]->szSecondLineText=NULL;
-	group->cl.items[i]->szThirdLineText=NULL;
+//	group->cl.items[i]->szSecondLineText=NULL;
+//	group->cl.items[i]->szThirdLineText=NULL;
 	group->cl.items[i]->image_is_special=FALSE;
 	group->cl.items[i]->status=cacheEntry->status;
 
@@ -218,8 +218,9 @@ static struct ClcContact * AddContactToGroup(struct ClcData *dat,struct ClcGroup
 		group->cl.items[i]->flags|=CONTACTF_IDLE;
 	group->cl.items[i]->proto = szProto;
 
-	group->cl.items[i]->timezone = (DWORD)DBGetContactSettingByte(hContact,"UserInfo","Timezone", DBGetContactSettingByte(hContact, szProto,"Timezone",-1));
-	if (group->cl.items[i]->timezone != -1)
+//	group->cl.items[i]->timezone = (DWORD)DBGetContactSettingByte(hContact,"UserInfo","Timezone", DBGetContactSettingByte(hContact, szProto,"Timezone",-1));
+/*
+if (group->cl.items[i]->timezone != -1)
 	{
 		int contact_gmt_diff = group->cl.items[i]->timezone;
 		contact_gmt_diff = contact_gmt_diff > 128 ? 256 - contact_gmt_diff : 0 - contact_gmt_diff;
@@ -230,12 +231,11 @@ static struct ClcContact * AddContactToGroup(struct ClcData *dat,struct ClcGroup
 		else
 			group->cl.items[i]->timediff = (int)dat->local_gmt_diff_dst - contact_gmt_diff;
 	}
-
+*/
+	pcli->pfnInvalidateDisplayNameCacheEntry(hContact);	
 	Cache_GetTimezone(dat, group->cl.items[i]);
-	Cache_GetText(dat, group->cl.items[i]);
-
+	Cache_GetText(dat, group->cl.items[i],0);
 	ClearRowByIndexCache();
-	pcli->pfnInvalidateDisplayNameCacheEntry(hContact);
 	return group->cl.items[i];
 }
 
@@ -299,7 +299,7 @@ void AddContactToTree(HWND hwnd,struct ClcData *dat,HANDLE hContact,int updateTo
 			}
 			cont->avatar_pos=AVATAR_POS_DONT_HAVE;
 			Cache_GetAvatar(dat,cont);
-			Cache_GetText(dat,cont);
+			Cache_GetText(dat,cont,0);
 			Cache_GetTimezone(dat,cont);
 		}
 	}

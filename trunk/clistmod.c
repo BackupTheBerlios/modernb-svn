@@ -162,6 +162,7 @@ int GetContactIcon(WPARAM wParam,LPARAM lParam)
 
 static int ContactListShutdownProc(WPARAM wParam,LPARAM lParam)
 {
+	FreeDisplayNameCache();
 	UnhookEvent(hSettingChanged);
 	UninitCustomMenus();
 	//UninitCListEvents();
@@ -183,6 +184,7 @@ int LoadContactListModule(void)
 	hContact = (HANDLE) CallService(MS_DB_CONTACT_FINDNEXT, (WPARAM) hContact, 0);
 	}
 	*/
+	InitDisplayNameCache();
 	HookEvent(ME_SYSTEM_SHUTDOWN,ContactListShutdownProc);
 	HookEvent(ME_OPT_INITIALISE,CListOptInit);
 	HookEvent(ME_OPT_INITIALISE,SkinOptInit);

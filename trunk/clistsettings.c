@@ -33,14 +33,13 @@ int PostAutoRebuidMessage(HWND hwnd);
 static int displayNameCacheSize;
 
 BOOL CLM_AUTOREBUILD_WAS_POSTED=FALSE;
-SortedList lContactsCache;
+SortedList *clistCache = NULL;
 TCHAR* GetNameForContact(HANDLE hContact,int flag,boolean *isUnknown);
 char *GetProtoForContact(HANDLE hContact);
 int GetStatusForContact(HANDLE hContact,char *szProto);
 TCHAR *UnknownConctactTranslatedName;
 extern boolean OnModulesLoadedCalled;
 void InvalidateDisplayNameCacheEntryByPDNE(HANDLE hContact,pdisplayNameCacheEntry pdnce,int SettingType);
-
 
 static int handleCompare( void* c1, void* c2 )
 {
@@ -81,16 +80,60 @@ static int handleCompare( void* c1, void* c2 )
 //		i++;
 //}	}
 
+
+
+void InitDisplayNameCache(void)
+{
+	clistCache = li.List_Create( 0, 50 );
+	clistCache->sortFunc = handleCompare;
+}
+void FreeDisplayNameCache(void)
+{
+	if ( clistCache != NULL ) {
+		int i;
+		for ( i = 0; i < clistCache->realCount; i++) {
+			pcli->pfnFreeCacheItem(( ClcCacheEntryBase* )clistCache->items[i] );
+			mir_free( clistCache->items[i] );
+		}
+
+		li.List_Destroy( clistCache ); 
+		mir_free(clistCache);
+		clistCache = NULL;
+	}	
+}
+
+ClcCacheEntryBase* fnGetCacheEntry(HANDLE hContact)
+{
+	ClcCacheEntryBase* p;
+	int idx;
+	if (!clistCache) return NULL;
+	if ( !li.List_GetIndex( clistCache, &hContact, &idx )) {	
+		if (( p = pcli->pfnCreateCacheItem( hContact )) != NULL ) {
+			li.List_Insert( clistCache, p, idx );
+			pcli->pfnInvalidateDisplayNameCacheEntry( hContact );
+		}
+	}
+	else p = ( ClcCacheEntryBase* )clistCache->items[idx];
+	pcli->pfnCheckCacheItem( p );
+	return p;
+}
+
 void FreeDisplayNameCacheItem( pdisplayNameCacheEntry p )
 {
-	if ( p->name && p->name!=UnknownConctactTranslatedName) mir_free(p->name);
+	if ( !p->isUnknown && p->name && p->name!=UnknownConctactTranslatedName) mir_free(p->name);
 	p->name = NULL; 
 	#if defined( _UNICODE )
 		if ( p->szName) { mir_free(p->szName); p->szName = NULL; }
 	#endif
 	if ( p->szGroup) { mir_free(p->szGroup); p->szGroup = NULL; }
+	if ( p->szSecondLineText) mir_free(p->szSecondLineText);
+	if ( p->szThirdLineText) mir_free(p->szThirdLineText);
+	if ( p->plSecondLineText) {Cache_DestroySmileyList(p->plSecondLineText);p->plSecondLineText=NULL;}
+	if ( p->plThirdLineText)  {Cache_DestroySmileyList(p->plThirdLineText);p->plThirdLineText=NULL;}
 }
 
+
+/*
 void FreeDisplayNameCache(SortedList *list)
 {
 	int i;
@@ -101,7 +144,7 @@ void FreeDisplayNameCache(SortedList *list)
 	li.List_Destroy(list);
 
 }
-
+*/
 void CheckPDNCE(pdisplayNameCacheEntry pdnce)
 {
 	if (pdnce!=NULL)
@@ -121,7 +164,7 @@ void CheckPDNCE(pdisplayNameCacheEntry pdnce)
 				{
 					if(pdnce->szProto&&pdnce->name) 
 					{
-						if (pdnce->name!=UnknownConctactTranslatedName) mir_free(pdnce->name);
+						if (!pdnce->isUnknown && pdnce->name!=UnknownConctactTranslatedName) mir_free(pdnce->name);
 						pdnce->name=NULL;
 					}
 				}
@@ -130,16 +173,17 @@ void CheckPDNCE(pdisplayNameCacheEntry pdnce)
 
 		if (pdnce->name==NULL)
 		{			
-			if (pdnce->protoNotExists)
+			if (pdnce->protoNotExists || !pdnce->szProto)
 			{
-				pdnce->name=mir_strdupT(TranslateT("_NoProtocol_"));
+				pdnce->name=(TranslateT("(Unknown Contact)"));
+				pdnce->isUnknown=TRUE;
 			}
 			else
 			{
 				if (OnModulesLoadedCalled)
 					pdnce->name = GetNameForContact(pdnce->hContact,0,&pdnce->isUnknown); //TODO UNICODE
 				else
-					pdnce->name = GetNameForContact(pdnce->hContact,0,NULL); //TODO UNICODE
+					pdnce->name = GetNameForContact(pdnce->hContact,0,&pdnce->isUnknown); //TODO UNICODE
 			}	
 		}
 		else
@@ -210,15 +254,59 @@ void CheckPDNCE(pdisplayNameCacheEntry pdnce)
 	}
 }
 
+void IvalidateDisplayNameCache(DWORD mode)
+{
+	if ( clistCache != NULL ) 
+	{
+		int i;
+		for ( i = 0; i < clistCache->realCount; i++) 
+		{
+			PDNCE pdnce=clistCache->items[i];
+			if (mode&16)
+			{
+				InvalidateDisplayNameCacheEntryByPDNE(pdnce->hContact,pdnce,16);
+			}
+		}
+	}
+	
+}
+
 void InvalidateDisplayNameCacheEntryByPDNE(HANDLE hContact,pdisplayNameCacheEntry pdnce,int SettingType)
 {
 	if (hContact==NULL) return;
 	if (pdnce==NULL) return;
 	if (pdnce)
 	{
+		if (SettingType&16)
+		{
+			if (pdnce->szSecondLineText) 
+			{
+				if (pdnce->plSecondLineText) 
+				{
+					Cache_DestroySmileyList(pdnce->plSecondLineText);
+					pdnce->plSecondLineText=NULL;
+				}
+				mir_free(pdnce->szSecondLineText);
+			}
+			if (pdnce->szThirdLineText) 
+			{
+				if (pdnce->plThirdLineText) 
+				{
+					Cache_DestroySmileyList(pdnce->plThirdLineText);
+					pdnce->plThirdLineText=NULL;
+				}
+				mir_free(pdnce->szThirdLineText);
+			}
+			pdnce->iSecondLineMaxSmileyHeight=0;
+			pdnce->iThirdLineMaxSmileyHeight=0;
+			pdnce->timediff=0;
+			pdnce->timezone=-1;
+			SettingType&=~16;
+		}
+
 		if (SettingType==-1||SettingType==DBVT_DELETED)
-		{		
-			if (pdnce->name) mir_free(pdnce->name);
+		{	
+			if (pdnce->name && !pdnce->isUnknown) mir_free(pdnce->name);
 			pdnce->name=NULL;
 			if (pdnce->szGroup) mir_free(pdnce->szGroup);
 			// if (pdnce->szProto) mir_free(pdnce->szProto);   //free proto
@@ -292,7 +380,8 @@ TCHAR* GetNameForContact(HANDLE hContact,int flag,boolean *isUnknown)
 	if (UnknownConctactTranslatedName == NULL)
 		UnknownConctactTranslatedName = TranslateT("(Unknown Contact)");
 	itUnknown=lstrcmp(result ,UnknownConctactTranslatedName) == 0;
-	if (itUnknown) result=UnknownConctactTranslatedName;
+	if (itUnknown) 
+		result=UnknownConctactTranslatedName;
 	if (isUnknown) {
 		*isUnknown = itUnknown;
 	}

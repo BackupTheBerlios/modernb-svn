@@ -70,6 +70,7 @@ int ModernCalcRowHeight(struct ClcData *dat, HWND hwnd, struct ClcContact *conta
   int height=0;
   BOOL hasAvatar=FALSE;
   DWORD style=GetWindowLong(hwnd,GWL_STYLE);
+  displayNameCacheEntry * pdnce=(displayNameCacheEntry*)pcli->pfnGetCacheEntry(contact->hContact);
   if (!RowHeights_Alloc(dat, item + 1))
     return -1;
   if (!pcli->hwndContactTree) return 0;
@@ -149,11 +150,11 @@ int ModernCalcRowHeight(struct ClcData *dat, HWND hwnd, struct ClcContact *conta
       case TC_TEXT2:
         {
           int tmp=0;
-          if (dat->second_line_show && contact->szSecondLineText)
+          if (dat->second_line_show && pdnce->szSecondLineText && pdnce->szSecondLineText[0] )
           {
             tmp = dat->fontModernInfo[FONTID_SECONDLINE].fontHeight;
             if (dat->text_replace_smileys && dat->second_line_draw_smileys && !dat->text_resize_smileys)
-              tmp = max(tmp, contact->iSecondLineMaxSmileyHeight);
+              tmp = max(tmp, pdnce->iSecondLineMaxSmileyHeight);
             if (item==-1)
             {
               //calculate text width here
@@ -162,7 +163,7 @@ int ModernCalcRowHeight(struct ClcData *dat, HWND hwnd, struct ClcContact *conta
               RECT dummyRect={0,0,1024,tmp};
               HDC hdc=CreateCompatibleDC(NULL);
               ChangeToFont(hdc,dat,FONTID_SECONDLINE,NULL);
-              GetTextSize(&size,hdc,dummyRect,contact->szSecondLineText,contact->plSecondLineText,0, dat->text_resize_smileys ? 0 : contact->iSecondLineMaxSmileyHeight);
+              GetTextSize(&size,hdc,dummyRect,pdnce->szSecondLineText,pdnce->plSecondLineText,0, dat->text_resize_smileys ? 0 : pdnce->iSecondLineMaxSmileyHeight);
               gl_RowTabAccess[i]->w=size.cx;
               SelectObject(hdc,GetStockObject(DEFAULT_GUI_FONT));
 			  ModernDeleteDC(hdc);
@@ -174,11 +175,11 @@ int ModernCalcRowHeight(struct ClcData *dat, HWND hwnd, struct ClcContact *conta
       case TC_TEXT3:
         {
           int tmp=0;
-          if (dat->third_line_show && contact->szThirdLineText)
+          if (dat->third_line_show && pdnce->szThirdLineText && pdnce->szThirdLineText[0])
           {
             tmp = dat->fontModernInfo[FONTID_THIRDLINE].fontHeight;
             if (dat->text_replace_smileys && dat->third_line_draw_smileys && !dat->text_resize_smileys)
-              tmp = max(tmp, contact->iThirdLineMaxSmileyHeight);
+              tmp = max(tmp, pdnce->iThirdLineMaxSmileyHeight);
             if (item==-1)
             {
               //calculate text width here
@@ -186,7 +187,7 @@ int ModernCalcRowHeight(struct ClcData *dat, HWND hwnd, struct ClcContact *conta
               RECT dummyRect={0,0,1024,tmp};
               HDC hdc=CreateCompatibleDC(NULL);
               ChangeToFont(hdc,dat,FONTID_THIRDLINE,NULL);
-              GetTextSize(&size,hdc,dummyRect,contact->szThirdLineText,contact->plThirdLineText,0, dat->text_resize_smileys ? 0 : contact->iThirdLineMaxSmileyHeight);
+              GetTextSize(&size,hdc,dummyRect,pdnce->szThirdLineText,pdnce->plThirdLineText,0, dat->text_resize_smileys ? 0 : pdnce->iThirdLineMaxSmileyHeight);
               gl_RowTabAccess[i]->w=size.cx;
               SelectObject(hdc,GetStockObject(DEFAULT_GUI_FONT));
 			  ModernDeleteDC(hdc);
@@ -290,8 +291,8 @@ int ModernCalcRowHeight(struct ClcData *dat, HWND hwnd, struct ClcContact *conta
 		  }
 	  case TC_TIME:
         {
-          if (contact->type == CLCIT_CONTACT && dat->contact_time_show && contact->timezone != -1 && 
-            (!dat->contact_time_show_only_if_different || contact->timediff != 0))
+          if (contact->type == CLCIT_CONTACT && dat->contact_time_show && pdnce->timezone != -1 && 
+            (!dat->contact_time_show_only_if_different || pdnce->timediff != 0))
           {
             gl_RowTabAccess[i]->h=dat->fontModernInfo[FONTID_CONTACT_TIME].fontHeight;
             if (item==-1)
@@ -301,7 +302,7 @@ int ModernCalcRowHeight(struct ClcData *dat, HWND hwnd, struct ClcContact *conta
               time_t contact_time;
               TCHAR szResult[80];
 
-              contact_time = time(NULL) - contact->timediff;
+              contact_time = time(NULL) - pdnce->timediff;
               szResult[0] = '\0';
 
               dbtts.szDest = szResult;
@@ -601,7 +602,7 @@ int RowHeights_GetRowHeight(struct ClcData *dat, HWND hwnd, struct ClcContact *c
     return ModernCalcRowHeight(dat, hwnd, contact, item);
   else
   {
-
+	displayNameCacheEntry *pdnce=(displayNameCacheEntry *)pcli->pfnGetCacheEntry(contact->hContact);
     DWORD style=GetWindowLong(hwnd,GWL_STYLE);
     //TODO replace futher code with new rowheight definition
     int tmp;
@@ -619,22 +620,22 @@ int RowHeights_GetRowHeight(struct ClcData *dat, HWND hwnd, struct ClcContact *c
         }
         height += tmp;
 
-        if (dat->second_line_show && contact->szSecondLineText)
+        if (dat->second_line_show && pdnce->szSecondLineText)
         {
           tmp = dat->fontModernInfo[FONTID_SECONDLINE].fontHeight;
           if (dat->text_replace_smileys && dat->second_line_draw_smileys && !dat->text_resize_smileys)
           {
-            tmp = max(tmp, contact->iSecondLineMaxSmileyHeight);
+            tmp = max(tmp, pdnce->iSecondLineMaxSmileyHeight);
           }
           height += dat->second_line_top_space + tmp;
         }
 
-        if (dat->third_line_show && contact->szThirdLineText)
+        if (dat->third_line_show && pdnce->szThirdLineText)
         {
           tmp = dat->fontModernInfo[FONTID_THIRDLINE].fontHeight;
           if (dat->text_replace_smileys && dat->third_line_draw_smileys && !dat->text_resize_smileys)
           {
-            tmp = max(tmp, contact->iThirdLineMaxSmileyHeight);
+            tmp = max(tmp, pdnce->iThirdLineMaxSmileyHeight);
           }
           height += dat->third_line_top_space + tmp;
         }

@@ -182,7 +182,7 @@ int SetDrawer(WPARAM wParam,LPARAM lParam)
 	if (!SED.PaintClc) return -1;
 	return 0;
 }
-
+extern ClcCacheEntryBase* fnGetCacheEntry(HANDLE hContact);
 static struct ClcContact* fnCreateClcContact( void )
 {
 	return (struct ClcContact*)mir_calloc(1, sizeof( struct ClcContact ) );
@@ -191,12 +191,32 @@ static struct ClcContact* fnCreateClcContact( void )
 static ClcCacheEntryBase* fnCreateCacheItem( HANDLE hContact )
 {
 	pdisplayNameCacheEntry p = (pdisplayNameCacheEntry)mir_calloc( 1, sizeof( displayNameCacheEntry ));
+	
 	if ( p )
 	{
+		memset(p,0,sizeof( displayNameCacheEntry ));
 		p->hContact = hContact;
 		InvalidateDisplayNameCacheEntryByPDNE(hContact,p,0); //TODO should be in core
+		p->szSecondLineText=NULL;
+		p->szThirdLineText=NULL;
+		p->plSecondLineText=NULL;
+		p->plThirdLineText=NULL;
 	}
 	return (ClcCacheEntryBase*)p;
+}
+
+
+
+void InvalidateDisplayNameCacheEntry(HANDLE hContact)
+{	
+	pdisplayNameCacheEntry p;
+	//if (IsBadWritePtr((void*)hContact,sizeof(displayNameCacheEntry)))
+		p = (pdisplayNameCacheEntry) pcli->pfnGetCacheEntry(hContact);
+	//else 
+	//	p=(pdisplayNameCacheEntry)hContact; //handle give us incorrect hContact on GetCacheEntry;
+	if (p)
+		InvalidateDisplayNameCacheEntryByPDNE(hContact,p,0);
+	return;
 }
 
 extern TCHAR *parseText(TCHAR *stzText);
@@ -233,8 +253,8 @@ int __declspec(dllexport) CListInitialise(PLUGINLINK * link)
 	pcli->pfnGetRowTopY = RowHeights_GetItemTopY;
 	pcli->pfnGetRowTotalHeight = RowHeights_GetTotalHeight;
 	pcli->pfnInvalidateRect = skinInvalidateRect;
-  savedLoadCluiGlobalOpts=pcli->pfnLoadCluiGlobalOpts; pcli->pfnLoadCluiGlobalOpts=LoadCluiGlobalOpts;
-  
+	savedLoadCluiGlobalOpts=pcli->pfnLoadCluiGlobalOpts; pcli->pfnLoadCluiGlobalOpts=LoadCluiGlobalOpts;
+	pcli->pfnGetCacheEntry=fnGetCacheEntry;
 
 	pcli->pfnOnCreateClc = LoadCLUIModule;
 	pcli->pfnHotKeysProcess = HotKeysProcess;
@@ -254,7 +274,7 @@ int __declspec(dllexport) CListInitialise(PLUGINLINK * link)
 	pcli->pfnCompareContacts=CompareContacts;
 
 	pcli->pfnBuildGroupPopupMenu=BuildGroupPopupMenu;
-
+	pcli->pfnInvalidateDisplayNameCacheEntry=InvalidateDisplayNameCacheEntry;
 
 	saveTrayIconProcessMessage=pcli->pfnTrayIconProcessMessage; pcli->pfnTrayIconProcessMessage=TrayIconProcessMessage;
 	pcli->pfnTrayIconUpdateBase=(void (*)( const char *szChangedProto ))TrayIconUpdateBase;

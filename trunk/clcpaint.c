@@ -637,7 +637,11 @@ void ModernInternalPaintRowItems(HWND hwnd, HDC hdcMem, struct ClcData *dat, str
   int mode2=-1;
   COLORREF colourFg=RGB(0,0,0);
   BOOL InClistWindow=(dat->hWnd==pcli->hwndContactTree);
+  PDNCE pdnce=NULL;
   int height=ModernCalcRowHeight(dat, hwnd, Drawing, -1);
+  if (Drawing->type == CLCIT_CONTACT)
+	  pdnce=(PDNCE)pcli->pfnGetCacheEntry(Drawing->hContact);
+
   if(Drawing->type == CLCIT_GROUP && 
 	  Drawing->group->parent->groupId==0 && 
       Drawing->group->parent->cl.items[0]!=Drawing)
@@ -1120,6 +1124,27 @@ void ModernInternalPaintRowItems(HWND hwnd, HDC hdcMem, struct ClcData *dat, str
           // Select font
           SIZE text_size;
           UINT uTextFormat=(dat->text_rtl ? DT_RTLREADING : 0) ;
+		  {
+			  if (dat->second_line_show && dat->second_line_type == TEXT_CONTACT_TIME && pdnce->timezone != -1 && 
+				(!dat->contact_time_show_only_if_different || pdnce->timediff != 0))
+				{
+				// Get contact time
+				DBTIMETOSTRINGT dbtts;
+				time_t contact_time;
+				TCHAR buf[70]={0};
+				contact_time = time(NULL) - pdnce->timediff;
+				if (pdnce->szSecondLineText) mir_free(pdnce->szSecondLineText);
+				pdnce->szSecondLineText=NULL;
+
+				dbtts.szDest = buf;
+				dbtts.cbDest = sizeof(buf);
+
+				dbtts.szFormat = _T("t");
+				CallService(MS_DB_TIME_TIMESTAMPTOSTRINGT, (WPARAM)contact_time, (LPARAM) & dbtts);
+				pdnce->szSecondLineText=mir_strdupT(buf);
+				}
+
+		  }
           uTextFormat|=(gl_RowTabAccess[i]->valign==TC_VCENTER)?DT_VCENTER:(gl_RowTabAccess[i]->valign==TC_BOTTOM)?DT_BOTTOM:0; 
           uTextFormat|=(gl_RowTabAccess[i]->halign==TC_HCENTER)?DT_CENTER:(gl_RowTabAccess[i]->halign==TC_RIGHT)?DT_RIGHT:0; 
 
@@ -1129,7 +1154,7 @@ void ModernInternalPaintRowItems(HWND hwnd, HDC hdcMem, struct ClcData *dat, str
           ChangeToFont(hdcMem,dat,FONTID_SECONDLINE,NULL);
           uTextFormat = uTextFormat | DT_END_ELLIPSIS|DT_SINGLELINE;
           if (Drawing->type==CLCIT_CONTACT)
-            DrawTextSSmiley(hdcMem, p_rect, text_size, Drawing->szSecondLineText, lstrlen(Drawing->szSecondLineText), Drawing->plSecondLineText, uTextFormat, dat->text_resize_smileys);
+            DrawTextSSmiley(hdcMem, p_rect, text_size, pdnce->szSecondLineText, lstrlen(pdnce->szSecondLineText), pdnce->plSecondLineText, uTextFormat, dat->text_resize_smileys);
           break;
         }
       case TC_TEXT3:
@@ -1138,6 +1163,25 @@ void ModernInternalPaintRowItems(HWND hwnd, HDC hdcMem, struct ClcData *dat, str
           // Select font
           SIZE text_size;
           UINT uTextFormat=(dat->text_rtl ? DT_RTLREADING : 0) ;
+		  {
+			 if (dat->third_line_show && dat->third_line_type == TEXT_CONTACT_TIME && pdnce->timezone != -1 && 
+				(!dat->contact_time_show_only_if_different || pdnce->timediff != 0))
+			{
+				// Get contact time
+				DBTIMETOSTRINGT dbtts;
+				time_t contact_time;
+				TCHAR buf[70]={0};
+				contact_time = time(NULL) - pdnce->timediff;
+				if (pdnce->szThirdLineText) mir_free(pdnce->szThirdLineText);
+				pdnce->szThirdLineText= NULL;
+
+				dbtts.szDest = buf;
+				dbtts.cbDest = sizeof(buf);
+				dbtts.szFormat = _T("t");
+				CallService(MS_DB_TIME_TIMESTAMPTOSTRINGT, (WPARAM)contact_time, (LPARAM) & dbtts);
+				pdnce->szThirdLineText=mir_strdupT(buf);
+				}
+		  }
           uTextFormat|=(gl_RowTabAccess[i]->valign==TC_VCENTER)?DT_VCENTER:(gl_RowTabAccess[i]->valign==TC_BOTTOM)?DT_BOTTOM:0; 
           uTextFormat|=(gl_RowTabAccess[i]->halign==TC_HCENTER)?DT_CENTER:(gl_RowTabAccess[i]->halign==TC_RIGHT)?DT_RIGHT:0; 
 
@@ -1147,7 +1191,7 @@ void ModernInternalPaintRowItems(HWND hwnd, HDC hdcMem, struct ClcData *dat, str
           ChangeToFont(hdcMem,dat,FONTID_THIRDLINE,NULL);
           uTextFormat = uTextFormat | DT_END_ELLIPSIS|DT_SINGLELINE;
           if (Drawing->type==CLCIT_CONTACT)
-            DrawTextSSmiley(hdcMem, p_rect, text_size, Drawing->szThirdLineText, lstrlen(Drawing->szThirdLineText), Drawing->plThirdLineText, uTextFormat, dat->text_resize_smileys);
+            DrawTextSSmiley(hdcMem, p_rect, text_size, pdnce->szThirdLineText, lstrlen(pdnce->szThirdLineText), pdnce->plThirdLineText, uTextFormat, dat->text_resize_smileys);
           break;
         }
       case TC_STATUS:
@@ -1527,7 +1571,7 @@ void ModernInternalPaintRowItems(HWND hwnd, HDC hdcMem, struct ClcData *dat, str
           time_t contact_time;
           TCHAR szResult[80];
 
-          contact_time = time(NULL) - Drawing->timediff;
+          contact_time = time(NULL) - pdnce->timediff;
           szResult[0] = '\0';
 
           dbtts.szDest = szResult;
@@ -1986,14 +2030,15 @@ void InternalPaintRowItems(HWND hwnd, HDC hdcMem, struct ClcData *dat, struct Cl
         }
       case ITEM_CONTACT_TIME: /////////////////////////////////////////////////////////////////////////////////////////////////////
         {
-          if (Drawing->type == CLCIT_CONTACT && dat->contact_time_show && Drawing->timezone != -1 && 
-            (!dat->contact_time_show_only_if_different || Drawing->timediff != 0))
+    		PDNCE pdnce=(PDNCE)((Drawing->type == CLCIT_CONTACT)?pcli->pfnGetCacheEntry(Drawing->hContact):NULL);
+          if (Drawing->type == CLCIT_CONTACT && dat->contact_time_show && pdnce->timezone != -1 && 
+            (!dat->contact_time_show_only_if_different || pdnce->timediff != 0))
           {
             DBTIMETOSTRINGT dbtts;
             time_t contact_time;
             TCHAR szResult[80];
 
-            contact_time = time(NULL) - Drawing->timediff;
+            contact_time = time(NULL) - pdnce->timediff;
             szResult[0] = '\0';
 
             dbtts.szDest = szResult;
@@ -2247,26 +2292,27 @@ void InternalPaintRowItems(HWND hwnd, HDC hdcMem, struct ClcData *dat, struct Cl
       else if (Drawing->type == CLCIT_CONTACT)
       {
         int tmp;
-        if (dat->second_line_show && dat->second_line_type == TEXT_CONTACT_TIME && Drawing->timezone != -1 && 
-          (!dat->contact_time_show_only_if_different || Drawing->timediff != 0))
+		PDNCE pdnce=(PDNCE)((Drawing->type == CLCIT_CONTACT)?pcli->pfnGetCacheEntry(Drawing->hContact):NULL);
+        if (dat->second_line_show && dat->second_line_type == TEXT_CONTACT_TIME && pdnce->timezone != -1 && 
+          (!dat->contact_time_show_only_if_different || pdnce->timediff != 0))
         {
           // Get contact time
           DBTIMETOSTRINGT dbtts;
           time_t contact_time;
           TCHAR buf[70]={0};
-          contact_time = time(NULL) - Drawing->timediff;
-          if (Drawing->szSecondLineText) mir_free(Drawing->szSecondLineText);
-          Drawing->szSecondLineText=NULL;
+          contact_time = time(NULL) - pdnce->timediff;
+          if (pdnce->szSecondLineText) mir_free(pdnce->szSecondLineText);
+          pdnce->szSecondLineText=NULL;
 
           dbtts.szDest = buf;
           dbtts.cbDest = sizeof(buf);
 
           dbtts.szFormat = _T("t");
           CallService(MS_DB_TIME_TIMESTAMPTOSTRINGT, (WPARAM)contact_time, (LPARAM) & dbtts);
-          Drawing->szSecondLineText=mir_strdupT(buf);
+          pdnce->szSecondLineText=mir_strdupT(buf);
         }
 
-        if (dat->second_line_show && Drawing->szSecondLineText 
+        if (dat->second_line_show && pdnce->szSecondLineText 
           && free_height > dat->second_line_top_space)
         {
           //RECT rc_tmp = free_row_rc;
@@ -2274,8 +2320,8 @@ void InternalPaintRowItems(HWND hwnd, HDC hdcMem, struct ClcData *dat, struct Cl
           ChangeToFont(hdcMem,dat,FONTID_SECONDLINE,NULL);
 
           // Get sizes
-          GetTextSize(&second_line_text_size, hdcMem, free_row_rc, Drawing->szSecondLineText, Drawing->plSecondLineText, 
-            uTextFormat, dat->text_resize_smileys ? 0 : Drawing->iSecondLineMaxSmileyHeight);
+          GetTextSize(&second_line_text_size, hdcMem, free_row_rc, pdnce->szSecondLineText, pdnce->plSecondLineText, 
+            uTextFormat, dat->text_resize_smileys ? 0 : pdnce->iSecondLineMaxSmileyHeight);
 
           // Get rect
           tmp = min(free_height, dat->second_line_top_space + second_line_text_size.cy);
@@ -2294,24 +2340,24 @@ void InternalPaintRowItems(HWND hwnd, HDC hdcMem, struct ClcData *dat, struct Cl
 
           max_bottom_selection_border = min(max_bottom_selection_border, dat->second_line_top_space / 2);
         }
-        if (dat->third_line_show && dat->third_line_type == TEXT_CONTACT_TIME && Drawing->timezone != -1 && 
-          (!dat->contact_time_show_only_if_different || Drawing->timediff != 0))
+        if (dat->third_line_show && dat->third_line_type == TEXT_CONTACT_TIME && pdnce->timezone != -1 && 
+          (!dat->contact_time_show_only_if_different || pdnce->timediff != 0))
         {
           // Get contact time
           DBTIMETOSTRINGT dbtts;
           time_t contact_time;
           TCHAR buf[70]={0};
-          contact_time = time(NULL) - Drawing->timediff;
-          if (Drawing->szThirdLineText) mir_free(Drawing->szThirdLineText);
-          Drawing->szThirdLineText= NULL;
+          contact_time = time(NULL) - pdnce->timediff;
+          if (pdnce->szThirdLineText) mir_free(pdnce->szThirdLineText);
+          pdnce->szThirdLineText= NULL;
 
           dbtts.szDest = buf;
           dbtts.cbDest = sizeof(buf);
           dbtts.szFormat = _T("t");
           CallService(MS_DB_TIME_TIMESTAMPTOSTRINGT, (WPARAM)contact_time, (LPARAM) & dbtts);
-          Drawing->szThirdLineText=mir_strdupT(buf);
+          pdnce->szThirdLineText=mir_strdupT(buf);
         }
-        if (dat->third_line_show && Drawing->szThirdLineText!= NULL 
+        if (dat->third_line_show && pdnce->szThirdLineText!= NULL 
           && free_height > dat->third_line_top_space)
         {
           //RECT rc_tmp = free_row_rc;
@@ -2319,8 +2365,8 @@ void InternalPaintRowItems(HWND hwnd, HDC hdcMem, struct ClcData *dat, struct Cl
           ChangeToFont(hdcMem,dat,FONTID_THIRDLINE,NULL);
 
           // Get sizes
-          GetTextSize(&third_line_text_size, hdcMem, free_row_rc, Drawing->szThirdLineText, Drawing->plThirdLineText, 
-            uTextFormat, dat->text_resize_smileys ? 0 : Drawing->iThirdLineMaxSmileyHeight);
+          GetTextSize(&third_line_text_size, hdcMem, free_row_rc, pdnce->szThirdLineText, pdnce->plThirdLineText, 
+            uTextFormat, dat->text_resize_smileys ? 0 : pdnce->iThirdLineMaxSmileyHeight);
 
           // Get rect
           tmp = min(free_height, dat->third_line_top_space + third_line_text_size.cy);
@@ -2498,8 +2544,9 @@ void InternalPaintRowItems(HWND hwnd, HDC hdcMem, struct ClcData *dat, struct Cl
         }
       case CLCIT_CONTACT:
         {
-          RECT free_rc = text_rc;
 
+          RECT free_rc = text_rc;
+		  PDNCE pdnce=(PDNCE)pcli->pfnGetCacheEntry(Drawing->hContact);
           if (text_size.cx > 0 && free_rc.bottom > free_rc.top)
           {
             RECT rc = free_rc;
@@ -2543,8 +2590,8 @@ void InternalPaintRowItems(HWND hwnd, HDC hdcMem, struct ClcData *dat, struct Cl
               }
 
               ChangeToFont(hdcMem,dat,FONTID_SECONDLINE,NULL);
-              DrawTextSSmiley(hdcMem, rc, second_line_text_size, Drawing->szSecondLineText, lstrlen(Drawing->szSecondLineText), 
-                Drawing->plSecondLineText, uTextFormat, dat->text_resize_smileys);
+              DrawTextSSmiley(hdcMem, rc, second_line_text_size, pdnce->szSecondLineText, lstrlen(pdnce->szSecondLineText), 
+                pdnce->plSecondLineText, uTextFormat, dat->text_resize_smileys);
 
               free_rc.top = rc.bottom;
             }
@@ -2568,9 +2615,9 @@ void InternalPaintRowItems(HWND hwnd, HDC hdcMem, struct ClcData *dat, struct Cl
               }
 
               ChangeToFont(hdcMem,dat,FONTID_THIRDLINE,NULL);
-              //DrawTextS(hdcMem,Drawing->szThirdLineText,lstrlenA(Drawing->szThirdLineText),&rc,uTextFormat);
-              DrawTextSSmiley(hdcMem, rc, third_line_text_size, Drawing->szThirdLineText, lstrlen(Drawing->szThirdLineText), 
-                Drawing->plThirdLineText, uTextFormat, dat->text_resize_smileys);
+              //DrawTextS(hdcMem,pdnce->szThirdLineText,lstrlenA(pdnce->szThirdLineText),&rc,uTextFormat);
+              DrawTextSSmiley(hdcMem, rc, third_line_text_size, pdnce->szThirdLineText, lstrlen(pdnce->szThirdLineText), 
+                pdnce->plThirdLineText, uTextFormat, dat->text_resize_smileys);
 
               free_rc.top = rc.bottom;
             }

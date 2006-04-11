@@ -221,16 +221,16 @@ struct ClcContact {
 		struct avatarCacheEntry *avatar_data;
 	};
 
-	SortedList *plText;							// List of ClcContactTextPiece
-	TCHAR *szSecondLineText;//[120-MAXEXTRACOLUMNS];
-	SortedList *plSecondLineText;				// List of ClcContactTextPiece
-	TCHAR *szThirdLineText;//[120-MAXEXTRACOLUMNS];
-	SortedList *plThirdLineText;				// List of ClcContactTextPiece
-  int iTextMaxSmileyHeight;
-  int iThirdLineMaxSmileyHeight;
-  int iSecondLineMaxSmileyHeight;
-    DWORD timezone;
-    DWORD timediff;
+	SortedList *plText;						// List of ClcContactTextPiece
+	//TCHAR *szSecondLineText;//[120-MAXEXTRACOLUMNS];
+	//SortedList *plSecondLineText;				// List of ClcContactTextPiece
+	//TCHAR *szThirdLineText;//[120-MAXEXTRACOLUMNS];
+	//SortedList *plThirdLineText;				// List of ClcContactTextPiece
+    int iTextMaxSmileyHeight;
+	//int iThirdLineMaxSmileyHeight;
+    //int iSecondLineMaxSmileyHeight;
+    //DWORD timezone;
+    //DWORD timediff;
 
 	// For hittest
 	int pos_indent;
