@@ -277,7 +277,7 @@ void InvalidateDisplayNameCacheEntryByPDNE(HANDLE hContact,pdisplayNameCacheEntr
 	if (pdnce==NULL) return;
 	if (pdnce)
 	{
-		if (SettingType&16)
+		if (SettingType==16)
 		{
 			if (pdnce->szSecondLineText) 
 			{
@@ -301,6 +301,7 @@ void InvalidateDisplayNameCacheEntryByPDNE(HANDLE hContact,pdisplayNameCacheEntr
 			pdnce->iThirdLineMaxSmileyHeight=0;
 			pdnce->timediff=0;
 			pdnce->timezone=-1;
+			Cache_GetTimezone(NULL,pdnce->hContact);
 			SettingType&=~16;
 		}
 
@@ -524,6 +525,7 @@ int ContactSettingChanged(WPARAM wParam,LPARAM lParam)
 					//				ChangeContactIcon((HANDLE)wParam,IconFromStatusMode(szProto,szProto==NULL?ID_STATUS_OFFLINE:DBGetContactSettingWord((HANDLE)wParam,szProto,"Status",ID_STATUS_OFFLINE)),1);
 					ChangeContactIcon((HANDLE)wParam,ExtIconFromStatusMode((HANDLE)wParam,szProto,szProto==NULL?ID_STATUS_OFFLINE:DBGetContactSettingWord((HANDLE)wParam,szProto,"Status",ID_STATUS_OFFLINE)),1);  //by FYR
 				}
+				pcli->pfnClcBroadcast(CLM_AUTOREBUILD,0, 0);
 			}
 			else if(!strcmp(cws->szSetting,"noOffline")) 
 			{

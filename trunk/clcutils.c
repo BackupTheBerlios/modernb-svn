@@ -685,6 +685,7 @@ void LoadClcOptions(HWND hwnd, struct ClcData *dat)
 	if ((pcli->hwndContactTree == hwnd || pcli->hwndContactTree==NULL))
 	{
 		IvalidateDisplayNameCache(16);
+
 	}
 	ulockdat;
 	{

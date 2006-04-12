@@ -293,7 +293,7 @@ void _inline AppendChar(char * buf, UINT size, char * add)
 }
 void GetTextSize(SIZE *text_size, HDC hdcMem, RECT free_row_rc, TCHAR *szText, SortedList *plText, UINT uTextFormat, int smiley_height)
 {
-  if (szText == NULL)
+  if (szText == NULL || !szText[0])
   {
     text_size->cy = 0;
     text_size->cx = 0;
@@ -2182,7 +2182,7 @@ void InternalPaintRowItems(HWND hwnd, HDC hdcMem, struct ClcData *dat, struct Cl
       int free_width;
       int free_height;
       int max_bottom_selection_border = SELECTION_BORDER;
-      UINT uTextFormat = DT_NOPREFIX | DT_SINGLELINE | (dat->text_rtl ? DT_RTLREADING : 0) | (dat->text_align_right ? DT_RIGHT : 0);
+      UINT uTextFormat = DT_NOPREFIX| /*DT_VCENTER |*/ DT_SINGLELINE | (dat->text_rtl ? DT_RTLREADING : 0) | (dat->text_align_right ? DT_RIGHT : 0);
 
       free_row_rc.left = text_left_pos;
       free_width = free_row_rc.right - free_row_rc.left;
@@ -2312,7 +2312,7 @@ void InternalPaintRowItems(HWND hwnd, HDC hdcMem, struct ClcData *dat, struct Cl
           pdnce->szSecondLineText=mir_strdupT(buf);
         }
 
-        if (dat->second_line_show && pdnce->szSecondLineText 
+        if (dat->second_line_show && pdnce->szSecondLineText && pdnce->szSecondLineText[0] 
           && free_height > dat->second_line_top_space)
         {
           //RECT rc_tmp = free_row_rc;
@@ -2357,7 +2357,7 @@ void InternalPaintRowItems(HWND hwnd, HDC hdcMem, struct ClcData *dat, struct Cl
           CallService(MS_DB_TIME_TIMESTAMPTOSTRINGT, (WPARAM)contact_time, (LPARAM) & dbtts);
           pdnce->szThirdLineText=mir_strdupT(buf);
         }
-        if (dat->third_line_show && pdnce->szThirdLineText!= NULL 
+        if (dat->third_line_show && pdnce->szThirdLineText!= NULL && pdnce->szThirdLineText[0]
           && free_height > dat->third_line_top_space)
         {
           //RECT rc_tmp = free_row_rc;
@@ -2559,7 +2559,7 @@ void InternalPaintRowItems(HWND hwnd, HDC hdcMem, struct ClcData *dat, struct Cl
               else
                 rc.right = rc.left + text_size.cx;
             }
-
+			uTextFormat|=DT_VCENTER;
             DrawTextSSmiley(hdcMem, rc, text_size, Drawing->szText, lstrlen(Drawing->szText), Drawing->plText, uTextFormat, dat->text_resize_smileys);
 
             //DrawTextS(hdcMem,Drawing->szText,lstrlenA(Drawing->szText),&rc,uTextFormat);
@@ -2571,7 +2571,7 @@ void InternalPaintRowItems(HWND hwnd, HDC hdcMem, struct ClcData *dat, struct Cl
             }
             free_rc.top = rc.bottom;
           }
-
+		  uTextFormat&=~DT_VCENTER;
           if (second_line_text_size.cx > 0 && free_rc.bottom > free_rc.top)
           {
             free_rc.top += dat->second_line_top_space;

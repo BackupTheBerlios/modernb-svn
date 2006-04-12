@@ -315,6 +315,7 @@ HICON GetMainStatusOverlay(int STATUS)
 /*
  *	Proto ack hook
  */
+void Cache_RenewText(HANDLE hContact);
 int ClcProtoAck(WPARAM wParam,LPARAM lParam)
 {
 	ACKDATA *ack=(ACKDATA*)lParam;
@@ -346,6 +347,8 @@ int ClcProtoAck(WPARAM wParam,LPARAM lParam)
 				{
 					if (!boolstrcmpi(val,(const char *)ack->lParam))
 						DBWriteContactSettingString(ack->hContact,"CList","StatusMsg",(const char *)ack->lParam);
+					else
+						Cache_RenewText(ack->hContact);
 					mir_free(val);
 				}
 				else 
@@ -370,6 +373,8 @@ int ClcProtoAck(WPARAM wParam,LPARAM lParam)
 				{
 					if (!boolstrcmpi(val,""))
 						DBWriteContactSettingString(ack->hContact,"CList","StatusMsg","");
+					else
+						Cache_RenewText(ack->hContact);
 					mir_free(val);
 				}
 			}
@@ -701,7 +706,7 @@ LRESULT CALLBACK ContactListControlWndProc(HWND hwnd, UINT msg, WPARAM wParam, L
 			if(!FindItem(hwnd,dat,(HANDLE)wParam,&contact,NULL,NULL,FALSE)) break;
 			if (!IsBadWritePtr(contact, sizeof(struct ClcContact)))
 			{
-				Cache_GetTimezone(dat,contact);
+				Cache_GetTimezone(dat,contact->hContact);
 				Cache_GetText(dat, contact,1);
 				RecalcScrollBar(hwnd,dat);
 			}
@@ -991,6 +996,7 @@ LRESULT CALLBACK ContactListControlWndProc(HWND hwnd, UINT msg, WPARAM wParam, L
 			if (wParam==TIMERID_INVALIDATE_FULL)
 			{
 				KillTimer(hwnd,TIMERID_INVALIDATE_FULL);
+				pcli->pfnRecalcScrollBar(hwnd,dat);
 				SkinInvalidateFrame(hwnd,NULL,0);
 			}
 			else if (wParam==TIMERID_INVALIDATE)

@@ -75,7 +75,7 @@ void AddSubcontacts(struct ClcData *dat, struct ClcContact * cont, BOOL showOffl
 			cont->subcontacts[i].subcontacts=cont;
 			cont->subcontacts[i].image_is_special=FALSE;
 			cont->subcontacts[i].status=cacheEntry->status;
-			Cache_GetTimezone(dat, &cont->subcontacts[i]);
+			Cache_GetTimezone(dat, (&cont->subcontacts[i])->hContact);
 			Cache_GetText(dat, &cont->subcontacts[i],0);
 
 			{
@@ -233,7 +233,7 @@ if (group->cl.items[i]->timezone != -1)
 	}
 */
 	pcli->pfnInvalidateDisplayNameCacheEntry(hContact);	
-	Cache_GetTimezone(dat, group->cl.items[i]);
+	Cache_GetTimezone(dat, group->cl.items[i]->hContact);
 	Cache_GetText(dat, group->cl.items[i],0);
 	ClearRowByIndexCache();
 	return group->cl.items[i];
@@ -300,7 +300,7 @@ void AddContactToTree(HWND hwnd,struct ClcData *dat,HANDLE hContact,int updateTo
 			cont->avatar_pos=AVATAR_POS_DONT_HAVE;
 			Cache_GetAvatar(dat,cont);
 			Cache_GetText(dat,cont,0);
-			Cache_GetTimezone(dat,cont);
+			Cache_GetTimezone(dat,cont->hContact);
 		}
 	}
 	return;

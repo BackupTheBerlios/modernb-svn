@@ -224,13 +224,15 @@ void ReAskStatusMessage(HANDLE wParam)
 /*
  *	Get time zone for contact
  */
-void Cache_GetTimezone(struct ClcData *dat, struct ClcContact *contact)
+void Cache_GetTimezone(struct ClcData *dat, HANDLE hContact)
 {
 	//if (IsBadWritePtr(contact,sizeof(struct ClcContact))) return;
-	PDNCE pdnce=(PDNCE)pcli->pfnGetCacheEntry(contact->hContact);
+	PDNCE pdnce=(PDNCE)pcli->pfnGetCacheEntry(hContact);
+	if (dat==NULL && pcli->hwndContactTree) 
+		dat=(struct ClcData *)GetWindowLong(pcli->hwndContactTree,0);
 	if (!IsBadStringPtrA(pdnce->szProto,10))
-		pdnce->timezone = (DWORD)DBGetContactSettingByte(pdnce->hContact,"UserInfo","Timezone", 
-									DBGetContactSettingByte(pdnce->hContact, pdnce->szProto,"Timezone",-1));
+		pdnce->timezone = (DWORD)DBGetContactSettingByte(hContact,"UserInfo","Timezone", 
+									DBGetContactSettingByte(hContact, pdnce->szProto,"Timezone",-1));
 	else pdnce->timezone =-1;
 	pdnce->timediff = 0;
 
@@ -241,12 +243,10 @@ void Cache_GetTimezone(struct ClcData *dat, struct ClcContact *contact)
 		pdnce_gmt_diff *= 60*60/2;
 
 		// Only in case of same timezone, ignore DST
-		if (pdnce_gmt_diff != dat->local_gmt_diff)
-			pdnce->timediff = (int)dat->local_gmt_diff_dst - pdnce_gmt_diff;
+		if (pdnce_gmt_diff != (dat?dat->local_gmt_diff:0))
+			pdnce->timediff = (int)(dat?dat->local_gmt_diff_dst:0) - pdnce_gmt_diff;
 	}
 }
-
-
 
 /*
  *		Pooling 
@@ -300,6 +300,7 @@ int GetTextThread(void * a)
 			struct ClcData *dat;
 //			struct ClcContact * contact;
 			if (!GetCacheChain(&chain)) break;
+			if (chain.dat==NULL) chain.dat=(struct ClcData*)GetWindowLong(pcli->hwndContactList,0);
 			if (!IsBadReadPtr(chain.dat,sizeof(struct ClcData))) dat=chain.dat;
 			else err=TRUE;
 			if (!err)
@@ -379,6 +380,10 @@ int AddToCacheChain(struct ClcData *dat,struct ClcContact *contact,HANDLE Contac
 //{
 //
 //}
+void Cache_RenewText(HANDLE hContact)
+{
+	AddToCacheChain(NULL,NULL, hContact);
+}
 
 void Cache_GetText(struct ClcData *dat, struct ClcContact *contact, BOOL forceRenew)
 {

@@ -620,7 +620,7 @@ int RowHeights_GetRowHeight(struct ClcData *dat, HWND hwnd, struct ClcContact *c
         }
         height += tmp;
 
-        if (dat->second_line_show && pdnce->szSecondLineText)
+        if (dat->second_line_show && pdnce->szSecondLineText && pdnce->szSecondLineText[0])
         {
           tmp = dat->fontModernInfo[FONTID_SECONDLINE].fontHeight;
           if (dat->text_replace_smileys && dat->second_line_draw_smileys && !dat->text_resize_smileys)
@@ -630,7 +630,7 @@ int RowHeights_GetRowHeight(struct ClcData *dat, HWND hwnd, struct ClcContact *c
           height += dat->second_line_top_space + tmp;
         }
 
-        if (dat->third_line_show && pdnce->szThirdLineText)
+        if (dat->third_line_show && pdnce->szThirdLineText && pdnce->szThirdLineText[0])
         {
           tmp = dat->fontModernInfo[FONTID_THIRDLINE].fontHeight;
           if (dat->text_replace_smileys && dat->third_line_draw_smileys && !dat->text_resize_smileys)
