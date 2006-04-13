@@ -84,6 +84,7 @@ static int handleCompare( void* c1, void* c2 )
 
 void InitDisplayNameCache(void)
 {
+	InitializeCriticalSection(&cacheSection);
 	clistCache = li.List_Create( 0, 50 );
 	clistCache->sortFunc = handleCompare;
 }
@@ -99,6 +100,7 @@ void FreeDisplayNameCache(void)
 		li.List_Destroy( clistCache ); 
 		mir_free(clistCache);
 		clistCache = NULL;
+		DeleteCriticalSection(&cacheSection);
 	}	
 }
 
@@ -120,6 +122,7 @@ ClcCacheEntryBase* fnGetCacheEntry(HANDLE hContact)
 
 void FreeDisplayNameCacheItem( pdisplayNameCacheEntry p )
 {
+	lockcache;
 	if ( !p->isUnknown && p->name && p->name!=UnknownConctactTranslatedName) mir_free(p->name);
 	p->name = NULL; 
 	#if defined( _UNICODE )
@@ -130,6 +133,7 @@ void FreeDisplayNameCacheItem( pdisplayNameCacheEntry p )
 	if ( p->szThirdLineText) mir_free(p->szThirdLineText);
 	if ( p->plSecondLineText) {Cache_DestroySmileyList(p->plSecondLineText);p->plSecondLineText=NULL;}
 	if ( p->plThirdLineText)  {Cache_DestroySmileyList(p->plThirdLineText);p->plThirdLineText=NULL;}
+	ulockcache;
 }
 
 
@@ -268,19 +272,21 @@ void IvalidateDisplayNameCache(DWORD mode)
 			}
 		}
 	}
-	
 }
 
 void InvalidateDisplayNameCacheEntryByPDNE(HANDLE hContact,pdisplayNameCacheEntry pdnce,int SettingType)
 {
 	if (hContact==NULL) return;
 	if (pdnce==NULL) return;
+	
 	if (pdnce)
 	{
 		if (SettingType==16)
 		{
+			lockcache;
 			if (pdnce->szSecondLineText) 
 			{
+				
 				if (pdnce->plSecondLineText) 
 				{
 					Cache_DestroySmileyList(pdnce->plSecondLineText);
@@ -303,6 +309,7 @@ void InvalidateDisplayNameCacheEntryByPDNE(HANDLE hContact,pdisplayNameCacheEntr
 			pdnce->timezone=-1;
 			Cache_GetTimezone(NULL,pdnce->hContact);
 			SettingType&=~16;
+			ulockcache;
 		}
 
 		if (SettingType==-1||SettingType==DBVT_DELETED)
@@ -324,6 +331,7 @@ void InvalidateDisplayNameCacheEntryByPDNE(HANDLE hContact,pdisplayNameCacheEntr
 			pdnce->isUnknown=FALSE;
 			pdnce->noHiddenOffline=-1;
 			pdnce->IsExpanded=-1;
+			
 			return;
 		}
 		if (SettingType==DBVT_ASCIIZ||SettingType==DBVT_BLOB)
@@ -333,7 +341,7 @@ void InvalidateDisplayNameCacheEntryByPDNE(HANDLE hContact,pdisplayNameCacheEntr
 			//if (pdnce->szProto) mir_free(pdnce->szProto);
 			pdnce->name=NULL;			
 			pdnce->szGroup=NULL;
-			pdnce->szProto=NULL;				
+			pdnce->szProto=NULL;
 			return;
 		}
 		// in other cases clear all binary cache

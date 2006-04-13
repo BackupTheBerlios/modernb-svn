@@ -213,7 +213,7 @@ struct ClcContact {
 	BYTE SubAllocated;
 	BYTE SubExpanded;
 	BYTE isSubcontact;
-	int status;
+//	int status;
 	BOOL image_is_special;
 	union
 	{

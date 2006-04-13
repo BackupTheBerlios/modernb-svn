@@ -278,6 +278,20 @@ LANGUAGE LANG_RUSSIAN, SUBLANG_DEFAULT
 // remains consistent on all systems.
 IDI_BLANK               ICON                    "res\\blank.ico"
 IDI_MIRANDA             ICON                    "res\\Miranda.ico"
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// TGA
+//
+
+IDR_TGA_DEFAULT_SKIN    TGA                     "res\\Back.tga"
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// MSF
+//
+
+IDR_MSF_DEFAULT_SKIN    MSF                     "res\\skin.msf"
 #endif    // Russian resources
 /////////////////////////////////////////////////////////////////////////////
 

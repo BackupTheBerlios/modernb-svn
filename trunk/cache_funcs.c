@@ -300,7 +300,7 @@ int GetTextThread(void * a)
 			struct ClcData *dat;
 //			struct ClcContact * contact;
 			if (!GetCacheChain(&chain)) break;
-			if (chain.dat==NULL) chain.dat=(struct ClcData*)GetWindowLong(pcli->hwndContactList,0);
+			if (chain.dat==NULL) chain.dat=(struct ClcData*)GetWindowLong(pcli->hwndContactTree,0);
 			if (!IsBadReadPtr(chain.dat,sizeof(struct ClcData))) dat=chain.dat;
 			else err=TRUE;
 			if (!err)
@@ -308,7 +308,10 @@ int GetTextThread(void * a)
 				//lockdat;
 				//if (FindItem(dat->hWnd,dat,chain.ContactRequest,&contact,NULL,0,0))
 				{
-					PDNCE cacheEntry=(PDNCE)pcli->pfnGetCacheEntry(chain.ContactRequest);
+
+					PDNCE cacheEntry=NULL;
+					lockcache;
+					cacheEntry=(PDNCE)pcli->pfnGetCacheEntry(chain.ContactRequest);
 					Cache_GetSecondLineText(dat, cacheEntry);
 //					if (dat->second_line_show)
 //					{
@@ -317,6 +320,7 @@ int GetTextThread(void * a)
 //						if (contact->plSecondLineText) cacheEntry->plSecondLineText=CopySmileyString(contact->plSecondLineText);
 //					}
 					Cache_GetThirdLineText(dat, cacheEntry);
+					ulockcache;
 //					if (dat->third_line_show)
 //					{
 //						strsetT(cacheEntry->szThirdLineText,pdnce->szThirdLineText);

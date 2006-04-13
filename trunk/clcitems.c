@@ -74,7 +74,7 @@ void AddSubcontacts(struct ClcData *dat, struct ClcContact * cont, BOOL showOffl
 			cont->subcontacts[i].isSubcontact=i+1;
 			cont->subcontacts[i].subcontacts=cont;
 			cont->subcontacts[i].image_is_special=FALSE;
-			cont->subcontacts[i].status=cacheEntry->status;
+			//cont->subcontacts[i].status=cacheEntry->status;
 			Cache_GetTimezone(dat, (&cont->subcontacts[i])->hContact);
 			Cache_GetText(dat, &cont->subcontacts[i],0);
 
@@ -196,7 +196,7 @@ static struct ClcContact * AddContactToGroup(struct ClcData *dat,struct ClcGroup
 //	group->cl.items[i]->szSecondLineText=NULL;
 //	group->cl.items[i]->szThirdLineText=NULL;
 	group->cl.items[i]->image_is_special=FALSE;
-	group->cl.items[i]->status=cacheEntry->status;
+//	group->cl.items[i]->status=cacheEntry->status;
 
 	group->cl.items[i]->iImage=CallService(MS_CLIST_GETCONTACTICON,(WPARAM)hContact,0);
 	cacheEntry=(pdisplayNameCacheEntry)pcli->pfnGetCacheEntry(hContact);

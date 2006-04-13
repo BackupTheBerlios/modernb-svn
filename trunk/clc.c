@@ -166,13 +166,15 @@ static int ClcSettingChanged(WPARAM wParam,LPARAM lParam)
 				pcli->pfnClcBroadcast( INTM_NAMEORDERCHANGED,wParam,lParam);
 			else if(!strcmp(cws->szSetting,"NotOnList"))
 				pcli->pfnClcBroadcast( INTM_NOTONLISTCHANGED,wParam,lParam);
-			else if(!strcmp(cws->szSetting,"Status"))
-				pcli->pfnClcBroadcast( INTM_STATUSCHANGED,wParam,0);
+
 			else if(!strcmp(cws->szSetting,"NameOrder"))
 				pcli->pfnClcBroadcast( INTM_NAMEORDERCHANGED,0,0);
 			else
-			*/
-			if(!strcmp(cws->szSetting,"StatusMsg")) 
+			
+    		else if(!strcmp(cws->szSetting,"Status"))
+				pcli->pfnClcBroadcast( INTM_STATUSCHANGED,wParam,0);
+			else
+			*/	if(!strcmp(cws->szSetting,"StatusMsg")) 
 				pcli->pfnClcBroadcast( INTM_STATUSMSGCHANGED,wParam,0);    
 		}
 		else if(!strcmp(cws->szModule,"ContactPhoto")) 
@@ -778,13 +780,11 @@ LRESULT CALLBACK ContactListControlWndProc(HWND hwnd, UINT msg, WPARAM wParam, L
 					struct ClcContact *contact=NULL;
 					int *isv=NULL;
 					pdnce->status = GetStatusForContact(pdnce->hContact,pdnce->szProto);
-					FindItem(hwnd,dat,pdnce->hContact,(struct ClcContact ** )&contact,(struct  ClcGroup** )&isv,NULL,0);
-					if (contact) 
-					{
-						contact->status = pdnce->status;
-						Cache_GetText(dat,contact,1);		
-         //   Cache_GetAvatar(dat,contact);		
-					}
+					if (!dat->force_in_dialog && (
+							(dat->second_line_show && dat->second_line_type==TEXT_STATUS)
+						 || (dat->third_line_show && dat->third_line_type==TEXT_STATUS)
+						 ))
+						Cache_RenewText(pdnce->hContact);							
 				}
 			}
 			pcli->pfnSortContacts();

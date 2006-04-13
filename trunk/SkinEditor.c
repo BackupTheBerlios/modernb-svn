@@ -658,11 +658,20 @@ static BOOL CALLBACK DlgSkinEditorOpts(HWND hwndDlg, UINT msg, WPARAM wParam, LP
 						ofn.lStructSize = OPENFILENAME_SIZE_VERSION_400;
 						ofn.hwndOwner = hwndDlg;
 						ofn.hInstance = NULL;					
-						ofn.lpstrFilter = "Images (*.png,*.jpg,*.bmp,*.gif)\0*.png;*.jpg;*.jpeg;*.bmp;*.gif\0All files (*.*)\0*.*\0\0";
-						SendDlgItemMessageA(hwndDlg,IDC_FILE,WM_GETTEXT,(WPARAM)sizeof(str),(LPARAM)str);
-						GetFullFilename(str,str,(char*)0,TRUE);
-						ofn.lpstrFile = str;
+						ofn.lpstrFilter = "Images (*.png,*.jpg,*.bmp,*.gif,*.tga)\0*.png;*.jpg;*.jpeg;*.bmp;*.gif;*.tga\0All files (*.*)\0*.*\0\0";
 						ofn.Flags = (OFN_FILEMUSTEXIST | OFN_HIDEREADONLY);
+						SendDlgItemMessageA(hwndDlg,IDC_FILE,WM_GETTEXT,(WPARAM)sizeof(str),(LPARAM)str);
+						if (str[0]=='\0' || strchr(str,'%'))
+						{
+							ofn.Flags|=OFN_NOVALIDATE;
+							str[0]='\0';
+						}
+						else
+						{
+							GetFullFilename(str,str,(char*)0,TRUE);
+						}
+						ofn.lpstrFile = str;
+						
 						ofn.nMaxFile = sizeof(str);
 						ofn.nMaxFileTitle = MAX_PATH;
 						ofn.lpstrDefExt = "*.*";

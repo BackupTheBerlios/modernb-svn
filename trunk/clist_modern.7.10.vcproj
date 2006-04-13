@@ -1550,6 +1550,12 @@
 				RelativePath=".\res\sms.ico">
 			</File>
 		</Filter>
+		<File
+			RelativePath=".\res\Back.tga">
+		</File>
+		<File
+			RelativePath=".\res\skin.msf">
+		</File>
 	</Files>
 	<Globals>
 	</Globals>

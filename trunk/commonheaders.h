@@ -249,3 +249,7 @@ extern BOOL ResetEffect(HDC hdc);
 extern BOOL SelectEffect(HDC hdc, BYTE EffectID, DWORD FirstColor, DWORD SecondColor);
 #define GLOBAL_PROTO_NAME "global_connect"
 extern void IvalidateDisplayNameCache(DWORD mode);
+CRITICAL_SECTION cacheSection;
+extern SortedList *clistCache;
+#define lockcache {if(clistCache) EnterCriticalSection(&cacheSection); if (cacheSection.RecursionCount>20) DebugBreak();}
+#define ulockcache if(clistCache) LeaveCriticalSection(&cacheSection)

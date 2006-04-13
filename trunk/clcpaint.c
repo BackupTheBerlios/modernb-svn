@@ -189,6 +189,10 @@ int GetRealStatus(struct ClcContact * contact, int status)
 
 int GetBasicFontID(struct ClcContact * contact) 
 {
+  PDNCE pdnce=NULL;
+  if (contact->type == CLCIT_CONTACT)
+	  pdnce=(PDNCE)pcli->pfnGetCacheEntry(contact->hContact);
+
   switch (contact->type)
   {
   case CLCIT_GROUP:
@@ -221,17 +225,17 @@ int GetBasicFontID(struct ClcContact * contact)
     }
     else
     {
-      switch(contact->status) {
-  case ID_STATUS_OFFLINE: return FONTID_OFFLINE;
-  case ID_STATUS_AWAY: return FONTID_AWAY;
-  case ID_STATUS_DND: return FONTID_DND;
-  case ID_STATUS_NA: return FONTID_NA;
-  case ID_STATUS_OCCUPIED: return FONTID_OCCUPIED;
-  case ID_STATUS_FREECHAT: return FONTID_CHAT;
-  case ID_STATUS_INVISIBLE: return FONTID_INVISIBLE;
-  case ID_STATUS_ONTHEPHONE: return FONTID_PHONE;
-  case ID_STATUS_OUTTOLUNCH: return FONTID_LUNCH;
-  default: return FONTID_CONTACTS;
+      switch(pdnce->status) {
+		case ID_STATUS_OFFLINE: return FONTID_OFFLINE;
+		case ID_STATUS_AWAY: return FONTID_AWAY;
+		case ID_STATUS_DND: return FONTID_DND;
+		case ID_STATUS_NA: return FONTID_NA;
+		case ID_STATUS_OCCUPIED: return FONTID_OCCUPIED;
+		case ID_STATUS_FREECHAT: return FONTID_CHAT;
+		case ID_STATUS_INVISIBLE: return FONTID_INVISIBLE;
+		case ID_STATUS_ONTHEPHONE: return FONTID_PHONE;
+		case ID_STATUS_OUTTOLUNCH: return FONTID_LUNCH;
+		default: return FONTID_CONTACTS;
       }
     }
     break;
@@ -509,7 +513,7 @@ _inline char * GetCLCContactRowBackObject(struct ClcGroup * group, struct ClcCon
       AppendChar(buf,BUFSIZE,",Protocol=");	
       AppendChar(buf,BUFSIZE,Drawing->proto);	
       AppendChar(buf,BUFSIZE,",Status=");	
-      switch(Drawing->status)
+      switch(GetContactCachedStatus(Drawing->hContact))
       {
         // case ID_STATUS_CONNECTING: AppendChar(buf,BUFSIZE,"CONNECTING"); break;
       case ID_STATUS_ONLINE: AppendChar(buf,BUFSIZE,"ONLINE"); break;
@@ -1422,7 +1426,7 @@ void ModernInternalPaintRowItems(HWND hwnd, HDC hdcMem, struct ClcData *dat, str
 					  //TODO fix overlays
 					  // Draw overlay
 					  if (dat->avatars_draw_overlay && dat->avatars_maxheight_size >= ICON_HEIGHT + (dat->avatars_draw_border ? 2 : 0)
-						&& Drawing->status - ID_STATUS_OFFLINE < MAX_REGS(avatar_overlay_icons))
+						&& GetContactCachedStatus(Drawing->hContact) - ID_STATUS_OFFLINE < MAX_REGS(avatar_overlay_icons))
 					  {
 						p_rect.top = p_rect.bottom - ICON_HEIGHT;
 						p_rect.left = p_rect.right - ICON_HEIGHT;
@@ -1439,7 +1443,7 @@ void ModernInternalPaintRowItems(HWND hwnd, HDC hdcMem, struct ClcData *dat, str
 						  {
 							UINT a=blendmode;
 							a=(a<<24);
-							DrawIconExS(hdcMem, p_rect.left, p_rect.top, avatar_overlay_icons[Drawing->status - ID_STATUS_OFFLINE].icon, 
+							DrawIconExS(hdcMem, p_rect.left, p_rect.top, avatar_overlay_icons[GetContactCachedStatus(Drawing->hContact) - ID_STATUS_OFFLINE].icon, 
 							  ICON_HEIGHT, ICON_HEIGHT, 0, NULL, DI_NORMAL|a); 
 							break;
 						  }
@@ -1448,7 +1452,7 @@ void ModernInternalPaintRowItems(HWND hwnd, HDC hdcMem, struct ClcData *dat, str
 							int item;
 
 							item = ExtIconFromStatusMode(Drawing->hContact, Drawing->proto,
-							  Drawing->proto==NULL ? ID_STATUS_OFFLINE : Drawing->status);
+							  Drawing->proto==NULL ? ID_STATUS_OFFLINE : GetContactCachedStatus(Drawing->hContact));
 							if (item != -1)
 							  ImageList_DrawEx_New(himlCListClc, item, hdcMem, 
 							  p_rect.left,  p_rect.top,ICON_HEIGHT,ICON_HEIGHT,
@@ -1599,9 +1603,12 @@ void InternalPaintRowItems(HWND hwnd, HDC hdcMem, struct ClcData *dat, struct Cl
   int item, item_iterator, item_text;
   BOOL left = TRUE;
   int text_left_pos = free_row_rc.right + 1;
+  if (dat->hWnd==pcli->hwndContactTree) lockcache;
   if (gl_RowRoot || (dat->hWnd!=pcli->hwndContactTree))
   {
+	
     ModernInternalPaintRowItems(hwnd,hdcMem,dat,Drawing,row_rc,free_row_rc,left_pos,right_pos,selected,hottrack,rcPaint);
+	if (dat->hWnd==pcli->hwndContactTree) ulockcache;
     return;
   }
   else
@@ -1882,7 +1889,7 @@ void InternalPaintRowItems(HWND hwnd, HDC hdcMem, struct ClcData *dat, struct Cl
           //TODO fix overlays
           // Draw overlay
 		  if (dat->avatars_draw_overlay && dat->avatars_maxheight_size >= ICON_HEIGHT + (dat->avatars_draw_border ? 2 : 0)
-            && Drawing->status - ID_STATUS_OFFLINE < MAX_REGS(avatar_overlay_icons))
+            && GetContactCachedStatus(Drawing->hContact) - ID_STATUS_OFFLINE < MAX_REGS(avatar_overlay_icons))
           {
             real_rc.top = real_rc.bottom - ICON_HEIGHT;
             real_rc.left = real_rc.right - ICON_HEIGHT;
@@ -1899,7 +1906,7 @@ void InternalPaintRowItems(HWND hwnd, HDC hdcMem, struct ClcData *dat, struct Cl
               {
                 UINT a=blendmode;
                 a=(a<<24);
-                DrawIconExS(hdcMem, real_rc.left, real_rc.top, avatar_overlay_icons[Drawing->status - ID_STATUS_OFFLINE].icon, 
+                DrawIconExS(hdcMem, real_rc.left, real_rc.top, avatar_overlay_icons[GetContactCachedStatus(Drawing->hContact) - ID_STATUS_OFFLINE].icon, 
                   ICON_HEIGHT, ICON_HEIGHT, 0, NULL, DI_NORMAL|a); 
                 break;
               }
@@ -1908,7 +1915,7 @@ void InternalPaintRowItems(HWND hwnd, HDC hdcMem, struct ClcData *dat, struct Cl
                 int item;
 
                 item = ExtIconFromStatusMode(Drawing->hContact, Drawing->proto,
-                  Drawing->proto==NULL ? ID_STATUS_OFFLINE : Drawing->status);
+                  Drawing->proto==NULL ? ID_STATUS_OFFLINE : GetContactCachedStatus(Drawing->hContact));
                 if (item != -1)
                   ImageList_DrawEx_New(himlCListClc, item, hdcMem, 
                   real_rc.left,  real_rc.top,ICON_HEIGHT,ICON_HEIGHT,
@@ -1964,7 +1971,7 @@ void InternalPaintRowItems(HWND hwnd, HDC hdcMem, struct ClcData *dat, struct Cl
             (
             dat->avatars_draw_overlay 
             && dat->avatars_maxheight_size >= ICON_HEIGHT + (dat->avatars_draw_border ? 2 : 0)
-            && Drawing->status - ID_STATUS_OFFLINE < MAX_REGS(avatar_overlay_icons)
+            && GetContactCachedStatus(Drawing->hContact) - ID_STATUS_OFFLINE < MAX_REGS(avatar_overlay_icons)
             && dat->avatars_overlay_type == SETTING_AVATAR_OVERLAY_TYPE_CONTACT
             )
             )
@@ -2030,7 +2037,7 @@ void InternalPaintRowItems(HWND hwnd, HDC hdcMem, struct ClcData *dat, struct Cl
         }
       case ITEM_CONTACT_TIME: /////////////////////////////////////////////////////////////////////////////////////////////////////
         {
-    		PDNCE pdnce=(PDNCE)((Drawing->type == CLCIT_CONTACT)?pcli->pfnGetCacheEntry(Drawing->hContact):NULL);
+    	  PDNCE pdnce=(PDNCE)((Drawing->type == CLCIT_CONTACT)?pcli->pfnGetCacheEntry(Drawing->hContact):NULL);
           if (Drawing->type == CLCIT_CONTACT && dat->contact_time_show && pdnce->timezone != -1 && 
             (!dat->contact_time_show_only_if_different || pdnce->timediff != 0))
           {
@@ -2637,6 +2644,7 @@ void InternalPaintRowItems(HWND hwnd, HDC hdcMem, struct ClcData *dat, struct Cl
       }
     }
   }
+  if (dat->hWnd==pcli->hwndContactTree) ulockcache;
 }
 
 
@@ -2676,7 +2684,7 @@ void InternalPaintClc(HWND hwnd,struct ClcData *dat,HDC hdc,RECT *rcPaint)
   GetClientRect(hwnd,&clRect);
   if(rcPaint==NULL) rcPaint=&clRect;
   if(IsRectEmpty(rcPaint)) return;
-  lockdat;
+  lockdat; 
   y=-dat->yScroll;
   if (grey && (!LayeredFlag))
   {
