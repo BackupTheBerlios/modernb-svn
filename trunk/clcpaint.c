@@ -1603,12 +1603,12 @@ void InternalPaintRowItems(HWND hwnd, HDC hdcMem, struct ClcData *dat, struct Cl
   int item, item_iterator, item_text;
   BOOL left = TRUE;
   int text_left_pos = free_row_rc.right + 1;
-  if (dat->hWnd==pcli->hwndContactTree) lockcache;
+  if (dat->hWnd==pcli->hwndContactTree) LockCacheItem(Drawing->hContact);
   if (gl_RowRoot || (dat->hWnd!=pcli->hwndContactTree))
   {
 	
     ModernInternalPaintRowItems(hwnd,hdcMem,dat,Drawing,row_rc,free_row_rc,left_pos,right_pos,selected,hottrack,rcPaint);
-	if (dat->hWnd==pcli->hwndContactTree) ulockcache;
+	if (dat->hWnd==pcli->hwndContactTree) UnlockCacheItem(Drawing->hContact);
     return;
   }
   else
@@ -2644,7 +2644,7 @@ void InternalPaintRowItems(HWND hwnd, HDC hdcMem, struct ClcData *dat, struct Cl
       }
     }
   }
-  if (dat->hWnd==pcli->hwndContactTree) ulockcache;
+  if (dat->hWnd==pcli->hwndContactTree) UnlockCacheItem(Drawing->hContact);
 }
 
 

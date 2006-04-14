@@ -251,5 +251,7 @@ extern BOOL SelectEffect(HDC hdc, BYTE EffectID, DWORD FirstColor, DWORD SecondC
 extern void IvalidateDisplayNameCache(DWORD mode);
 CRITICAL_SECTION cacheSection;
 extern SortedList *clistCache;
-#define lockcache {if(clistCache) EnterCriticalSection(&cacheSection); if (cacheSection.RecursionCount>20) DebugBreak();}
-#define ulockcache if(clistCache) LeaveCriticalSection(&cacheSection)
+//#define lockcache {if(clistCache) EnterCriticalSection(&cacheSection); if (cacheSection.RecursionCount>20) DebugBreak();}
+//#define ulockcache if(clistCache) LeaveCriticalSection(&cacheSection)
+extern void LockCacheItem(HANDLE hContact);
+extern void UnlockCacheItem(HANDLE hContact);

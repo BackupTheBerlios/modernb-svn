@@ -310,7 +310,7 @@ int GetTextThread(void * a)
 				{
 
 					PDNCE cacheEntry=NULL;
-					lockcache;
+//					LockCacheItem(chain.ContactRequest);
 					cacheEntry=(PDNCE)pcli->pfnGetCacheEntry(chain.ContactRequest);
 					Cache_GetSecondLineText(dat, cacheEntry);
 //					if (dat->second_line_show)
@@ -320,7 +320,7 @@ int GetTextThread(void * a)
 //						if (contact->plSecondLineText) cacheEntry->plSecondLineText=CopySmileyString(contact->plSecondLineText);
 //					}
 					Cache_GetThirdLineText(dat, cacheEntry);
-					ulockcache;
+//					UnlockCacheItem(cacheEntry->hContact);
 //					if (dat->third_line_show)
 //					{
 //						strsetT(cacheEntry->szThirdLineText,pdnce->szThirdLineText);
@@ -828,6 +828,8 @@ void Cache_GetSecondLineText(struct ClcData *dat, PDNCE pdnce)
 	Cache_GetLineText(pdnce, dat->second_line_type, (TCHAR*)Text, SIZEOF(Text), dat->second_line_text,
     dat->second_line_xstatus_has_priority,dat->second_line_show_status_if_no_away,
 	dat->second_line_use_name_and_message_for_xstatus, dat->contact_time_show_only_if_different);
+
+  LockCacheItem(pdnce->hContact);
   if (pdnce->szSecondLineText) mir_free(pdnce->szSecondLineText);
   if (dat->second_line_show)// Text[0]!='\0')
     pdnce->szSecondLineText=mir_strdupT((TCHAR*)Text);
@@ -837,7 +839,7 @@ void Cache_GetSecondLineText(struct ClcData *dat, PDNCE pdnce)
   if (pdnce->szSecondLineText) 
 	Cache_ReplaceSmileys(dat, pdnce, pdnce->szSecondLineText, lstrlen(pdnce->szSecondLineText), &pdnce->plSecondLineText, 
     &pdnce->iSecondLineMaxSmileyHeight,dat->second_line_draw_smileys);
-
+  UnlockCacheItem(pdnce->hContact);
 }
 
 /*
@@ -849,6 +851,8 @@ void Cache_GetThirdLineText(struct ClcData *dat, PDNCE pdnce)
 	Cache_GetLineText(pdnce, dat->third_line_type,(TCHAR*)Text, SIZEOF(Text), dat->third_line_text,
 		dat->third_line_xstatus_has_priority,dat->third_line_show_status_if_no_away,
 		dat->third_line_use_name_and_message_for_xstatus, dat->contact_time_show_only_if_different);
+  
+  LockCacheItem(pdnce->hContact);
   if (pdnce->szThirdLineText) mir_free(pdnce->szThirdLineText);
   if (dat->third_line_show)//Text[0]!='\0')
     pdnce->szThirdLineText=mir_strdupT((TCHAR*)Text);
@@ -858,6 +862,7 @@ void Cache_GetThirdLineText(struct ClcData *dat, PDNCE pdnce)
   if (pdnce->szThirdLineText) 
 	Cache_ReplaceSmileys(dat, pdnce, pdnce->szThirdLineText, lstrlen(pdnce->szThirdLineText), &pdnce->plThirdLineText, 
 		&pdnce->iThirdLineMaxSmileyHeight,dat->third_line_draw_smileys);
+  UnlockCacheItem(pdnce->hContact);
 }
 
 

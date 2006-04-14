@@ -150,7 +150,7 @@ int ModernCalcRowHeight(struct ClcData *dat, HWND hwnd, struct ClcContact *conta
       case TC_TEXT2:
         {
           int tmp=0;
-		  lockcache;
+		  LockCacheItem(pdnce->hContact);
           if (dat->second_line_show && pdnce->szSecondLineText && pdnce->szSecondLineText[0] )
           {
             tmp = dat->fontModernInfo[FONTID_SECONDLINE].fontHeight;
@@ -171,13 +171,13 @@ int ModernCalcRowHeight(struct ClcData *dat, HWND hwnd, struct ClcContact *conta
             }
           }
           gl_RowTabAccess[i]->h=tmp;
-		  ulockcache;
+		  UnlockCacheItem(pdnce->hContact);
           break;
         }
       case TC_TEXT3:
         {
           int tmp=0;
-		  lockcache;
+		  LockCacheItem(pdnce->hContact);
           if (dat->third_line_show && pdnce->szThirdLineText && pdnce->szThirdLineText[0])
           {
             tmp = dat->fontModernInfo[FONTID_THIRDLINE].fontHeight;
@@ -197,7 +197,7 @@ int ModernCalcRowHeight(struct ClcData *dat, HWND hwnd, struct ClcContact *conta
             }
           }
           gl_RowTabAccess[i]->h=tmp;			    
-		  ulockcache;
+		  UnlockCacheItem(pdnce->hContact);
           break;
         }
       case TC_STATUS:
@@ -623,7 +623,7 @@ int RowHeights_GetRowHeight(struct ClcData *dat, HWND hwnd, struct ClcContact *c
           tmp = max(tmp, contact->iTextMaxSmileyHeight);
         }
         height += tmp;
-		lockcache;
+		LockCacheItem(pdnce->hContact);
         if (dat->second_line_show && pdnce->szSecondLineText && pdnce->szSecondLineText[0])
         {
           tmp = dat->fontModernInfo[FONTID_SECONDLINE].fontHeight;
@@ -643,7 +643,7 @@ int RowHeights_GetRowHeight(struct ClcData *dat, HWND hwnd, struct ClcContact *c
           }
           height += dat->third_line_top_space + tmp;
         }
-		ulockcache;
+		UnlockCacheItem(pdnce->hContact);
       }
 
       // Avatar size

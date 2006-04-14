@@ -271,3 +271,4 @@ BOOL ModernDeleteDC(HDC hdc)
 #ifdef _DEBUG
 #define DeleteObject(a) DebugDeleteObject(a)
 #endif 
+

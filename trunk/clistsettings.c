@@ -79,11 +79,24 @@ static int handleCompare( void* c1, void* c2 )
 //		hContact=(HANDLE)CallService(MS_DB_CONTACT_FINDNEXT,(WPARAM)hContact,0);
 //		i++;
 //}	}
+#define MAX_SECTIONS 5
 
+typedef struct _section
+{
+	HANDLE hContact;
+	int ownerThreadID;
+	CRITICAL_SECTION cacheSection;
+} LOCKPDNCE;
+
+CRITICAL_SECTION protectSection={0};
+LOCKPDNCE lockedPDNCE[MAX_SECTIONS]={0};
 
 
 void InitDisplayNameCache(void)
 {
+	int i=0;
+	for (i=0;i<MAX_SECTIONS; i++) InitializeCriticalSection(&(lockedPDNCE[i].cacheSection));
+	InitializeCriticalSection(&protectSection);
 	InitializeCriticalSection(&cacheSection);
 	clistCache = li.List_Create( 0, 50 );
 	clistCache->sortFunc = handleCompare;
@@ -100,8 +113,50 @@ void FreeDisplayNameCache(void)
 		li.List_Destroy( clistCache ); 
 		mir_free(clistCache);
 		clistCache = NULL;
-		DeleteCriticalSection(&cacheSection);
+		{
+			int i=0;
+			for (i=0;i<MAX_SECTIONS; i++)	DeleteCriticalSection(&(lockedPDNCE[i].cacheSection));
+			DeleteCriticalSection(&protectSection);
+			DeleteCriticalSection(&cacheSection);
+		}
 	}	
+}
+
+
+void LockCacheItem(HANDLE hContact)
+{
+	//
+	int ind=0;
+	int zero=-1;
+	if (!clistCache) return;
+	EnterCriticalSection(&protectSection);
+	//find here
+	for (ind=0; ind<MAX_SECTIONS-1; ind++) if (lockedPDNCE[ind].hContact==hContact) break;
+	if (ind==MAX_SECTIONS-1) // was not found 
+	{
+		for (zero=0; zero<MAX_SECTIONS-1; zero++) if (lockedPDNCE[zero].hContact==NULL) break;
+		if (zero!=MAX_SECTIONS-1)
+			lockedPDNCE[zero].hContact=hContact;
+		ind=zero;
+	}
+	LeaveCriticalSection(&protectSection);
+	//enter here
+	EnterCriticalSection(&(lockedPDNCE[ind].cacheSection));
+}
+
+void UnlockCacheItem(HANDLE hContact)
+{
+	int ind=0;
+	if (!clistCache) return;
+	EnterCriticalSection(&protectSection);
+	for (ind=0; ind<MAX_SECTIONS-1; ind++) if (lockedPDNCE[ind].hContact==hContact) break;
+	if (ind!=MAX_SECTIONS-1) 
+		if (lockedPDNCE[ind].cacheSection.LockCount==1) 
+			lockedPDNCE[ind].hContact=NULL;
+	//find here
+	LeaveCriticalSection(&protectSection);
+	//leave here
+	LeaveCriticalSection(&(lockedPDNCE[ind].cacheSection));
 }
 
 ClcCacheEntryBase* fnGetCacheEntry(HANDLE hContact)
@@ -122,7 +177,7 @@ ClcCacheEntryBase* fnGetCacheEntry(HANDLE hContact)
 
 void FreeDisplayNameCacheItem( pdisplayNameCacheEntry p )
 {
-	lockcache;
+	LockCacheItem(p->hContact);
 	if ( !p->isUnknown && p->name && p->name!=UnknownConctactTranslatedName) mir_free(p->name);
 	p->name = NULL; 
 	#if defined( _UNICODE )
@@ -133,7 +188,7 @@ void FreeDisplayNameCacheItem( pdisplayNameCacheEntry p )
 	if ( p->szThirdLineText) mir_free(p->szThirdLineText);
 	if ( p->plSecondLineText) {Cache_DestroySmileyList(p->plSecondLineText);p->plSecondLineText=NULL;}
 	if ( p->plThirdLineText)  {Cache_DestroySmileyList(p->plThirdLineText);p->plThirdLineText=NULL;}
-	ulockcache;
+	UnlockCacheItem(p->hContact);
 }
 
 
@@ -283,7 +338,7 @@ void InvalidateDisplayNameCacheEntryByPDNE(HANDLE hContact,pdisplayNameCacheEntr
 	{
 		if (SettingType==16)
 		{
-			lockcache;
+			LockCacheItem(hContact);
 			if (pdnce->szSecondLineText) 
 			{
 				
@@ -309,7 +364,7 @@ void InvalidateDisplayNameCacheEntryByPDNE(HANDLE hContact,pdisplayNameCacheEntr
 			pdnce->timezone=-1;
 			Cache_GetTimezone(NULL,pdnce->hContact);
 			SettingType&=~16;
-			ulockcache;
+			UnlockCacheItem(hContact);
 		}
 
 		if (SettingType==-1||SettingType==DBVT_DELETED)
