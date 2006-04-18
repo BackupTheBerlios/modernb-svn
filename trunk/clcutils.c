@@ -522,22 +522,15 @@ void LoadClcOptions(HWND hwnd, struct ClcData *dat)
 		dat->contact_time_show = 0;
 		dat->contact_time_show_only_if_different = 0;
 	}
-
+	//issue #0065 "Client time shows wrong" fix
 	{
-		const time_t now = time(NULL);
-		struct tm gmt = *gmtime(&now);
-		time_t gmt_time;
-		//gmt.tm_isdst = -1;
-		gmt_time = mktime(&gmt);
-		dat->local_gmt_diff = (int)difftime(now, gmt_time);
-
-		gmt = *gmtime(&now);
-		gmt.tm_isdst = -1;
-		gmt_time = mktime(&gmt);
-		dat->local_gmt_diff_dst = (int)difftime(now, gmt_time);
+		TIME_ZONE_INFORMATION tzinfo;
+		int nOffset=0;
+        DWORD dwResult;
+        dwResult = GetTimeZoneInformation(&tzinfo);
+		nOffset = -(tzinfo.Bias + tzinfo.StandardBias) * 60;
+		dat->local_gmt_diff=dat->local_gmt_diff_dst=(DWORD)nOffset;
 	}
-
-
 	// Text
 	dat->text_rtl = DBGetContactSettingByte(NULL,"CList","TextRTL",0);
 	dat->text_align_right = DBGetContactSettingByte(NULL,"CList","TextAlignToRight",0);

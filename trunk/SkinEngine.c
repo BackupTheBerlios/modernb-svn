@@ -2518,6 +2518,7 @@ BOOL DrawTextEffect(BYTE* destPt,BYTE* maskPt, DWORD width, DWORD height, MODERN
 	int minY=height;
 	int maxY=0;
 	if (effect->EffectID==0xFF) return FALSE;
+	if (!width || ! height) return FALSE;
 	buf=(BYTE*)malloc(width*height*sizeof(BYTE));
 	{
 		matrix=effect->EffectMatrix.matrix;
@@ -2903,7 +2904,7 @@ int AlphaTextOut (HDC hDC, LPCTSTR lpString, int nCount, RECT * lpRect, UINT for
           bufpix=BufScanLine+(x<<2);
           if (al!=255)
           {
-		        bx=weight2[pix[0]]*al/255;
+		    bx=weight2[pix[0]]*al/255;
             gx=weight2[pix[1]]*al/255;
             rx=weight2[pix[2]]*al/255;
           }

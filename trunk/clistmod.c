@@ -420,11 +420,11 @@ int ShowHide(WPARAM wParam,LPARAM lParam)
 			OnShowHide(pcli->hwndContactList,1);
 			SetWindowPos(pcli->hwndContactList, HWND_TOPMOST, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE |SWP_NOACTIVATE);           
 			CALLED_FROM_SHOWHIDE=1;
-			BringWindowToTop(pcli->hwndContactList);			     
+			//BringWindowToTop(pcli->hwndContactList);			     
 			if (!DBGetContactSettingByte(NULL,"CList","OnTop",SETTING_ONTOP_DEFAULT))
 				//&& ((DBGetContactSettingByte(NULL, "CList", "BringToFront", SETTING_BRINGTOFRONT_DEFAULT) /*&& iVisibleState>=2*/)))
 				SetWindowPos(pcli->hwndContactList, HWND_NOTOPMOST, 0, 0, 0, 0, SWP_NOSIZE | SWP_NOMOVE);
-			SetForegroundWindow(pcli->hwndContactList);	     
+			//SetForegroundWindow(pcli->hwndContactList);	     
 			CALLED_FROM_SHOWHIDE=0;
 		}
 		else
