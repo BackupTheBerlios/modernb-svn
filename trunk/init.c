@@ -21,6 +21,9 @@ along with this program; if not, write to the Free Software
 Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
+#define MS_CLIST_GETVERSION "CList/GetVersionType"
+
+
 #include "commonheaders.h"
 #include "commonprototypes.h"
 
@@ -139,6 +142,10 @@ PLUGININFO pluginInfo = {
 	UNICODE_AWARE,
 	DEFMOD_CLISTALL
 };
+
+
+
+
 
 BOOL WINAPI DllMain(HINSTANCE hInstDLL, DWORD dwReason, LPVOID reserved)
 {

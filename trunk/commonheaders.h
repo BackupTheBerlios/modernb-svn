@@ -236,8 +236,10 @@ extern void Utf8Decode( char* str, wchar_t** ucs2 );
 #define DeleteObject(a) DebugDeleteObject(a)
 #endif 
 
-#define lockdat EnterCriticalSection(&(dat->lockitemCS))
-#define ulockdat LeaveCriticalSection(&(dat->lockitemCS))
+#define lockdat
+//EnterCriticalSection(&(dat->lockitemCS))
+#define ulockdat
+//LeaveCriticalSection(&(dat->lockitemCS))
 
 #define strsetA(a,b) {if (a) mir_free(a); a=mir_strdup(b);}
 #define strsetT(a,b) {if (a) mir_free(a); a=mir_strdupT(b);}
@@ -253,5 +255,11 @@ CRITICAL_SECTION cacheSection;
 extern SortedList *clistCache;
 //#define lockcache {if(clistCache) EnterCriticalSection(&cacheSection); if (cacheSection.RecursionCount>20) DebugBreak();}
 //#define ulockcache if(clistCache) LeaveCriticalSection(&cacheSection)
-extern void LockCacheItem(HANDLE hContact);
+extern void LockCacheItem(HANDLE hContact, char*, int);
 extern void UnlockCacheItem(HANDLE hContact);
+
+#define TreeView_InsertItemA(hwnd, lpis) \
+	(HTREEITEM)SendMessageA((hwnd), TVM_INSERTITEMA, 0, (LPARAM)(LPTV_INSERTSTRUCTA)(lpis))
+
+#define TreeView_GetItemA(hwnd, pitem) \
+	(BOOL)SendMessageA((hwnd), TVM_GETITEMA, 0, (LPARAM)(TV_ITEM *)(pitem))

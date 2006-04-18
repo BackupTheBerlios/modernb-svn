@@ -28,11 +28,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #include "io.h"
 #include "commonprototypes.h"
 
-#define TreeView_InsertItemA(hwnd, lpis) \
-	(HTREEITEM)SendMessageA((hwnd), TVM_INSERTITEMA, 0, (LPARAM)(LPTV_INSERTSTRUCTA)(lpis))
 
-#define TreeView_GetItemA(hwnd, pitem) \
-	(BOOL)SendMessageA((hwnd), TVM_GETITEMA, 0, (LPARAM)(TV_ITEM *)(pitem))
 extern void LoadSkinFromDB(void);
 extern int RedrawCompleteWindow();
 typedef struct 

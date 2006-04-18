@@ -682,11 +682,7 @@ int AddSkinToList(HWND hwndDlg,char * path, char* file)
 	return -1;
 }
 
-#define TreeView_InsertItemA(hwnd, lpis) \
-	(HTREEITEM)SendMessageA((hwnd), TVM_INSERTITEMA, 0, (LPARAM)(LPTV_INSERTSTRUCTA)(lpis))
 
-#define TreeView_GetItemA(hwnd, pitem) \
-	(BOOL)SendMessageA((hwnd), TVM_GETITEMA, 0, (LPARAM)(TV_ITEM *)(pitem))
 
 static HTREEITEM FindChild(HWND hTree, HTREEITEM Parent, char * Caption, void * data)
 {

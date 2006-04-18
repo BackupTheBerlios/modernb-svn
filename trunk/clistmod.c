@@ -175,6 +175,28 @@ static int SetStatusMode(WPARAM wParam, LPARAM lParam)
 	MenuProcessCommand(MAKEWPARAM(LOWORD(wParam), MPCF_MAINMENU), 0);
 	return 0;
 }
+extern PLUGININFO pluginInfo;
+int CLUIGetCapsService(WPARAM wParam,LPARAM lParam)
+{
+	switch (lParam)
+	{
+	case 0:
+		return 0;
+	case CLUIF2_PLUGININFO:
+		return (int)&pluginInfo;
+	case CLUIF2_CLISTTYPE:	
+#ifdef UNICODE
+			return 0x0107;
+#else
+			return 0x0007;
+#endif
+	case CLUIF2_EXTRACOLUMNCOUNT:
+		return EXTRA_ICON_COUNT;
+	case CLUIF2_USEREXTRASTART:
+		return EXTRA_ICON_ADV3;
+	}
+	return 0;
+}
 
 int LoadContactListModule(void)
 {
@@ -184,6 +206,7 @@ int LoadContactListModule(void)
 	hContact = (HANDLE) CallService(MS_DB_CONTACT_FINDNEXT, (WPARAM) hContact, 0);
 	}
 	*/
+	CreateServiceFunction(MS_CLUI_GETCAPS,CLUIGetCapsService);
 	InitDisplayNameCache();
 	HookEvent(ME_SYSTEM_SHUTDOWN,ContactListShutdownProc);
 	HookEvent(ME_OPT_INITIALISE,CListOptInit);
