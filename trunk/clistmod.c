@@ -2,7 +2,7 @@
 
 Miranda IM: the free IM client for Microsoft* Windows*
 
-Copyright 2000-2003 Miranda ICQ/IM project, 
+Copyright 2000-2006 Miranda ICQ/IM project, 
 all portions of this codebase are copyrighted to the people 
 listed in contributors.txt.
 
@@ -26,6 +26,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #include <m_addcontact.h>
 #include "clist.h"
 #include "commonprototypes.h"
+
 extern void Docking_GetMonitorRectFromWindow(HWND hWnd,RECT *rc);
 extern HICON GetMainStatusOverlay(int STATUS);
 int HideWindow(HWND hwndContactList, int mode);
@@ -33,7 +34,6 @@ extern int SmoothAlphaTransition(HWND hwnd, BYTE GoalAlpha, BOOL wParam);
 extern void InitTray(void);
 
 void InitGroupMenus(void);
-LRESULT CALLBACK ContactListWndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam);
 int AddMainMenuItem(WPARAM wParam,LPARAM lParam);
 int AddContactMenuItem(WPARAM wParam,LPARAM lParam);
 int InitCustomMenus(void);
@@ -45,15 +45,12 @@ int ContactAdded(WPARAM wParam,LPARAM lParam);
 int GetContactDisplayName(WPARAM wParam,LPARAM lParam);
 int CListOptInit(WPARAM wParam,LPARAM lParam);
 int SkinOptInit(WPARAM wParam,LPARAM lParam);
-void TrayIconUpdateBase(const char *szChangedProto);
 int EventsProcessContactDoubleClick(HANDLE hContact);
 
 int TrayIconPauseAutoHide(WPARAM wParam,LPARAM lParam);
-int CompareContacts(const struct ClcContact *contact1,const struct ClcContact *contact2);
 int ContactChangeGroup(WPARAM wParam,LPARAM lParam);
 void InitTrayMenus(void);
 
-extern BOOL skinInvalidateRect(HWND hWnd, CONST RECT* lpRect,BOOL bErase );
 extern int ActivateSubContainers(BOOL active);
 extern int BehindEdgeSettings;
 
@@ -66,7 +63,6 @@ extern SortedList lContactsCache;
 extern HBITMAP GetCurrentWindowImage();
 
 
-extern int BehindEdge_State;
 extern int BehindEdgeSettings;
 extern WORD BehindEdgeShowDelay;
 extern WORD BehindEdgeHideDelay;
@@ -217,7 +213,7 @@ int LoadContactListModule(void)
 	HookEvent(ME_DB_CONTACT_ADDED,ContactAdded);
 	hStatusModeChangeEvent=CreateHookableEvent(ME_CLIST_STATUSMODECHANGE);
 	hContactIconChangedEvent=CreateHookableEvent(ME_CLIST_CONTACTICONCHANGED);
-	CreateServiceFunction(MS_CLIST_TRAYICONPROCESSMESSAGE,TrayIconProcessMessage);
+	CreateServiceFunction(MS_CLIST_TRAYICONPROCESSMESSAGE,cli_TrayIconProcessMessage);
 	CreateServiceFunction(MS_CLIST_PAUSEAUTOHIDE,TrayIconPauseAutoHide);
 	CreateServiceFunction(MS_CLIST_CONTACTCHANGEGROUP,ContactChangeGroup);
 	CreateServiceFunction(MS_CLIST_TOGGLEHIDEOFFLINE,ToggleHideOffline);
@@ -382,7 +378,7 @@ int GetWindowVisibleState(HWND hWnd, int iStepX, int iStepY) {
 	}
 }
 BYTE CALLED_FROM_SHOWHIDE=0;
-int ShowHide(WPARAM wParam,LPARAM lParam) 
+int cliShowHide(WPARAM wParam,LPARAM lParam) 
 {
 	BOOL bShow = FALSE;
 
@@ -409,7 +405,7 @@ int ShowHide(WPARAM wParam,LPARAM lParam)
 		BehindEdgeSettings=DBGetContactSettingByte(NULL, "ModernData", "BehindEdge", 0);
 		BehindEdge_Show();
 		BehindEdgeSettings=0;
-		BehindEdge_State=0;
+		gl_i_BehindEdge_CurrentState=0;
 		DBDeleteContactSetting(NULL, "ModernData", "BehindEdge");
 	}
 

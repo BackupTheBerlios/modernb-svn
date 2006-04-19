@@ -2,7 +2,7 @@
 
 Miranda IM: the free IM client for Microsoft* Windows*
 
-Copyright 2000-2003 Miranda ICQ/IM project, 
+Copyright 2000-2006 Miranda ICQ/IM project, 
 all portions of this codebase are copyrighted to the people 
 listed in contributors.txt.
 
@@ -502,9 +502,9 @@ static BOOL CALLBACK DlgProcCluiOpts(HWND hwndDlg, UINT msg, WPARAM wParam, LPAR
 		TCHAR *s=NULL;
 		char szUin[20];
 		if(!DBGetContactSettingTString(NULL,"CList","TitleText",&dbv))
-			s=mir_strdupT(dbv.ptszVal);
+			s=mir_tstrdup(dbv.ptszVal);
 		else
-			s=mir_strdupT(_T(MIRANDANAME));
+			s=mir_tstrdup(_T(MIRANDANAME));
 		//dbv.pszVal=s;
 		SetDlgItemText(hwndDlg,IDC_TITLETEXT,s);
 		if (s) mir_free(s);
@@ -747,7 +747,7 @@ static BOOL CALLBACK DlgProcCluiOpts(HWND hwndDlg, UINT msg, WPARAM wParam, LPAR
 			SendMessage(pcli->hwndContactTree,WM_SIZE,0,0);	//forces it to send a cln_listsizechanged
 			ReloadCLUIOptions();
 
-			ShowHide(0,1);
+			cliShowHide(0,1);
 			IsInChangingMode=FALSE;
 			return TRUE;
 		}

@@ -19,7 +19,7 @@ extern HIMAGELIST hCListImages;
 
 extern int CluiIconsChanged(WPARAM,LPARAM);
 extern int ClcIconsChanged(WPARAM,LPARAM);
-extern BOOL skinInvalidateRect(HWND hWnd, CONST RECT* lpRect,BOOL bErase);
+extern BOOL cliInvalidateRect(HWND hWnd, CONST RECT* lpRect,BOOL bErase);
 
 void SetAllExtraIcons(HWND hwndList,HANDLE hContact);
 void LoadExtraImageFunc();
@@ -384,7 +384,7 @@ void SetAllExtraIcons(HWND hwndList,HANDLE hContact)
 
 	tick=GetTickCount()-tick;
 	ON_SETALLEXTRAICON_CYCLE=0;
-	skinInvalidateRect(hwndList,NULL,FALSE);
+	cliInvalidateRect(hwndList,NULL,FALSE);
 	Sleep(0);
 
 

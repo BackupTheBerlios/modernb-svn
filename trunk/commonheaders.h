@@ -2,7 +2,7 @@
 
 Miranda IM: the free IM client for Microsoft* Windows*
 
-Copyright 2000-2004 Miranda ICQ/IM project,
+Copyright 2000-2006 Miranda ICQ/IM project,
 all portions of this codebase are copyrighted to the people
 listed in contributors.txt.
 
@@ -163,9 +163,9 @@ extern __inline void *mir_calloc( size_t num, size_t size );
 extern __inline char * mir_strdup(const char * src);
 extern __inline wchar_t * mir_strdupW(const wchar_t * src);
 #ifdef UNICODE
-	#define mir_strdupT(a) mir_strdupW(a)
+	#define mir_tstrdup(a) mir_strdupW(a)
 #else
-	#define mir_strdupT(a) mir_strdup(a)
+	#define mir_tstrdup(a) mir_strdup(a)
 #endif
 
 
@@ -242,7 +242,7 @@ extern void Utf8Decode( char* str, wchar_t** ucs2 );
 //LeaveCriticalSection(&(dat->lockitemCS))
 
 #define strsetA(a,b) {if (a) mir_free(a); a=mir_strdup(b);}
-#define strsetT(a,b) {if (a) mir_free(a); a=mir_strdupT(b);}
+#define strsetT(a,b) {if (a) mir_free(a); a=mir_tstrdup(b);}
 
 extern void TRACE_ERROR();
 extern BOOL DebugDeleteObject(HGDIOBJ a);

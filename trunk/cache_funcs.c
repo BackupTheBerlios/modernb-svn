@@ -2,7 +2,7 @@
 
 Miranda IM: the free IM client for Microsoft* Windows*
 
-Copyright 2000-2003 Miranda ICQ/IM project, 
+Copyright 2000-2006 Miranda ICQ/IM project, 
 all portions of this codebase are copyrighted to the people 
 listed in contributors.txt.
 
@@ -699,7 +699,7 @@ void Cache_GetLineText(PDNCE pdnce, int type, LPTSTR text, int text_size, TCHAR 
 				{
 					if (dbv.ptszVal != NULL && dbv.ptszVal[0] != 0)
 					{
-						TCHAR *tmp = mir_strdupT(text);
+						TCHAR *tmp = mir_tstrdup(text);
 						mir_sntprintf(text, text_size, TEXT("%s: %s"), tmp, dbv.pszVal);
 						mir_free(tmp);
 					}
@@ -733,7 +733,7 @@ void Cache_GetLineText(PDNCE pdnce, int type, LPTSTR text, int text_size, TCHAR 
 				{
 					if (dbv.pszVal != NULL && dbv.pszVal[0] != 0)
 					{
-						TCHAR *tmp = mir_strdupT(text);
+						TCHAR *tmp = mir_tstrdup(text);
 						mir_sntprintf(text, text_size, TEXT("%s: %s"), dbv.pszVal, tmp);
 						mir_free(tmp);
 					}
@@ -815,7 +815,7 @@ void Cache_GetSecondLineText(struct ClcData *dat, PDNCE pdnce)
   LockCacheItem(hContact, __FILE__,__LINE__);
   if (pdnce->szSecondLineText) mir_free(pdnce->szSecondLineText);
   if (dat->second_line_show)// Text[0]!='\0')
-    pdnce->szSecondLineText=mir_strdupT((TCHAR*)Text);
+    pdnce->szSecondLineText=mir_tstrdup((TCHAR*)Text);
   else
     pdnce->szSecondLineText=NULL;
   Text[120-MAXEXTRACOLUMNS-1]='\0';
@@ -839,7 +839,7 @@ void Cache_GetThirdLineText(struct ClcData *dat, PDNCE pdnce)
   LockCacheItem(hContact, __FILE__,__LINE__);
   if (pdnce->szThirdLineText) mir_free(pdnce->szThirdLineText);
   if (dat->third_line_show)//Text[0]!='\0')
-    pdnce->szThirdLineText=mir_strdupT((TCHAR*)Text);
+    pdnce->szThirdLineText=mir_tstrdup((TCHAR*)Text);
   else
     pdnce->szThirdLineText=NULL;
   Text[120-MAXEXTRACOLUMNS-1]='\0';
@@ -921,9 +921,9 @@ BOOL StoreOneContactData(struct ClcContact *contact, BOOL subcontact, void *para
 		StoredContactsList[ContactsStoredCount]=empty;
 		StoredContactsList[ContactsStoredCount].hContact=contact->hContact;	
 /*		if (contact->szSecondLineText)
-			StoredContactsList[ContactsStoredCount].szSecondLineText=mir_strdupT(pdnce->szSecondLineText);
+			StoredContactsList[ContactsStoredCount].szSecondLineText=mir_tstrdup(pdnce->szSecondLineText);
 		if (contact->szThirdLineText)
-			StoredContactsList[ContactsStoredCount].szThirdLineText=mir_strdupT(pdnce->szThirdLineText);		
+			StoredContactsList[ContactsStoredCount].szThirdLineText=mir_tstrdup(pdnce->szThirdLineText);		
 		if (contact->plSecondLineText)
 			StoredContactsList[ContactsStoredCount].plSecondLineText=CopySmileyString(contact->plSecondLineText);		
 		if (contact->plThirdLineText)
