@@ -62,7 +62,7 @@ HTREEITEM FindChild(HWND hTree, HTREEITEM Parent, char * Caption)
     tvi.pszText=(LPSTR)&buf;
     tvi.cchTextMax=254;
     TreeView_GetItemA(hTree,&tvi);
-    if (boolstrcmpi(Caption,tvi.pszText))
+    if (mir_bool_strcmpi(Caption,tvi.pszText))
       return tmp;
     tmp=TreeView_GetNextSibling(hTree,tmp);
   }
@@ -119,7 +119,7 @@ int TreeAddObject(HWND hwndDlg, int ID, OPT_OBJECT_DATA * data)
 	return 0;
 }
 
-int EnumSkinObjectsInBase(const char *szSetting,LPARAM lParam)
+int enumDB_SkinObjectsForEditorProc(const char *szSetting,LPARAM lParam)
 {
 	if (WildCompare((char *)szSetting,gl_Mask,0))
 	{
@@ -155,7 +155,7 @@ int FillObjectTree(HWND hwndDlg, int ObjectTreeID, char * wildmask)
 	gl_Dlg=hwndDlg;
 	gl_controlID=ObjectTreeID;
 	gl_Mask=wildmask;
-	dbces.pfnEnumProc=EnumSkinObjectsInBase;
+	dbces.pfnEnumProc=enumDB_SkinObjectsForEditorProc;
 	dbces.szModule=SKIN;
 	dbces.ofsSettings=0;
 	CallService(MS_DB_CONTACT_ENUMSETTINGS,0,(LPARAM)&dbces);
@@ -235,9 +235,9 @@ void SetControls(HWND hwndDlg, char * str)
 		return;
 	}
 	GetParamN(str,buf,sizeof(buf),1,',',TRUE);
-	if (boolstrcmpi(buf,"Solid")) Type=1;
-	else if (boolstrcmpi(buf,"Image")) Type=2;
-	else if (boolstrcmpi(buf,"Fragment")) Type=3;
+	if (mir_bool_strcmpi(buf,"Solid")) Type=1;
+	else if (mir_bool_strcmpi(buf,"Image")) Type=2;
+	else if (mir_bool_strcmpi(buf,"Fragment")) Type=3;
 	SendDlgItemMessage(hwndDlg,IDC_TYPE,CB_SETCURSEL,(WPARAM)Type,(LPARAM)0);
 	SetAppropriateGroups(hwndDlg,Type);
 	switch (Type)
@@ -280,9 +280,9 @@ void SetControls(HWND hwndDlg, char * str)
 			SendDlgItemMessageA(hwndDlg,IDC_FILE,WM_SETTEXT,0,(LPARAM)buf);
 			
 			GetParamN(str,buf,sizeof(buf),3,',',TRUE);
-			if (boolstrcmpi(buf,"TileBoth")) fitmode=FM_TILE_BOTH;
-            else if (boolstrcmpi(buf,"TileVert")) fitmode=FM_TILE_VERT;
-            else if (boolstrcmpi(buf,"TileHorz")) fitmode=FM_TILE_HORZ;
+			if (mir_bool_strcmpi(buf,"TileBoth")) fitmode=FM_TILE_BOTH;
+            else if (mir_bool_strcmpi(buf,"TileVert")) fitmode=FM_TILE_VERT;
+            else if (mir_bool_strcmpi(buf,"TileHorz")) fitmode=FM_TILE_HORZ;
             else fitmode=0;  
 			SendDlgItemMessage(hwndDlg,IDC_FIT,CB_SETCURSEL,(WPARAM)fitmode,(LPARAM)0);
 		}
@@ -324,9 +324,9 @@ void SetControls(HWND hwndDlg, char * str)
 			SendDlgItemMessageA(hwndDlg,IDC_FILE,WM_SETTEXT,0,(LPARAM)buf);
 			
 			GetParamN(str,buf,sizeof(buf),7,',',TRUE);
-			if (boolstrcmpi(buf,"TileBoth")) fitmode=FM_TILE_BOTH;
-            else if (boolstrcmpi(buf,"TileVert")) fitmode=FM_TILE_VERT;
-            else if (boolstrcmpi(buf,"TileHorz")) fitmode=FM_TILE_HORZ;
+			if (mir_bool_strcmpi(buf,"TileBoth")) fitmode=FM_TILE_BOTH;
+            else if (mir_bool_strcmpi(buf,"TileVert")) fitmode=FM_TILE_VERT;
+            else if (mir_bool_strcmpi(buf,"TileHorz")) fitmode=FM_TILE_HORZ;
             else fitmode=0;  
 			SendDlgItemMessage(hwndDlg,IDC_FIT,CB_SETCURSEL,(WPARAM)fitmode,(LPARAM)0);
 		}
@@ -344,7 +344,7 @@ int GetShortFileName(char * FullFile)
 	char * file=f?mir_strdup(f+1):0;
 	if (!file) return 0;
 	GetFullFilename(buf,file,0,TRUE);
-	if (boolstrcmpi(buf,FullFile))
+	if (mir_bool_strcmpi(buf,FullFile))
 	{
 		_snprintf(FullFile,MAX_PATH,"%s",file);
 		mir_free(file);

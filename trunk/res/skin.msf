@@ -26,31 +26,33 @@
 
   ;Main back
   $$window=sGlyph,Fragment,%%%%.tga,0,0,60,60,StretchBoth,10,25,10,22,250
+  
+  $$Background=sGlyph,None
 
   ;Rows
-  $$group/open/hot=sGlyph,Fragment,%%%%.tga,66,83,22,22,StretchBoth,4,4,4,4,250
-  $$group/open/normal=sGlyph,Fragment,%%%%.tga,44,83,22,22,StretchBoth,4,4,4,4,250
+  $$group/open/hot=sGlyph,Fragment,%%%%.tga,66,83,22,22,StretchBoth,4,4,4,4,150
+  $$group/open/normal=sGlyph,Fragment,%%%%.tga,44,83,22,22,StretchBoth,4,4,4,4,150
 
-  $$group/closed/hot=sGlyph,Fragment,%%%%.tga,22,83,22,22,StretchBoth,4,4,4,4,250
-  $$group/closed/normal=sGlyph,Fragment,%%%%.tga,0,83,22,22,StretchBoth,4,4,4,4,250
+  $$group/closed/hot=sGlyph,Fragment,%%%%.tga,22,83,22,22,StretchBoth,4,4,4,4,150
+  $$group/closed/normal=sGlyph,Fragment,%%%%.tga,0,83,22,22,StretchBoth,4,4,4,4,150
 
-  $$contact/hot=sGlyph,Fragment,%%%%.tga,8,60,8,8,StretchBoth,1,1,1,1,250
-  $$contact/normal=sGlyph,Fragment,%%%%.tga,0,60,8,8,StretchBoth,1,1,1,1,250
+  $$contact/hot=sGlyph,Fragment,%%%%.tga,8,60,8,8,StretchBoth,1,1,1,1,150
+  $$contact/normal=sGlyph,Fragment,%%%%.tga,0,60,8,8,StretchBoth,1,1,1,1,150
 
   ;Scroll bar
-  $$scroll/Back=sGlyph,Fragment,%%%%.tga,41,60,16,7,StretchBoth,2,2,2,2,250
-  $$scroll/BtnUp=sGlyph,Fragment,%%%%.tga,30,68,15,15,StretchBoth,4,4,4,4,250
-  $$scroll/BtnDn=sGlyph,Fragment,%%%%.tga,15,68,15,15,StretchBoth,4,4,4,4,250
-  $$scroll/Thumb=sGlyph,Fragment,%%%%.tga,0,68,15,15,StretchBoth,4,4,4,4,250
+  $$scroll/Back=sGlyph,Fragment,%%%%.tga,41,60,16,7,StretchBoth,2,2,2,2,150
+  $$scroll/BtnUp=sGlyph,Fragment,%%%%.tga,30,68,15,15,StretchBoth,4,4,4,4,150
+  $$scroll/BtnDn=sGlyph,Fragment,%%%%.tga,15,68,15,15,StretchBoth,4,4,4,4,150
+  $$scroll/Thumb=sGlyph,Fragment,%%%%.tga,0,68,15,15,StretchBoth,4,4,4,4,150
 
   ;Common select (one for all, painted above contact)
-  $$select=sGlyph,Fragment,%%%%.tga,16,60,25,8,StretchBoth,2,2,2,2,250
+  $$select=sGlyph,Fragment,%%%%.tga,16,60,25,8,StretchBoth,2,2,2,2,150
 
   ;FramesTitlebars
-  $$Frametitlebar=sGlyph,Fragment,%%%%.tga,88,83,20,21,StretchBoth,2,2,2,2,250
+  $$frametitlebar=sGlyph,Fragment,%%%%.tga,88,83,20,21,StretchBoth,2,2,2,2,150
 
  ;StatusBar
-  $$StatusBar=sGlyph,Fragment,%%%%.tga,StretchBoth,1,1,4,4,250
+  $$statusBar=sGlyph,Fragment,%%%%.tga,StretchBoth,1,1,4,4,250
 
 
   ;Objects for buttons
@@ -105,73 +107,74 @@
 
 ;main
   @0=s$$window:Main,ID=Background
+  @1=s$$Background:CL,ID=Background
 
 ;Groups
-  @1=s$$group/closed/hot:CL,ID=Row,Type=Group,Open=False,Hot=True
-  @2=s$$group/closed/normal:CL,ID=Row,Type=Group,Open=False
-  @3=s$$group/open/hot:CL,ID=Row,Type=Group,Open=True,Hot=True
-  @4=s$$group/open/normal:CL,ID=Row,Type=Group,Open=True
+  @10=s$$group/closed/hot:CL,ID=Row,Type=Group,Open=False,Hot=True
+  @20=s$$group/closed/normal:CL,ID=Row,Type=Group,Open=False
+  @30=s$$group/open/hot:CL,ID=Row,Type=Group,Open=True,Hot=True
+  @40=s$$group/open/normal:CL,ID=Row,Type=Group,Open=True
 
 ;Contacts
-  @5=s$$contact/hot:CL,ID=Row,Type=*Contact,Hot=True
-  @6=s$$contact/normal:CL,ID=Row,Type=*Contact
+  @50=s$$contact/hot:CL,ID=Row,Type=*Contact,Hot=True
+  @60=s$$contact/normal:CL,ID=Row,Type=*Contact
 
 ;Scroll Bar
-  @7=s$$scroll/Back:Main,ID=ScrollBar,Part=Back
-  @8=s$$scroll/BtnUp:Main,ID=ScrollBar,Part=UpLineButton
-  @9=s$$scroll/BtnDn:Main,ID=ScrollBar,Part=DownLineButton
-  @10=s$$scroll/Thumb:Main,ID=ScrollBar,Part=Thumb
+  @70=s$$scroll/Back:Main,ID=ScrollBar,Part=Back
+  @80=s$$scroll/BtnUp:Main,ID=ScrollBar,Part=UpLineButton
+  @90=s$$scroll/BtnDn:Main,ID=ScrollBar,Part=DownLineButton
+  @100=s$$scroll/Thumb:Main,ID=ScrollBar,Part=Thumb
 
 ;Common Select
-  @11=s$$select:CL,ID=Selection
+  @110=s$$select:CL,ID=Selection
 
 ;Frames Titlebars
-  @12=s$$Frametitlebar:Main,ID=FrameCaption
+  @120=s$$frametitlebar:Main,ID=FrameCaption
 
 ;StatusBar
-  @13=s$$StatusBar:Main,ID=StatusBar
+  @130=s$$statusBar:Main,ID=StatusBar
 
 ;Buttons
 
 ;Close
-  @14=s$$button/close/down:MButton,ID=close,Down=1
-  @15=s$$button/close/hovered:MButton,ID=close,Hovered=1
-  @16=s$$button/close/normal:MButton,ID=close
+  @140=s$$button/close/down:MButton,ID=close,Down=1
+  @150=s$$button/close/hovered:MButton,ID=close,Hovered=1
+  @160=s$$button/close/normal:MButton,ID=close
 
 ;Minimize
-  @17=s$$button/minimize/down:MButton,ID=minimize,Down=1
-  @18=s$$button/minimize/hovered:MButton,ID=minimize,Hovered=1
-  @19=s$$button/minimize/normal:MButton,ID=minimize
+  @170=s$$button/minimize/down:MButton,ID=minimize,Down=1
+  @180=s$$button/minimize/hovered:MButton,ID=minimize,Hovered=1
+  @190=s$$button/minimize/normal:MButton,ID=minimize
 
 ;Menu
-  @20=s$$button/menu/down:MButton,ID=mainmenu,Down=1
-  @21=s$$button/menu/hovered:MButton,ID=mainmenu,Hovered=1
-  @22=s$$button/menu/normal:MButton,ID=mainmenu
+  @200=s$$button/menu/down:MButton,ID=mainmenu,Down=1
+  @210=s$$button/menu/hovered:MButton,ID=mainmenu,Hovered=1
+  @220=s$$button/menu/normal:MButton,ID=mainmenu
 
 ;Status
-  @23=s$$button/status/down:MButton,ID=statusmenu,Down=1
-  @24=s$$button/status/hovered:MButton,ID=statusmenu,Hovered=1
-  @25=s$$button/status/normal:MButton,ID=statusmenu
+  @230=s$$button/status/down:MButton,ID=statusmenu,Down=1
+  @240=s$$button/status/hovered:MButton,ID=statusmenu,Hovered=1
+  @250=s$$button/status/normal:MButton,ID=statusmenu
 
 ;Options
-  @26=s$$button/options/down:MButton,ID=optionsmenu,Down=1
-  @27=s$$button/options/hovered:MButton,ID=optionsmenu,Hovered=1
-  @28=s$$button/options/normal:MButton,ID=optionsmenu
+  @260=s$$button/options/down:MButton,ID=optionsmenu,Down=1
+  @270=s$$button/options/hovered:MButton,ID=optionsmenu,Hovered=1
+  @280=s$$button/options/normal:MButton,ID=optionsmenu
 
 ;FindAdd
-  @29=s$$button/findadd/down:MButton,ID=findaddmenu,Down=1
-  @30=s$$button/findadd/hovered:MButton,ID=findaddmenu,Hovered=1
-  @31=s$$button/findadd/normal:MButton,ID=findaddmenu
+  @290=s$$button/findadd/down:MButton,ID=findaddmenu,Down=1
+  @300=s$$button/findadd/hovered:MButton,ID=findaddmenu,Hovered=1
+  @310=s$$button/findadd/normal:MButton,ID=findaddmenu
 
 ;Show Online and Offline Users
-  @35=s$$button/onlineoffline/down:MButton,ID=onoffline,Down=1,Value=0
-  @36=s$$button/onlineoffline/hovered:MButton,ID=onoffline,Hovered=1,Value=0
-  @37=s$$button/onlineoffline/normal:MButton,ID=onoffline,Value=0
+  @350=s$$button/onlineoffline/down:MButton,ID=onoffline,Down=1,Value=0
+  @360=s$$button/onlineoffline/hovered:MButton,ID=onoffline,Hovered=1,Value=0
+  @370=s$$button/onlineoffline/normal:MButton,ID=onoffline,Value=0
 
 ;Show only Online Users
-  @38=s$$button/online/down:MButton,ID=onoffline,Down=1,Value=1
-  @39=s$$button/online/hovered:MButton,ID=onoffline,Hovered=1,Value=1
-  @40=s$$button/online/normal:MButton,ID=onoffline,Value=1
+  @380=s$$button/online/down:MButton,ID=onoffline,Down=1,Value=1
+  @390=s$$button/online/hovered:MButton,ID=onoffline,Hovered=1,Value=1
+  @400=s$$button/online/normal:MButton,ID=onoffline,Value=1
 
 ;----------------------------------------------------------------------
 
@@ -188,10 +191,10 @@
 
 [CLUI]
 ;Another setting for CLUI section
-  LeftClientMargin=b4
+  LeftClientMargin=b5
   TopClientMargin=b25
-  RightClientMargin=b4
-  BottomClientMargin=b2
+  RightClientMargin=b5
+  BottomClientMargin=b4
 
 ;insert here any exported from DB section, font and other
 [CLC]
