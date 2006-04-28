@@ -571,9 +571,9 @@ case WM_CREATE:
 		sortBy[2]=DBGetContactSettingByte(NULL,"CList","SortBy3",SETTING_SORTBY3_DEFAULT);
 		sortNoOfflineBottom=DBGetContactSettingByte(NULL,"CList","NoOfflineBottom",SETTING_NOOFFLINEBOTTOM_DEFAULT);
 		//InitDisplayNameCache(&dat->lCLCContactsCache);
-		LoadCLCOptions(hwnd,dat);	
+		saveContactListControlWndProc(hwnd, msg, wParam, lParam);	
+		LoadCLCOptions(hwnd,dat);
 		SetTimer(hwnd,TIMERID_INVALIDATE,5000,NULL);
-		saveContactListControlWndProc(hwnd, msg, wParam, lParam);
 		//if (dat->force_in_dialog)
 		//	pcli->pfnRebuildEntireList(hwnd,dat);		
 		TRACE("Create New ClistControl TO END\r\n");		
@@ -1391,7 +1391,8 @@ case WM_LBUTTONUP:
 			BYTE doubleClickExpand=DBGetContactSettingByte(NULL,"CLC","MetaDoubleClick",0);
 			SetTimer(hwnd,TIMERID_SUBEXPAND,GetDoubleClickTime()*doubleClickExpand,NULL);
 		}
-		else ReleaseCapture();
+		else 
+			ReleaseCapture();
 		if(dat->iDragItem==-1) return 0;       
 		SetCursor((HCURSOR)GetClassLong(hwnd,GCL_HCURSOR));
 		if(dat->exStyle&CLS_EX_TRACKSELECT) 

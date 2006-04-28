@@ -830,8 +830,8 @@ int SkinEditorOptInit(WPARAM wParam,LPARAM lParam)
 	odp.position=-1000001000;
 	odp.hInstance=g_hInst;
 	odp.pszTemplate=MAKEINTRESOURCEA(IDD_OPT_SKINEDITOR);
-	odp.pszGroup=Translate("Skin");
-	odp.pszTitle=Translate("Modify objects");
+	odp.pszGroup=Translate("Contact List");
+	odp.pszTitle=Translate("Skin/Modify objects");
 	odp.pfnDlgProc=DlgSkinEditorOpts;
 	odp.flags=ODPF_BOLDGROUPS;
 	//	odp.nIDBottomSimpleControl=IDC_STCLISTGROUP;
