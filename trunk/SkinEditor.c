@@ -73,10 +73,20 @@ int TreeAddObject(HWND hwndDlg, int ID, OPT_OBJECT_DATA * data)
 {
 	HTREEITEM rootItem=NULL;
 	HTREEITEM cItem=NULL;
-	char * path=data->szPath?mir_strdup(data->szPath):mir_strdup((data->szName)+2);
-	char * ptr=path;
-	char * ptrE=path;
+	char * path;
+	char * ptr;
+	char * ptrE;
+	char buf[255];
 	BOOL ext=FALSE;
+	path=data->szPath?mir_strdup(data->szPath):(data->szName[1]=='$')?mir_strdup((data->szName)+2):NULL;
+	if (!path)
+	{
+		_snprintf(buf,sizeof(buf),"$(other)/%s",(data->szName)+1);
+		path=mir_strdup(buf);
+	}
+
+	ptr=path;
+	ptrE=path;	
 	do 
 	{
 		
@@ -121,7 +131,7 @@ int TreeAddObject(HWND hwndDlg, int ID, OPT_OBJECT_DATA * data)
 
 int enumDB_SkinObjectsForEditorProc(const char *szSetting,LPARAM lParam)
 {
-	if (WildCompare((char *)szSetting,gl_Mask,0))
+	if (WildCompare((char *)szSetting,gl_Mask,0)||WildCompare((char *)szSetting,"$*",0))
 	{
 		char * value;
 		char *desc;
@@ -145,7 +155,7 @@ int enumDB_SkinObjectsForEditorProc(const char *szSetting,LPARAM lParam)
 			if (desc) mir_free(desc);
 		}
 		mir_free(descKey);		
-	}
+	}	
 	return 1;
 }
 

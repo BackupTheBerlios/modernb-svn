@@ -830,7 +830,7 @@ case WM_KEYDOWN:
 		pcli->pfnHideInfoTip(hwnd,dat);
 		KillTimer(hwnd,TIMERID_INFOTIP);
 		KillTimer(hwnd,TIMERID_RENAME);
-		if(CallService(MS_CLIST_MENUPROCESSHOTKEY,wParam,MPCF_CONTACTMENU)) break;
+		if(CallService(MS_CLIST_MENUPROCESSHOTKEY,wParam,MPCF_CONTACTMENU)) return 0;
 		{	RECT clRect;
 		GetClientRect(hwnd,&clRect);
 		if (dat->max_row_height) pageSize=clRect.bottom/dat->max_row_height;
@@ -987,7 +987,7 @@ default:
 			return 0;
 		}
 		SetCapture(hwnd);
-		break;
+		return 0;
 
 	}
 
