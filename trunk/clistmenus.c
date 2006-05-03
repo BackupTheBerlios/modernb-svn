@@ -527,11 +527,13 @@ int StatusMenuCheckService(WPARAM wParam, LPARAM lParam)
 						mi2.flags=CMIM_NAME;
 						if (timi->mi.hIcon)
 						{
-							mi2.pszName= timi->mi.pszName;
+							mi2.ptszName= timi->mi.ptszName;
+							mi2.flags|=CMIF_TCHAR;
 						}
 						else
 						{
-							mi2.pszName=Translate("Custom status");
+							mi2.pszName=TranslateT("Custom status");
+							mi2.flags|=CMIF_TCHAR;
 						}
 						timiParent=GetMenuItemByGlobalID(timi->mi.root);					
 						{

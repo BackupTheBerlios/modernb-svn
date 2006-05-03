@@ -59,8 +59,8 @@ int SkinOptInit(WPARAM wParam,LPARAM lParam)
 	odp.position=-1000000000;
 	odp.hInstance=g_hInst;
 	odp.pszTemplate=MAKEINTRESOURCEA(IDD_OPT_SKIN);
-	odp.pszGroup=Translate("Contact list");
-	odp.pszTitle=Translate("Skin/Load");
+	odp.pszGroup=Translate("Customize");
+	odp.pszTitle=Translate("Skin - Load");
 	odp.pfnDlgProc=DlgSkinOpts;
 	odp.flags=ODPF_BOLDGROUPS;
 	//	odp.nIDBottomSimpleControl=IDC_STCLISTGROUP;
