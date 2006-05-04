@@ -571,6 +571,7 @@ case WM_CREATE:
 		sortBy[2]=DBGetContactSettingByte(NULL,"CList","SortBy3",SETTING_SORTBY3_DEFAULT);
 		sortNoOfflineBottom=DBGetContactSettingByte(NULL,"CList","NoOfflineBottom",SETTING_NOOFFLINEBOTTOM_DEFAULT);
 		//InitDisplayNameCache(&dat->lCLCContactsCache);
+		//LoadCLCOptions(hwnd,dat);
 		saveContactListControlWndProc(hwnd, msg, wParam, lParam);	
 		LoadCLCOptions(hwnd,dat);
 		SetTimer(hwnd,TIMERID_INVALIDATE,5000,NULL);

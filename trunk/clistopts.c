@@ -1117,7 +1117,7 @@ typedef struct _WndItemsData
 	int selected_item;
 } WndItemsData; 
 
-ItemOptionConf opt_items[] = { { _T("Row"), IDD_OPT_ITEM_ROW, DlgProcItemRowOpts },
+static ItemOptionConf opt_items[] = { { _T("Row"), IDD_OPT_ITEM_ROW, DlgProcItemRowOpts },
 //{ _T("Row design"), IDD_OPT_ITEM_NEWROW, DlgProcItemNewRowOpts },
 { _T("Avatar"), IDD_OPT_ITEM_AVATAR, DlgProcItemAvatarOpts },
 { _T("Icon"), IDD_OPT_ITEM_ICON, DlgProcItemIconOpts },

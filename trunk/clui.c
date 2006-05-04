@@ -1479,7 +1479,7 @@ LRESULT CALLBACK cli_ContactListWndProc(HWND hwnd, UINT msg, WPARAM wParam, LPAR
 			int res=DefWindowProc(hwnd, msg, wParam, lParam);
 			ReleaseCapture();
 			TRACE("WM_EXITSIZEMOVE\n");
-			SendMessage(hwnd, WM_ACTIVATE, 0, 0);
+			SendMessage(hwnd, WM_ACTIVATE, (WPARAM)WA_ACTIVE, (LPARAM)hwnd);
 			return res;
 		}
 	case UM_UPDATE:

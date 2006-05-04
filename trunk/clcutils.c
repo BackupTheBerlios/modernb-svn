@@ -422,7 +422,7 @@ void LoadCLCOptions(HWND hwnd, struct ClcData *dat)
 		HDC hdc=GetDC(hwnd);
 		for(i=0;i<=FONTID_MODERN_MAX;i++) {
 			if(!dat->fontModernInfo[i].changed && dat->fontModernInfo[i].hFont) DeleteObject(dat->fontModernInfo[i].hFont);
-      GetFontSetting(i,&lf,&dat->fontModernInfo[i].colour,&dat->fontModernInfo[i].effect,&dat->fontModernInfo[i].effectColour1,&dat->fontModernInfo[i].effectColour2);
+			GetFontSetting(i,&lf,&dat->fontModernInfo[i].colour,&dat->fontModernInfo[i].effect,&dat->fontModernInfo[i].effectColour1,&dat->fontModernInfo[i].effectColour2);
 			{
 				LONG height;
 				HDC hdc=GetDC(NULL);
@@ -628,7 +628,7 @@ void LoadCLCOptions(HWND hwnd, struct ClcData *dat)
 	dat->rightMargin=DBGetContactSettingByte(NULL,"CLC","RightMargin",CLCDEFAULT_RIGHTMARGIN);
 	dat->exStyle=DBGetContactSettingDword(NULL,"CLC","ExStyle",GetDefaultExStyle());
 	dat->scrollTime=DBGetContactSettingWord(NULL,"CLC","ScrollTime",CLCDEFAULT_SCROLLTIME);
-	dat->force_in_dialog=0;
+	dat->force_in_dialog=(pcli->hwndContactTree)?(hwnd!=pcli->hwndContactTree):0;
 	dat->groupIndent=DBGetContactSettingByte(NULL,"CLC","GroupIndent",CLCDEFAULT_GROUPINDENT);
 	dat->subIndent=DBGetContactSettingByte(NULL,"CLC","SubIndent",CLCDEFAULT_GROUPINDENT);
 	dat->gammaCorrection=DBGetContactSettingByte(NULL,"CLC","GammaCorrect",CLCDEFAULT_GAMMACORRECT);

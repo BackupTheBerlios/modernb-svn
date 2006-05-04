@@ -172,7 +172,7 @@
 				PreprocessorDefinitions="WIN32;_DEBUG;_WINDOWS;_USRDLL;CLIST_EXPORTS"
 				GeneratePreprocessedFile="0"
 				BasicRuntimeChecks="3"
-				RuntimeLibrary="3"
+				RuntimeLibrary="0"
 				DefaultCharIsUnsigned="TRUE"
 				UsePrecompiledHeader="3"
 				PrecompiledHeaderThrough="commonheaders.h"

@@ -532,7 +532,7 @@ int GetFileSizes(HWND hwndDlg)
 	SendDlgItemMessageA(hwndDlg,IDC_S_SIZE,WM_SETTEXT,0,(LPARAM)buf);
 	return 0;
 }
-static BOOL CALLBACK DlgSkinEditorOpts(HWND hwndDlg, UINT msg, WPARAM wParam, LPARAM lParam)
+BOOL CALLBACK DlgSkinEditorOpts(HWND hwndDlg, UINT msg, WPARAM wParam, LPARAM lParam)
 {
 	switch (msg)
 	{
@@ -755,7 +755,7 @@ static BOOL CALLBACK DlgSkinEditorOpts(HWND hwndDlg, UINT msg, WPARAM wParam, LP
 					//Change to new object
 					NMTREEVIEWA * nmtv = (NMTREEVIEWA *) lParam;
 					if (!nmtv) return 0;
-					if (nmtv->hdr.code==TVN_SELCHANGEDA)
+					if (nmtv->hdr.code==TVN_SELCHANGEDA || nmtv->hdr.code==TVN_SELCHANGEDW)
 					{
 						if (nmtv->itemOld.lParam)
 						{
@@ -833,6 +833,7 @@ static BOOL CALLBACK DlgSkinEditorOpts(HWND hwndDlg, UINT msg, WPARAM wParam, LP
 
 int SkinEditorOptInit(WPARAM wParam,LPARAM lParam)
 {
+	/*
 	OPTIONSDIALOGPAGE odp;
 
 	ZeroMemory(&odp,sizeof(odp));
@@ -848,7 +849,9 @@ int SkinEditorOptInit(WPARAM wParam,LPARAM lParam)
 	//	odp.expertOnlyControls=expertOnlyControls;
 	//	odp.nExpertOnlyControls=sizeof(expertOnlyControls)/sizeof(expertOnlyControls[0]);
 	CallService(MS_OPT_ADDPAGE,wParam,(LPARAM)&odp);
+	*/
 	return 0;
+	
 }
 
 int EnableGroup(HWND hwndDlg, HWND first, BOOL bEnable)
