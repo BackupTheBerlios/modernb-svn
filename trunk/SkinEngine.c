@@ -1794,7 +1794,7 @@ int enumDB_SkinObjectsProc (const char *szSetting,LPARAM lParam)
     RegisterButtonByParce((char *)szSetting,value);
     mir_free(value);
   }
-  return 1;
+  return 0;
 }
 int enumDB_SkinMasksProc(const char *szSetting,LPARAM lParam)
 {
@@ -1836,7 +1836,7 @@ int enumDB_SkinMasksProc(const char *szSetting,LPARAM lParam)
            AddParseSkinFont((char*)szSetting,value,CURRENTSKIN);
            mir_free(value);
         }
-        return 1;
+        return 0;
 }
 // Getting skin objects and masks from DB
 int GetSkinFromDB(char * szSection, SKINOBJECTSLIST * Skin)
@@ -2311,11 +2311,11 @@ int OldLoadSkinFromIniFile(char * szFileName)
 int enumDB_SkinSectionDeletionProc (const char *szSetting,LPARAM lParam)
 {
 
-  if (szSetting==NULL){return(1);};
+  if (szSetting==NULL){return(0);};
   arrlen++;
   settingname=(char **)realloc(settingname,arrlen*sizeof(char *));
   settingname[arrlen-1]=_strdup(szSetting);
-  return(1);
+  return(0);
 };
 int DeleteAllSettingInSection(char * SectionName)
 {
@@ -3010,11 +3010,103 @@ BOOL mod_DrawText(HDC hdc, LPCTSTR lpString, int nCount, RECT * lpRect, UINT for
 
 BOOL ImageList_DrawEx_New( HIMAGELIST himl,int i,HDC hdcDst,int x,int y,int dx,int dy,COLORREF rgbBk,COLORREF rgbFg,UINT fStyle)
 {
-  HICON ic=ImageList_GetIcon(himl,i,0);
+
+  HICON ic;
   int ddx;
   int ddy;
   BYTE alpha=255;
   HBITMAP hbmpold, hbmp;
+ // if (0)
+ // {
+	//  IMAGEINFO imi={0};
+	// // HDC hdcfrom=CreateCompatibleDC(NULL);
+	////  HDC hdcto=CreateCompatibleDC(NULL);
+	//  HBITMAP color, mask;
+	//  BYTE * imagemap=NULL;
+ // 	  HBITMAP oldBmp, bmp;
+	//  HBITMAP oldBmp1, bmp1;  
+	//  BITMAP bm={0};
+	//  BYTE * bits=NULL;	  
+	//  BYTE * pmask=NULL;
+	//  ImageList_GetImageInfo(himl,i,&imi);
+	//  GetObject(imi.hbmImage,sizeof(bm),&bm);
+	//  bits=bm.bmBits;
+	//  if (!bits)
+	//  {
+	//	  bits=malloc(bm.bmWidthBytes*bm.bmHeight);
+	//	  GetBitmapBits(imi.hbmImage,bm.bmWidthBytes*bm.bmHeight,bits);
+	//  } 
+	//  color=CreateBitmap32Point(imi.rcImage.right-imi.rcImage.left, imi.rcImage.bottom-imi.rcImage.top, &imagemap);
+	//  {
+	//	  int iy;
+	//	  BYTE *bcbits, *bcbits2, *col;
+	//	  int wb=((imi.rcImage.right-imi.rcImage.left)*bm.bmBitsPixel>>3);
+	//	  bcbits2=bits;
+	//	  bcbits=bcbits2+(bm.bmHeight-imi.rcImage.bottom)*bm.bmWidthBytes+(imi.rcImage.left*bm.bmBitsPixel>>3);
+	//	  col=imagemap;
+	//	  
+ //         for (iy=0; iy<imi.rcImage.bottom-imi.rcImage.top; iy++)
+	//	  {
+	//		  memcpy(col,bcbits,wb);
+	//		  col+=wb;
+	//		  bcbits+=bm.bmWidthBytes;
+	//	  }
+	//	  col=col;
+	//  }
+	//  
+	//  ddx=dx?dx:imi.rcImage.right-imi.rcImage.left;
+	//  ddy=dy?dy:imi.rcImage.bottom-imi.rcImage.top;
+	//  imi=imi;
+	//  if (!bm.bmBits) free(bits);
+	//  if (imi.hbmMask) 
+	//  {
+	//	  BYTE *mbits=NULL;
+	//	  GetObject(imi.hbmMask,sizeof(bm),&bm);
+	//	  mbits=bm.bmBits;
+	//	  if (!mbits)
+	//	  {
+	//		mbits=malloc(bm.bmWidthBytes*bm.bmHeight);
+	//		GetBitmapBits(imi.hbmMask,bm.bmWidthBytes*bm.bmHeight,mbits);
+	//	  }
+	//	  pmask=malloc(imi.rcImage.right-imi.rcImage.left, imi.rcImage.bottom-imi.rcImage.top);
+	//	  mask=CreateBitmap(imi.rcImage.right-imi.rcImage.left, imi.rcImage.bottom-imi.rcImage.top,1,1,(void*)pmask);
+	//	  {
+	//		int iy;
+	//		BYTE *bcbits, *bcbits2, *col;
+	//		int wb=((imi.rcImage.right-imi.rcImage.left)*bm.bmBitsPixel>>3);
+	//		bcbits2=mbits;
+	//		bcbits=bcbits2+(imi.rcImage.top/*bm.bmHeight-imi.rcImage.bottom*/)*bm.bmWidthBytes+(imi.rcImage.left*bm.bmBitsPixel>>3);
+	//		col=pmask;		  
+	//		for (iy=0; iy<imi.rcImage.bottom-imi.rcImage.top; iy++)
+	//		{
+	//			memcpy(col,bcbits,wb);
+	//			col+=wb;
+	//			bcbits+=bm.bmWidthBytes;
+	//		}
+	//		col=col;
+	//		SetBitmapBits(mask,(imi.rcImage.right-imi.rcImage.left)*(imi.rcImage.bottom-imi.rcImage.top)*bm.bmBitsPixel>>3,pmask);
+	//	}
+	//	  if (!bm.bmBits) free(mbits);
+	//	  //free(pmask);
+	//  }
+	//  else
+	//	  mask=NULL;
+	//  {
+	//	  ICONINFO ici={0};
+	//	  ici.xHotspot=0;
+	//	  ici.yHotspot=0;
+	//	  ici.fIcon=TRUE;
+	//	  ici.hbmColor=color;
+	//	  ici.hbmMask=mask;
+
+	//	ic=CreateIconIndirect(&ici);
+
+	//  }  
+	//  if (color) DeleteObject(color);
+	//  if (mask) DeleteObject(mask);
+ // }
+  //return ImageList_DrawEx(himl,i,hdcDst,x, y, dx, dy, rgbBk, rgbFg, fStyle);
+  ic=ImageList_GetIcon(himl,i,0);
   if (ic==NULL)
 	  return FALSE;
   if (fStyle&ILD_BLEND25) alpha=64;
@@ -3025,6 +3117,8 @@ BOOL ImageList_DrawEx_New( HIMAGELIST himl,int i,HDC hdcDst,int x,int y,int dx,i
   if (alpha==255) 
   {
     mod_DrawIconEx(hdcDst,x,y,ic,dx?dx:ddx,dy?dy:ddy,0,NULL,DI_NORMAL);
+	//DrawIconEx(hdcDst,x,y,ic,dx?dx:ddx,dy?dy:ddy,0,NULL,DI_NORMAL);
+
   }
   else
   {
@@ -3186,24 +3280,24 @@ BOOL mod_DrawIconEx(HDC hdcDst,int xLeft,int yTop,HICON hIcon,int cxWidth,int cy
 					*dest=0;  
 				else
 				{
+					
 					BYTE a;
 					a=((BYTE*)src)[3]>0?((BYTE*)src)[3]:0;//255;
 					((BYTE*)dest)[3]=a;
 					((BYTE*)dest)[0]=((BYTE*)src)[0]*a/255;
 					((BYTE*)dest)[1]=((BYTE*)src)[1]*a/255;
 					((BYTE*)dest)[2]=((BYTE*)src)[2]*a/255;
+					a=a;
 				}
 			}
           else
           {
-            //*dest=*src;
-            BYTE a;
+			BYTE a;
             a=((BYTE*)src)[3]>0?((BYTE*)src)[3]:255;
             ((BYTE*)dest)[3]=a;
             ((BYTE*)dest)[0]=((BYTE*)src)[0]*a/255;
             ((BYTE*)dest)[1]=((BYTE*)src)[1]*a/255;
             ((BYTE*)dest)[2]=((BYTE*)src)[2]*a/255;
-            dest=dest;
           }
         }
       }

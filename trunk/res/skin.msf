@@ -25,80 +25,76 @@
 ;Objects
 
   ;Main back
-  $$Window=sGlyph,Fragment,back%.tga,0,0,60,40,StretchBoth,10,25,10,4,255
+  $$Window=sGlyph,Fragment,back%.tga,0,0,20,31,StretchBoth,9,25,10,4,255
   $$Background=sGlyph,None
+ 
+ ;Rows
+  $$Group/Open/Hot=sGlyph,Fragment,back%.tga,10,31,10,22,StretchBoth,4,4,4,4,250
+  $$Group/Open/Normal=sGlyph,Fragment,back%.tga,89,45,8,22,StretchBoth,3,3,3,3,250
 
-  ;Rows
-  $$Group/Open/Hot=sGlyph,Fragment,back%.tga,66,83,22,22,StretchBoth,4,4,4,4,200
-  $$Group/Open/Normal=sGlyph,Fragment,back%.tga,44,83,22,22,StretchBoth,4,4,4,4,200
+  $$Group/Closed/Hot=sGlyph,Fragment,back%.tga,0,31,10,22,StretchBoth,4,4,4,4,250
+  $$Group/Closed/Normal=sGlyph,Fragment,back%.tga,97,45,8,22,StretchBoth,3,3,3,3,250
 
-  $$Group/Closed/Hot=sGlyph,Fragment,back%.tga,22,83,22,22,StretchBoth,4,4,4,4,200
-  $$Group/Closed/Normal=sGlyph,Fragment,back%.tga,0,83,22,22,StretchBoth,4,4,4,4,200
-
-  $$Contact/Hot=sGlyph,Fragment,back%.tga,8,60,8,8,StretchBoth,1,1,1,1,200
-  $$Contact/Normal=sGlyph,Fragment,back%.tga,0,60,8,8,StretchBoth,1,1,1,1,200
+  $$Contact/Hot=sGlyph,Fragment,back%.tga,74,49,4,4,StretchBoth,1,1,1,1,250
+  $$Contact/Normal=sGlyph,Fragment,back%.tga,78,49,4,4,StretchBoth,1,1,1,1,250
 
   ;Scroll bar
-  $$Scroll/Back=sGlyph,Fragment,back%.tga,41,60,16,7,StretchBoth,2,2,2,2,250
-  $$Scroll/BtnUp=sGlyph,Fragment,back%.tga,30,68,15,15,StretchBoth,4,4,4,4,250
-  $$Scroll/BtnDn=sGlyph,Fragment,back%.tga,15,68,15,15,StretchBoth,4,4,4,4,250
-  $$Scroll/Thumb=sGlyph,Fragment,back%.tga,0,68,15,15,StretchBoth,4,4,4,4,250
+  $$Scroll/Back=sGlyph,Fragment,back%.tga,68,48,15,1,StretchBoth,1,0,1,0,250
+  $$Scroll/BtnUp=sGlyph,Fragment,back%.tga,89,30,15,15,StretchBoth,4,4,4,4,250
+  $$Scroll/BtnDn=sGlyph,Fragment,back%.tga,89,15,15,15,StretchBoth,4,4,4,4,250
+  $$Scroll/Thumb=sGlyph,Fragment,back%.tga,89,0,15,15,StretchBoth,4,4,4,4,250
 
   ;Common select (one for all, painted above contact)
-  $$Select=sGlyph,Fragment,back%.tga,16,60,25,8,StretchBoth,2,2,2,2,200
+  $$Select=sGlyph,Fragment,back%.tga,68,49,6,6,StretchBoth,2,2,2,2,250
 
-  ;FramesTitlebars
-  $$FrameTitleBar=sGlyph,Fragment,back%.tga,88,83,20,21,StretchBoth,2,2,2,2,200
+  ;FramesTitleBars
+  $$FrameTitleBar=sGlyph,Fragment,back%.tga,0,53,20,5,StretchBoth,2,2,2,2,250
  
  ;StatusBar 
-  $$StatusBar=sGlyph,Fragment,back%.tga,0,40,52,18,StretchBoth,1,1,4,4,250
+  $$StatusBar=sGlyph,Fragment,back%.tga,83,48,3,18,StretchBoth,1,2,1,1,250
 
 
   ;Objects for buttons
 
   ;Close
-  $$Button/Close/Normal=sGlyph,Fragment,back%.tga,76,65,16,13,StretchBoth,0,0,0,0,250
-  $$Button/Close/Hovered=sGlyph,Fragment,back%.tga,76,65,16,13,StretchBoth,0,0,0,0,255
-  $$Button/Close/Down=sGlyph,Fragment,back%.tga,StretchBoth,76,65,16,13,0,0,0,0,255
+  $$Button/Close/Normal=sGlyph,Fragment,back%.tga,36,65,16,13,StretchBoth,0,0,0,0,250
+  $$Button/Close/Hovered=sGlyph,Fragment,back%.tga,52,65,16,13,StretchBoth,0,0,0,0,255
+  $$Button/Close/Down=sGlyph,Fragment,back%.tga,20,0,16,13,StretchBoth,20,65,16,13,0,0,0,0,255
 
  
   ;Menu
-  $$Button/Menu/Normal=sGlyph,Fragment,back%.tga,76,0,16,13,StretchBoth,0,0,0,0,250
-  $$Button/Menu/Hovered=sGlyph,Fragment,back%.tga,92,0,16,13,StretchBoth,0,0,0,0,255
-  $$Button/Menu/Down=sGlyph,Fragment,back%.tga,60,0,16,13,StretchBoth,0,0,0,0,255
+  $$Button/Menu/Normal=sGlyph,Fragment,back%.tga,36,0,16,13,StretchBoth,0,0,0,0,250
+  $$Button/Menu/Hovered=sGlyph,Fragment,back%.tga,52,0,16,13,StretchBoth,0,0,0,0,255
+  $$Button/Menu/Down=sGlyph,Fragment,back%.tga,20,0,16,13,StretchBoth,0,0,0,0,255
 
 ;Toggle Online/Offline Users
-  $$Button/OnlineOffline/Normal=sGlyph,Fragment,back%.tga,76,13,16,13,StretchBoth,0,0,0,0,250
-  $$Button/OnlineOffline/Hovered=sGlyph,Fragment,back%.tga,92,13,16,13,StretchBoth,0,0,0,0,255
-  $$Button/OnlineOffline/Down=sGlyph,Fragment,back%.tga,60,13,16,13,StretchBoth,0,0,0,0,255
+  $$Button/OnlineOffline/Normal=sGlyph,Fragment,back%.tga,36,13,16,13,StretchBoth,0,0,0,0,250
+  $$Button/OnlineOffline/Hovered=sGlyph,Fragment,back%.tga,52,13,16,13,StretchBoth,0,0,0,0,255
+  $$Button/OnlineOffline/Down=sGlyph,Fragment,back%.tga,20,13,16,13,StretchBoth,0,0,0,0,255
 
-  $$Button/Online/Normal=sGlyph,Fragment,back%.tga,76,26,16,13,StretchBoth,0,0,0,0,250
-  $$Button/Online/Hovered=sGlyph,Fragment,back%.tga,92,26,16,13,StretchBoth,0,0,0,0,255
-  $$Button/Online/Down=sGlyph,Fragment,back%.tga,60,26,16,13,StretchBoth,0,0,0,0,255
+  $$Button/Online/Normal=sGlyph,Fragment,back%.tga,36,26,16,13,StretchBoth,0,0,0,0,250
+  $$Button/Online/Hovered=sGlyph,Fragment,back%.tga,52,26,16,13,StretchBoth,0,0,0,0,255
+  $$Button/Online/Down=sGlyph,Fragment,back%.tga,20,26,16,13,StretchBoth,0,0,0,0,255
 
   ;StatusMenu
-  $$Button/Status/Normal=sGlyph,Fragment,back%.tga,76,65,16,13,StretchBoth,0,0,0,0,250
-  $$Button/Status/Hovered=sGlyph,Fragment,back%.tga,92,65,16,13,StretchBoth,0,0,0,0,255
-  $$Button/Status/Down=sGlyph,Fragment,back%.tga,60,65,16,13,StretchBoth,0,0,0,0,255
+  $$Button/Status/Normal=sGlyph,Fragment,back%.tga,36,65,16,13,StretchBoth,0,0,0,0,250
+  $$Button/Status/Hovered=sGlyph,Fragment,back%.tga,52,65,16,13,StretchBoth,0,0,0,0,255
+  $$Button/Status/Down=sGlyph,Fragment,back%.tga,20,65,16,13,StretchBoth,0,0,0,0,255
 
  ;FindAdd
-  $$Button/FindAdd/Normal=sGlyph,Fragment,back%.tga,76,39,16,13,StretchBoth,0,0,0,0,255
-  $$Button/FindAdd/Hovered=sGlyph,Fragment,back%.tga,92,39,16,13,StretchBoth,0,0,0,0,255
-  $$Button/FindAdd/Down=sGlyph,Fragment,back%.tga,60,39,16,13,StretchBoth,0,0,0,0,255
+  $$Button/FindAdd/Normal=sGlyph,Fragment,back%.tga,36,39,16,13,StretchBoth,0,0,0,0,255
+  $$Button/FindAdd/Hovered=sGlyph,Fragment,back%.tga,52,39,16,13,StretchBoth,0,0,0,0,255
+  $$Button/FindAdd/Down=sGlyph,Fragment,back%.tga,20,39,16,13,StretchBoth,0,0,0,0,255
 
 ;Options
-  $$Button/Options/Normal=sGlyph,Fragment,back%.tga,76,52,16,13,StretchBoth,0,0,0,0,250
-  $$Button/Options/Hovered=sGlyph,Fragment,back%.tga,92,52,16,13,StretchBoth,0,0,0,0,255
-  $$Button/Options/Down=sGlyph,Fragment,back%.tga,60,52,16,13,StretchBoth,0,0,0,0,255
+  $$Button/Options/Normal=sGlyph,Fragment,back%.tga,36,52,16,13,StretchBoth,0,0,0,0,250
+  $$Button/Options/Hovered=sGlyph,Fragment,back%.tga,52,52,16,13,StretchBoth,0,0,0,0,255
+  $$Button/Options/Down=sGlyph,Fragment,back%.tga,20,52,16,13,StretchBoth,0,0,0,0,255
 
 ;Minimize
-  $$Button/Minimize/Normal=sGlyph,Fragment,back%.tga,66,67,21,16,StretchBoth,0,0,0,0,250
-  $$Button/Minimize/Hovered=sGlyph,Fragment,back%.tga,87,67,21,16,StretchBoth,0,0,0,0,255
-  $$Button/Minimize/Down=sGlyph,Fragment,back%.tga,45,67,21,16,StretchBoth,0,0,0,0,255
-
-
-
-
+  $$Button/Minimize/Normal=sGlyph,Fragment,back%.tga,68,16,21,16,StretchBoth,0,0,0,0,250
+  $$Button/Minimize/Hovered=sGlyph,Fragment,back%.tga,68,32,21,16,StretchBoth,0,0,0,0,255
+  $$Button/Minimize/Down=sGlyph,Fragment,back%.tga,68,0,21,16,StretchBoth,0,0,0,0,255
 
 ;------------------------------------------------------------------------
 
