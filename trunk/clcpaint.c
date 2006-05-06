@@ -51,7 +51,7 @@ extern struct AvatarOverlayIconConfig
   int id;
   HICON icon;
 } avatar_overlay_icons[ID_STATUS_OUTTOLUNCH - ID_STATUS_OFFLINE + 1];
-//extern BOOL ImageList_DrawEx_New( HIMAGELIST himl,int i,HDC hdcDst,int x,int y,int dx,int dy,COLORREF rgbBk,COLORREF rgbFg,UINT fStyle);
+//extern BOOL mod_ImageList_DrawEx( HIMAGELIST himl,int i,HDC hdcDst,int x,int y,int dx,int dy,COLORREF rgbBk,COLORREF rgbFg,UINT fStyle);
 
 //extern void DrawAvatarImageWithGDIp(HDC hDestDC,int x, int y, DWORD width, DWORD height, HBITMAP hbmp, int x1, int y1, DWORD width1, DWORD height1,DWORD flag);
 
@@ -703,7 +703,7 @@ void ModernInternalPaintRowItems(HWND hwnd, HDC hdcMem, struct ClcData *dat, str
         {
           mode=ILD_SELECTED;
         }
-        ImageList_DrawEx_New(himlCListClc, iImage, hdcMem, p_rect.left, p_rect.top,	0,0,CLR_NONE,colourFg,mode);
+        mod_ImageList_DrawEx(himlCListClc, iImage, hdcMem, p_rect.left, p_rect.top,	0,0,CLR_NONE,colourFg,mode);
 		
       }
       fr_rc.left+=ICON_HEIGHT+2;
@@ -758,7 +758,7 @@ void ModernInternalPaintRowItems(HWND hwnd, HDC hdcMem, struct ClcData *dat, str
               if (dat->text_rtl!=0) RTLrect(&rc, free_row_rc.right, dx);
 			  Drawing->pos_extra[iImage] = rc;
               Drawing->pos_extra[iImage] = rc;		  
-              ImageList_DrawEx_New(dat->himlExtraColumns,Drawing->iExtraImage[iImage],hdcMem,
+              mod_ImageList_DrawEx(dat->himlExtraColumns,Drawing->iExtraImage[iImage],hdcMem,
                 rc.left, rc.top,0,0,CLR_NONE,colourFg,mode);
             }
             fr_rc.right-=x;
@@ -1246,7 +1246,7 @@ void ModernInternalPaintRowItems(HWND hwnd, HDC hdcMem, struct ClcData *dat, str
                 mode=ILD_SELECTED;
               }
 
-              ImageList_DrawEx_New(himlCListClc, iImage, hdcMem, p_rect.left, p_rect.top,	0,0,CLR_NONE,colourFg,mode);
+              mod_ImageList_DrawEx(himlCListClc, iImage, hdcMem, p_rect.left, p_rect.top,	0,0,CLR_NONE,colourFg,mode);
 
             }
           }
@@ -1295,7 +1295,7 @@ void ModernInternalPaintRowItems(HWND hwnd, HDC hdcMem, struct ClcData *dat, str
 					mode=ILD_SELECTED;
 				  }
 
-				  ImageList_DrawEx_New(himlCListClc, iImage, hdcMem, p_rect.left, p_rect.top,	0,0,CLR_NONE,colourFg,mode);
+				  mod_ImageList_DrawEx(himlCListClc, iImage, hdcMem, p_rect.left, p_rect.top,	0,0,CLR_NONE,colourFg,mode);
 
 				}
 		  }
@@ -1454,7 +1454,7 @@ void ModernInternalPaintRowItems(HWND hwnd, HDC hdcMem, struct ClcData *dat, str
 							item = ExtIconFromStatusMode(Drawing->hContact, Drawing->proto,
 							  Drawing->proto==NULL ? ID_STATUS_OFFLINE : GetContactCachedStatus(Drawing->hContact));
 							if (item != -1)
-							  ImageList_DrawEx_New(himlCListClc, item, hdcMem, 
+							  mod_ImageList_DrawEx(himlCListClc, item, hdcMem, 
 							  p_rect.left,  p_rect.top,ICON_HEIGHT,ICON_HEIGHT,
 							  CLR_NONE,CLR_NONE,(blendmode==255)?ILD_NORMAL:(blendmode==128)?ILD_BLEND50:ILD_BLEND25);
 							break;
@@ -1462,7 +1462,7 @@ void ModernInternalPaintRowItems(HWND hwnd, HDC hdcMem, struct ClcData *dat, str
 						case SETTING_AVATAR_OVERLAY_TYPE_CONTACT:
 						  {
 							if (Drawing->iImage != -1)
-							  ImageList_DrawEx_New(himlCListClc, Drawing->iImage, hdcMem, 
+							  mod_ImageList_DrawEx(himlCListClc, Drawing->iImage, hdcMem, 
 							  p_rect.left,  p_rect.top,ICON_HEIGHT,ICON_HEIGHT,
 							  CLR_NONE,CLR_NONE,(blendmode==255)?ILD_NORMAL:(blendmode==128)?ILD_BLEND50:ILD_BLEND25);
 							break;
@@ -1519,7 +1519,7 @@ void ModernInternalPaintRowItems(HWND hwnd, HDC hdcMem, struct ClcData *dat, str
               count++;
 			  if (dat->text_rtl!=0) RTLrect(&rc, free_row_rc.right, 0);
               Drawing->pos_extra[iImage] = rc;
-              ImageList_DrawEx_New(dat->himlExtraColumns,Drawing->iExtraImage[iImage],hdcMem,
+              mod_ImageList_DrawEx(dat->himlExtraColumns,Drawing->iExtraImage[iImage],hdcMem,
                 rc.left, rc.top,0,0,CLR_NONE,colourFg,mode);
             }
           }
@@ -1564,7 +1564,7 @@ void ModernInternalPaintRowItems(HWND hwnd, HDC hdcMem, struct ClcData *dat, str
 						}
 						if (dat->text_rtl!=0) RTLrect(&p_rect, free_row_rc.right, 0);
 						Drawing->pos_extra[eNum] = p_rect;
-						ImageList_DrawEx_New(dat->himlExtraColumns,Drawing->iExtraImage[eNum],hdcMem,
+						mod_ImageList_DrawEx(dat->himlExtraColumns,Drawing->iExtraImage[eNum],hdcMem,
 							p_rect.left, p_rect.top,0,0,CLR_NONE,colourFg,mode);
 					}
 			}
@@ -1687,7 +1687,7 @@ void InternalPaintRowItems(HWND hwnd, HDC hdcMem, struct ClcData *dat, struct Cl
                   mode=ILD_SELECTED;
                 }
 
-                ImageList_DrawEx_New(himlCListClc, iImage, hdcMem, 
+                mod_ImageList_DrawEx(himlCListClc, iImage, hdcMem, 
                   rc.left, rc.top,
                   0,0,CLR_NONE,colourFg,mode);
               }
@@ -1918,7 +1918,7 @@ void InternalPaintRowItems(HWND hwnd, HDC hdcMem, struct ClcData *dat, struct Cl
                 item = ExtIconFromStatusMode(Drawing->hContact, Drawing->proto,
                   Drawing->proto==NULL ? ID_STATUS_OFFLINE : GetContactCachedStatus(Drawing->hContact));
                 if (item != -1)
-                  ImageList_DrawEx_New(himlCListClc, item, hdcMem, 
+                  mod_ImageList_DrawEx(himlCListClc, item, hdcMem, 
                   real_rc.left,  real_rc.top,ICON_HEIGHT,ICON_HEIGHT,
                   CLR_NONE,CLR_NONE,(blendmode==255)?ILD_NORMAL:(blendmode==128)?ILD_BLEND50:ILD_BLEND25);
                 break;
@@ -1926,7 +1926,7 @@ void InternalPaintRowItems(HWND hwnd, HDC hdcMem, struct ClcData *dat, struct Cl
             case SETTING_AVATAR_OVERLAY_TYPE_CONTACT:
               {
                 if (Drawing->iImage != -1)
-                  ImageList_DrawEx_New(himlCListClc, Drawing->iImage, hdcMem, 
+                  mod_ImageList_DrawEx(himlCListClc, Drawing->iImage, hdcMem, 
                   real_rc.left,  real_rc.top,ICON_HEIGHT,ICON_HEIGHT,
                   CLR_NONE,CLR_NONE,(blendmode==255)?ILD_NORMAL:(blendmode==128)?ILD_BLEND50:ILD_BLEND25);
                 break;
@@ -2029,7 +2029,7 @@ void InternalPaintRowItems(HWND hwnd, HDC hdcMem, struct ClcData *dat, struct Cl
                 mode=ILD_SELECTED;
               }
 
-              ImageList_DrawEx_New(himlCListClc, iImage, hdcMem, 
+              mod_ImageList_DrawEx(himlCListClc, iImage, hdcMem, 
                 rc.left, rc.top,
                 0,0,CLR_NONE,colourFg,mode);
             }
@@ -2159,7 +2159,7 @@ void InternalPaintRowItems(HWND hwnd, HDC hdcMem, struct ClcData *dat, struct Cl
 
                 count++;
 
-                ImageList_DrawEx_New(dat->himlExtraColumns,Drawing->iExtraImage[iImage],hdcMem,
+                mod_ImageList_DrawEx(dat->himlExtraColumns,Drawing->iExtraImage[iImage],hdcMem,
                   rc.left, rc.top,0,0,CLR_NONE,colourFg,mode);
               }
             }

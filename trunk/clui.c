@@ -2282,7 +2282,7 @@ LRESULT CALLBACK cli_ContactListWndProc(HWND hwnd, UINT msg, WPARAM wParam, LPAR
 					{	
 						char buf[255]={0};	
 						short dx=1+(dis->itemState&ODS_SELECTED?1:0)-(dis->itemState&ODS_HOTLIGHT?1:0);
-						HICON hIcon=ImageList_GetIcon(himlMirandaIcon,0,ILD_NORMAL);
+						HICON hIcon=mod_ImageList_GetIcon(himlMirandaIcon,0,ILD_NORMAL);
 						DrawMenuBackGround(hwnd, dis->hDC, 1);
 						_snprintf(buf,sizeof(buf),"Main,ID=MainMenu,Selected=%s,Hot=%s",(dis->itemState&ODS_SELECTED)?"True":"False",(dis->itemState&ODS_HOTLIGHT)?"True":"False");
 						SkinDrawGlyph(dis->hDC,&dis->rcItem,&dis->rcItem,buf);
