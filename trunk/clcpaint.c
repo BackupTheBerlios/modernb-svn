@@ -957,6 +957,7 @@ void ModernInternalPaintRowItems(HWND hwnd, HDC hdcMem, struct ClcData *dat, str
       
       if ((!InClistWindow || !LayeredFlag)&& ((Drawing->type == CLCIT_DIVIDER) || (Drawing->type == CLCIT_GROUP && dat->exStyle&CLS_EX_LINEWITHGROUPS)))
       {
+		//???
         RECT rc=fr_rc;
 		if (dat->text_rtl!=0)
 		{
@@ -970,6 +971,7 @@ void ModernInternalPaintRowItems(HWND hwnd, HDC hdcMem, struct ClcData *dat, str
           rc.top+=((rc.bottom-rc.top)>>1)-1;
           rc.bottom=rc.top+2;		  
           DrawEdge(hdcMem,&rc,BDR_SUNKENOUTER,BF_RECT);
+		  SetRectAlpha_255(hdcMem,&rc);
         }
       }
 
@@ -2446,13 +2448,15 @@ void InternalPaintRowItems(HWND hwnd, HDC hdcMem, struct ClcData *dat, struct Cl
       {
       case CLCIT_DIVIDER:
         {
+			//devider
           RECT trc = free_row_rc;
           RECT rc = free_row_rc;
           rc.top += (rc.bottom - rc.top) >> 1; 
           rc.bottom = rc.top + 2;
           rc.right = rc.left + ((rc.right - rc.left - text_size.cx)>>1) - 3;
-          DrawEdge(hdcMem,&rc,BDR_SUNKENOUTER,BF_RECT);
-
+		  //if (!LayeredFlag)
+		  DrawEdge(hdcMem,&rc,BDR_SUNKENOUTER,BF_RECT);
+		  SetRectAlpha_255(hdcMem,&rc);
           trc.left = rc.right + 3;
           if (text_size.cy < trc.bottom - trc.top)
           {
@@ -2463,8 +2467,9 @@ void InternalPaintRowItems(HWND hwnd, HDC hdcMem, struct ClcData *dat, struct Cl
 
           rc.left = rc.right + 6 + text_size.cx;
           rc.right = free_row_rc.right;
-          if (!LayeredFlag)
-            DrawEdge(hdcMem,&rc,BDR_SUNKENOUTER,BF_RECT);
+          //if (!LayeredFlag)
+          DrawEdge(hdcMem,&rc,BDR_SUNKENOUTER,BF_RECT);
+		  SetRectAlpha_255(hdcMem,&rc);
           break;
         }
       case CLCIT_GROUP:
@@ -2521,7 +2526,7 @@ void InternalPaintRowItems(HWND hwnd, HDC hdcMem, struct ClcData *dat, struct Cl
 
           // Update free
 
-          if (!LayeredFlag &&dat->exStyle&CLS_EX_LINEWITHGROUPS) 
+          if (/*!LayeredFlag &&*/dat->exStyle&CLS_EX_LINEWITHGROUPS) 
           {
 
             //	free_row_rc.right -= text_rc.right - text_rc.left;
@@ -2543,9 +2548,15 @@ void InternalPaintRowItems(HWND hwnd, HDC hdcMem, struct ClcData *dat, struct Cl
               //else
 
               if (rc1.right-rc1.left>=6)
+			  {
                 DrawEdge(hdcMem,&rc1,BDR_SUNKENOUTER,BF_RECT);
+				SetRectAlpha_255(hdcMem,&rc1);
+			  }
               if (rc2.right-rc2.left>=6)
-                DrawEdge(hdcMem,&rc2,BDR_SUNKENOUTER,BF_RECT);
+              {
+				  DrawEdge(hdcMem,&rc2,BDR_SUNKENOUTER,BF_RECT);
+				  SetRectAlpha_255(hdcMem,&rc2);
+			  }
             }
           }
           break;
