@@ -1168,6 +1168,9 @@
 					</FileConfiguration>
 				</File>
 				<File
+					RelativePath=".\rowtemplateopt.c">
+				</File>
+				<File
 					RelativePath=".\SkinEditor.c">
 				</File>
 				<File
