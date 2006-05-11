@@ -1195,12 +1195,25 @@ case WM_CAPTURECHANGED:
 
 case WM_MOUSEMOVE:
 	{
+		BOOL isOutside=FALSE;
 		if (IsInMainWindow(hwnd))
 		{
 			if (BehindEdgeSettings) UpdateTimer(0);
 			TestCursorOnBorders();
 		}
-		if (ProceedDragToScroll(hwnd, (short)HIWORD(lParam))) return 0;
+		if (ProceedDragToScroll(hwnd, (short)HIWORD(lParam))) return 0;		
+		
+		if (dat->iDragItem==-1)
+		{
+			POINT pt;
+			HWND window;
+			pt.x= (short)LOWORD(lParam);
+			pt.y= (short)HIWORD(lParam);
+			ClientToScreen(hwnd,&pt);
+			window=WindowFromPoint(pt);
+			if (window!=hwnd) isOutside=TRUE;
+		}
+
 		if(hitcontact!=NULL)
 		{
 			int x,y,xm,ym;
@@ -1231,11 +1244,11 @@ case WM_MOUSEMOVE:
 			int iOldHotTrack=dat->iHotTrack;
 			if(dat->hwndRenameEdit!=NULL) return 0;;
 			if(GetKeyState(VK_MENU)&0x8000 || GetKeyState(VK_F10)&0x8000) return 0;
-			dat->iHotTrack=cliHitTest(hwnd,dat,(short)LOWORD(lParam),(short)HIWORD(lParam),NULL,NULL,NULL);
-			if(iOldHotTrack!=dat->iHotTrack) {
-				if(iOldHotTrack==-1) 
+			dat->iHotTrack=isOutside?-1:cliHitTest(hwnd,dat,(short)LOWORD(lParam),(short)HIWORD(lParam),NULL,NULL,NULL);
+			if(iOldHotTrack!=dat->iHotTrack || isOutside) {
+				if(iOldHotTrack==-1 && !isOutside) 
 					SetCapture(hwnd);
-				if (dat->iHotTrack==-1)
+				if (dat->iHotTrack==-1 || isOutside)
 					ReleaseCapture();
 				if(dat->exStyle&CLS_EX_TRACKSELECT) {
 					pcli->pfnInvalidateItem(hwnd,dat,iOldHotTrack);
