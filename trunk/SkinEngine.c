@@ -3009,136 +3009,52 @@ BOOL mod_DrawText(HDC hdc, LPCTSTR lpString, int nCount, RECT * lpRect, UINT for
 
 HICON mod_ImageList_GetIcon(HIMAGELIST himl, int i, UINT fStyle)
 {
-  HICON ic=NULL;
   IMAGEINFO imi={0};
   BITMAP bm={0};
   ImageList_GetImageInfo(himl,i,&imi);
   GetObject(imi.hbmImage,sizeof(bm),&bm);
-  if (bm.bmBitsPixel==32)
+  if (bm.bmBitsPixel==32 && IsWinVerXPPlus()) //stupid bug of microsoft 0x7f in alpha and 0x80 in any color works incorrectly
   {
-	  HBITMAP color, mask;
-	  BYTE * imagemap=NULL;
 	  BYTE * bits=NULL;	  
-	  BYTE * pmask=NULL;
 	  bits=bm.bmBits;
 	  if (!bits)
 	  {
 		  bits=malloc(bm.bmWidthBytes*bm.bmHeight);
 		  GetBitmapBits(imi.hbmImage,bm.bmWidthBytes*bm.bmHeight,bits);
 	  } 
-	  color=CreateBitmap32Point(imi.rcImage.right-imi.rcImage.left, imi.rcImage.bottom-imi.rcImage.top, &imagemap);
 	  {
 		  int iy;
-		  BYTE *bcbits, *bcbits2, *col;
+		  BYTE *bcbits;
 		  int wb=((imi.rcImage.right-imi.rcImage.left)*bm.bmBitsPixel>>3);
-		  bcbits2=bits;
-		  bcbits=bcbits2+(bm.bmHeight-imi.rcImage.bottom)*bm.bmWidthBytes+(imi.rcImage.left*bm.bmBitsPixel>>3);
-		  col=imagemap;
-		  
+		  bcbits=bits+(bm.bmHeight-imi.rcImage.bottom)*bm.bmWidthBytes+(imi.rcImage.left*bm.bmBitsPixel>>3);
           for (iy=0; iy<imi.rcImage.bottom-imi.rcImage.top; iy++)
 		  {
 			  int x;
-			  memcpy(col,bcbits,wb);
 			  // Dummy microsoft fix - alpha can be less than r,g or b
 			  // Looks like color channels in icons should be non-premultiplied with alpha
 			  // But AddIcon store it premultiplied (incorrectly cause can be Alpha==7F, but R,G or B==80
-			  // So here we should recalculate channel as R=R*255/A , if A more than 0 and fix previous.
-
+			  // So i check that alpha is 0x7F and set it to 0x80
+			  DWORD *c=((DWORD*)bcbits);
 			  for (x=0;x<imi.rcImage.right-imi.rcImage.left; x++)
-			  {
-				  BYTE *c=col+x*4;
-				  BYTE a=c[3];
-				  BYTE r=c[0];
-				  BYTE g=c[1];
-				  BYTE b=c[2];
-				  if (a!=0)
-				  {
-					if (a>r) 
-						r=r*255/a; 
-					else
-						r=255;
-					if (a>g) 
-						g=g*255/a; 
-					else 
-						g=255;
-					if (a>b)
-						b=b*255/a; 
-					else 
-						b=255;
-
-					c[0]=r;//(r<256?r:255);
-					c[1]=g;//(g<256?g:255);
-					c[2]=b;//(b<256?b:255);
-				  }
+			  {		  
+				  if (((*c)&0xFF000000)==0x7F000000) 
+					  (*c)=((*c)&0x00FFFFFF)|0x80000000;
+				  c++;
 			  }
-			  col+=wb;
 			  bcbits+=bm.bmWidthBytes;
 		  }
-		  col=col;
-	  }
-	 // oldBmp=SelectObject(hdcto,color);
-	  
-	 // ImageList_DrawEx(himl,i,hdcto,0, 0, imi.rcImage.right-imi.rcImage.left, imi.rcImage.bottom-imi.rcImage.top, 0, 0, ILD_IMAGE);
-	  
-	//  SelectObject(hdcto,oldBmp);
-	 // DeleteDC(hdcto);
-	  imi=imi;
-	  if (!bm.bmBits) free(bits);
-	  if (imi.hbmMask) 
-	  {
-		  BYTE *mbits=NULL;
-		  GetObject(imi.hbmMask,sizeof(bm),&bm);
-		  mbits=bm.bmBits;
-		  if (!mbits)
-		  {
-			mbits=malloc(bm.bmWidthBytes*bm.bmHeight);
-			GetBitmapBits(imi.hbmMask,bm.bmWidthBytes*bm.bmHeight,mbits);
-		  }
-		  pmask=malloc((imi.rcImage.right-imi.rcImage.left) * (imi.rcImage.bottom-imi.rcImage.top)*bm.bmBitsPixel>>3);
-		  mask=CreateBitmap(imi.rcImage.right-imi.rcImage.left, imi.rcImage.bottom-imi.rcImage.top,1,1,(void*)pmask);
-		  {
-			int iy;
-			BYTE *bcbits, *bcbits2, *col;
-			int wb=((imi.rcImage.right-imi.rcImage.left)*bm.bmBitsPixel>>3);
-			bcbits2=mbits;
-			bcbits=bcbits2+(imi.rcImage.top/*bm.bmHeight-imi.rcImage.bottom*/)*bm.bmWidthBytes+(imi.rcImage.left*bm.bmBitsPixel>>3);
-			col=pmask;		  
-			for (iy=0; iy<imi.rcImage.bottom-imi.rcImage.top; iy++)
-			{
-				memcpy(col,bcbits,wb);
-				col+=wb;
-				bcbits+=bm.bmWidthBytes;
-			}
-			col=col;
-			SetBitmapBits(mask,(imi.rcImage.right-imi.rcImage.left)*(imi.rcImage.bottom-imi.rcImage.top)*bm.bmBitsPixel>>3,pmask);
-		}
-		  if (!bm.bmBits) free(mbits);
-		  //free(pmask);
-	  }
-	  else
-		  mask=NULL;
-	  {
-		  ICONINFO ici={0};
-		  ici.xHotspot=0;
-		  ici.yHotspot=0;
-		  ici.fIcon=TRUE;
-		  ici.hbmColor=color;
-		  ici.hbmMask=mask;
-
-		ic=CreateIconIndirect(&ici);
-
 	  }  
-	  if (color) DeleteObject(color);
-	  if (mask) DeleteObject(mask);
+	  if (!bm.bmBits) 
+	  { 
+		  SetBitmapBits(imi.hbmImage,bm.bmWidthBytes*bm.bmHeight,bits);
+		  free(bits);
+	  }
   }
-  else
-	  ic=ImageList_GetIcon(himl,i,0x8);
-  return ic;
+  return ImageList_GetIcon(himl,i,ILD_TRANSPARENT);
 }
 
 BOOL mod_ImageList_DrawEx( HIMAGELIST himl,int i,HDC hdcDst,int x,int y,int dx,int dy,COLORREF rgbBk,COLORREF rgbFg,UINT fStyle)
 {
-
   HICON ic=mod_ImageList_GetIcon(himl,i,fStyle);
   int ddx;
   int ddy;
@@ -3203,6 +3119,7 @@ BOOL mod_DrawIconEx(HDC hdcDst,int xLeft,int yTop,HICON hIcon,int cxWidth,int cy
   DWORD cx,cy,icy;
   BYTE *t1, *t2, *t3;
 
+  BOOL NoDIBImage=FALSE;
   //lockimagelist
   BYTE hasmask=FALSE;
   BYTE no32bit=FALSE;
@@ -3252,6 +3169,7 @@ BOOL mod_DrawIconEx(HDC hdcDst,int xLeft,int yTop,HICON hIcon,int cxWidth,int cy
 
   if (imbt.bmBits==NULL)
   {
+	NoDIBImage=TRUE;
     imimagbits=(BYTE*)malloc(cy*imbt.bmWidthBytes);
     GetBitmapBits(ici.hbmColor,cy*imbt.bmWidthBytes,(void*)imimagbits);
   }

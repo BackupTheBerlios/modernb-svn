@@ -165,10 +165,10 @@ int MO_DrawMenuItem(WPARAM wParam,LPARAM lParam)
       rc.left=2; rc.right=GetSystemMetrics(SM_CXSMICON)+2;
       rc.top=y; rc.bottom=rc.top+GetSystemMetrics(SM_CYSMICON)+2;
       FillRect(dis->hDC,&rc,GetSysColorBrush(COLOR_HIGHLIGHT));
-      mod_ImageList_DrawEx(MenuObjects[objidx].hMenuIcons,pimi->iconId,dis->hDC,2,y,0,0,CLR_NONE,CLR_DEFAULT,ILD_SELECTED);
+      /*mod_*/ImageList_DrawEx(MenuObjects[objidx].hMenuIcons,pimi->iconId,dis->hDC,2,y,0,0,CLR_NONE,CLR_DEFAULT,ILD_SELECTED);
     }
     else
-      mod_ImageList_DrawEx(MenuObjects[objidx].hMenuIcons,pimi->iconId,dis->hDC,2,y,0,0,CLR_NONE,CLR_DEFAULT,ILD_FOCUS);
+      /*mod_*/ImageList_DrawEx(MenuObjects[objidx].hMenuIcons,pimi->iconId,dis->hDC,2,y,0,0,CLR_NONE,CLR_DEFAULT,ILD_FOCUS);
     //DrawIconEx(dis->hDC,2,y,pimi->iconId,16,16,0,0,DI_NORMAL);
   }
   else {
@@ -185,10 +185,10 @@ int MO_DrawMenuItem(WPARAM wParam,LPARAM lParam)
       hBrush=CreateSolidBrush(RGB((GetRValue(menuCol)+GetRValue(hiliteCol))/2,(GetGValue(menuCol)+GetGValue(hiliteCol))/2,(GetBValue(menuCol)+GetBValue(hiliteCol))/2));
       FillRect(dis->hDC,&rc,hBrush);
       DeleteObject(hBrush);
-      mod_ImageList_DrawEx(MenuObjects[objidx].hMenuIcons,pimi->iconId,dis->hDC,2,y,0,0,CLR_NONE,CLR_NONE/*GetSysColor(COLOR_MENU)*/,ILD_BLEND25);
+      /*mod_*/ImageList_DrawEx(MenuObjects[objidx].hMenuIcons,pimi->iconId,dis->hDC,2,y,0,0,CLR_NONE,CLR_NONE/*GetSysColor(COLOR_MENU)*/,ILD_BLEND25);
     }
     else
-      mod_ImageList_DrawEx(MenuObjects[objidx].hMenuIcons,pimi->iconId,dis->hDC,2,y,0,0,CLR_NONE,CLR_NONE,ILD_NORMAL);
+      /*mod_*/ImageList_DrawEx(MenuObjects[objidx].hMenuIcons,pimi->iconId,dis->hDC,2,y,0,0,CLR_NONE,CLR_NONE,ILD_NORMAL);
     //DrawIconEx(dis->hDC,2,y,pimi->iconId,GetSystemMetrics(SM_CXSMICON),GetSystemMetrics(SM_CYSMICON),0,0,DI_NORMAL);
   }
   unlockmo();
@@ -1207,7 +1207,7 @@ int OnIconLibChanges(WPARAM wParam,LPARAM lParam)
       if (MenuObjects[mo].MenuItems[mi].IconRegistred&&uname!=NULL)
       {	
 		  HICON deficon=mod_ImageList_GetIcon(MenuObjects[mo].hMenuIcons,MenuObjects[mo].MenuItems[mi].iconId,0);
-        newIcon=LoadIconFromLibrary(	MenuObjects[mo].Name,
+          newIcon=LoadIconFromLibrary(	MenuObjects[mo].Name,
 										uname,
 										descr,
 										deficon,FALSE,NULL);
