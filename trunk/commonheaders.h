@@ -169,7 +169,7 @@ extern __inline wchar_t * mir_strdupW(const wchar_t * src);
 #endif
 
 
-extern char *DBGetStringA(HANDLE hContact,const char *szModule,const char *szSetting);
+char *DBGetStringA(HANDLE hContact,const char *szModule,const char *szSetting);
 extern wchar_t *DBGetStringW(HANDLE hContact,const char *szModule,const char *szSetting);
 extern TCHAR *DBGetStringT(HANDLE hContact,const char *szModule,const char *szSetting);
 extern DWORD exceptFunction(LPEXCEPTION_POINTERS EP);
